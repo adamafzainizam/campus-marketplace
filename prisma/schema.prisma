@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  listings  Listing[]
+
+  @@map("users")
+}
+
+model Category {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  listings Listing[]
+
+  @@map("categories")
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  price       Decimal       @db.Decimal(10, 2)
+  condition   ListingCondition
+  status      ListingStatus @default(AVAILABLE)
+  imageUrl    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  sellerId    String
+  seller      User          @relation(fields: [sellerId], references: [id])
+
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("listings")
+}
+
+enum ListingCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  WORN
+}
+
+enum ListingStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+}
