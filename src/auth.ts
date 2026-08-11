@@ -20,6 +20,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const domain = user.email.split("@")[1];
       return domain === ALLOWED_DOMAIN || domain.endsWith(`.${ALLOWED_DOMAIN}`);
     },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
