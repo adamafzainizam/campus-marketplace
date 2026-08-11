@@ -8,3 +8,7 @@ export const r2 = new S3Client({
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
 });
+
+export function getImageUrl(key: string): string {
+  return `${process.env.R2_PUBLIC_URL}/${key}`;
+}

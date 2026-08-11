@@ -4,18 +4,11 @@ import { useState } from "react";
 import { unstable_rethrow } from "next/navigation";
 import { createListing } from "./actions";
 import { ListingCondition } from "@/generated/prisma/enums";
+import { CONDITION_LABELS } from "@/lib/listing-labels";
 
 type Category = {
   id: string;
   name: string;
-};
-
-const CONDITION_LABELS: Record<ListingCondition, string> = {
-  NEW: "New",
-  LIKE_NEW: "Like new",
-  GOOD: "Good",
-  FAIR: "Fair",
-  WORN: "Worn",
 };
 
 export function ListingForm({ categories }: { categories: Category[] }) {

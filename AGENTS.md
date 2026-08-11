@@ -29,7 +29,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Why it exists:** Portfolio project #1 of a 6-month full-stack build plan for a Diploma in Software Engineering student job-hunting afterward. Deliberately built as a real, demonstrable project — not a tutorial clone — covering auth, a real data model, image handling, and real-time messaging, plus professional habits (docs, tests, proper version control).
 
-**Builder context:** ~10-15 hrs/week. Builder wants the reasoning behind every decision explained, not just instructions — this preference extends to AI agents working on the codebase: don't just make changes, record *why*.
+**Builder context:** ~10-15 hrs/week. Builder wants the reasoning behind every decision explained, not just instructions — this preference extends to AI agents working on the codebase: don't just make changes, record *why*. **Builder wants to complete this entire project without spending any money** — this is a standing constraint on every tool/service/infra choice, not just the ones already decided; default to free options and ask before introducing a paid one (see Decision Log 2026-08-11).
 
 **8-week build plan:**
 - Weeks 1-2: Foundation — auth + data model DONE (tagged `v0.1`)
@@ -83,14 +83,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Listing creation flow built end-to-end: `src/app/listings/new/page.tsx` (server component, redirects unauthenticated visitors to `/api/auth/signin`, fetches categories), `ListingForm.tsx` (client component — file picker with local preview, calls `/api/upload` then `PUT`s the file straight to the presigned R2 URL, then calls the server action), `actions.ts` (`createListing` server action — validates title/description/price/condition/category server-side, writes the `Listing` row with `imageUrl` set to the raw R2 object key, not a working URL yet — see Decision Log 2026-08-11 on the `r2.dev`/custom-domain deferral)
 - Verified via automated checks: `tsc --noEmit` clean, `eslint` clean, dev server boots with no errors, unauthenticated `GET /listings/new` correctly redirects to the Google sign-in page.
 - **Authenticated golden path fully verified end-to-end by the builder (2026-08-11):** signed in with a real `@student.gmi.edu.my` account, posted a listing with an image through `/listings/new`, confirmed via direct DB + R2 query that the `Listing` row (correct seller/category/price/condition) and the R2 object (correct content-type, correct size) both exist. Required an R2 bucket CORS policy fix along the way — see Known Gotchas #14.
+- R2 bucket's **Public Development URL** (Cloudflare's current name for the `r2.dev` dev subdomain) enabled: `https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev`, stored as `R2_PUBLIC_URL` in `.env`. Chosen over a custom domain specifically because the builder wants to build this whole project without spending money, and a custom domain would require buying one (see the no-spend-constraint memory / Decision Log 2026-08-11).
+- `getImageUrl(key)` helper added to `src/lib/r2.ts`, converting a stored object key into a displayable URL via `R2_PUBLIC_URL`.
+- Listing browse page (`src/app/page.tsx`, replacing the default create-next-app scaffold) and listing detail page (`src/app/listings/[id]/page.tsx`) built: grid of `AVAILABLE` listings with image/title/price, category-pill filtering, a text search box (`title` substring match, case-insensitive), and a "Listing posted successfully" banner after the `?created=` redirect from `createListing`. `CONDITION_LABELS` extracted to `src/lib/listing-labels.ts` so both the form and detail page share it.
+- Verified in a real browser end-to-end by the builder, plus automated `curl` checks confirming: search and category filters both narrow results and both empty-correctly on no match, the detail page 404s on an unknown id, and the public R2 image URL is actually fetchable (200, `image/jpeg`) — not just constructed correctly.
 
 **Decided but not started:**
 - Cloudflare budget alert setup (no hard spending cap exists on R2 — alerts are the only safety net)
-- Making the R2 bucket's contents servable (public `r2.dev` dev subdomain vs. custom domain) — deliberately deferred, see Decision Log 2026-08-11. Until this is decided, `Listing.imageUrl` holds a raw R2 object key, not a displayable URL — the listing detail/browse pages (not yet built) will need a helper to turn that key into an actual URL once the domain choice is made.
 
 **Not yet decided:**
-- Search/filter implementation details
-- Listing detail page / category browsing UI
+- Pagination for the listing browse grid (not needed yet at current data volume, but will be before real users show up)
+- Whether/how sellers can edit or mark their own listings as sold (no edit/delete UI built yet — `ListingStatus` exists in the schema but nothing sets it to `PENDING`/`SOLD`)
 
 ---
 
@@ -154,6 +157,7 @@ R2_BUCKET_NAME         # "campus-marketplace-images-dev"
 - **2026-08-11** — Deliberately deferred the choice between `r2.dev` public dev subdomain vs. a Cloudflare-managed custom domain for serving bucket images. Cloudflare explicitly documents `r2.dev` as a debug-only hostname (rate-limited, uncached, not meant for production), so it's not a long-term answer — but a custom domain requires a domain already onboarded as a Cloudflare DNS zone, which this project doesn't have yet. Decided to use `r2.dev` when image display is actually built (not yet), and switch to a custom domain at Week 7 deployment when a real domain is set up anyway, rather than blocking listings CRUD work on a domain decision today.
 - **2026-08-11** — Because the serving-domain decision above is still open, `Listing.imageUrl` is populated with the raw R2 object key (e.g. `listings/<userId>/<uuid>.jpg`) rather than a full URL, at listing-creation time. This keeps the create flow working without forcing the domain decision early; it does mean a small conversion helper (key → displayable URL) will be needed once the listing detail/browse pages are built and the domain choice is made.
 - **2026-08-11** — Seeded a fixed set of 7 categories (Textbooks, Electronics, Furniture, Appliances, Clothing, Sports & Outdoors, Other) via `prisma/seed.ts` rather than building category-management UI: matches the item types already named in this file's Project Overview, and category management isn't part of the 8-week build plan — categories are expected to be a fixed, curated list, not user-generated.
+- **2026-08-11** — Resolved the `r2.dev` vs. custom-domain deferral from earlier the same day: **the builder wants to complete this entire project without spending any money**, and a custom domain would require actually buying one (R2 → custom domain itself is free, but domain registration isn't). Enabled R2's Public Development URL instead — free, immediate, no purchase required. This is a standing constraint, not just a one-off call: any future choice between a free and a paid option on this project should default to free unless there's genuinely no free way to do it, in which case ask before spending anything.
 
 ---
 
@@ -165,6 +169,7 @@ R2_BUCKET_NAME         # "campus-marketplace-images-dev"
 4. ~~Install `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, write a presigned-URL upload API route~~ — done 2026-08-11 (`src/app/api/upload/route.ts`).
 5. ~~Build the client-side upload flow and listing creation form~~ — done 2026-08-11 (`src/app/listings/new/`: `page.tsx`, `ListingForm.tsx`, `actions.ts`), **and verified end-to-end by the builder** with a real GMI account and a real image upload.
 5a. ~~Configure R2 bucket CORS policy~~ — done 2026-08-11, via dashboard (see Known Gotchas #14). Currently scoped to `http://localhost:3000` only — must add the production origin before Week 7 deployment.
-6. Decide `r2.dev` vs. custom domain for serving images (deferred — see Decision Log 2026-08-11) before building listing display, since `imageUrl` currently holds a raw object key, not a working URL.
-7. Build listing detail page, category browsing, basic search/filter.
-8. Tag `v0.2` at the end of this phase.
+6. ~~Decide `r2.dev` vs. custom domain for serving images~~ — done 2026-08-11, `r2.dev` (see Decision Log).
+7. ~~Build listing detail page, category browsing, basic search/filter~~ — done 2026-08-11 (`src/app/page.tsx`, `src/app/listings/[id]/page.tsx`), verified in-browser and via automated checks.
+8. Remaining before tagging `v0.2`: the Cloudflare budget alert (item 3, still outstanding) — everything else in the Weeks 3-4 plan (listings CRUD + image upload) is done. Consider whether pagination or seller edit/mark-as-sold controls are needed before tagging, or whether those can be deferred to Weeks 5-6 alongside messaging.
+9. Tag `v0.2` once the above is settled.
