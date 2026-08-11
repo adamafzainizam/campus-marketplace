@@ -29,7 +29,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **Why it exists:** Portfolio project #1 of a 6-month full-stack build plan for a Diploma in Software Engineering student job-hunting afterward. Deliberately built as a real, demonstrable project — not a tutorial clone — covering auth, a real data model, image handling, and real-time messaging, plus professional habits (docs, tests, proper version control).
 
-**Builder context:** ~10-15 hrs/week. Builder wants the reasoning behind every decision explained, not just instructions — this preference extends to AI agents working on the codebase: don't just make changes, record *why*.
+**Builder context:** ~10-15 hrs/week. Builder wants the reasoning behind every decision explained, not just instructions — this preference extends to AI agents working on the codebase: don't just make changes, record *why*. **Builder wants to complete this entire project without spending any money** — this is a standing constraint on every tool/service/infra choice, not just the ones already decided; default to free options and ask before introducing a paid one (see Decision Log 2026-08-11).
 
 **8-week build plan:**
 - Weeks 1-2: Foundation — auth + data model DONE (tagged `v0.1`)
@@ -61,11 +61,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | ORM | Prisma 7.9.1 | Type-safe queries — but see "Known Gotchas," this version differs structurally from most training data/tutorials |
 | Auth | Auth.js v5 (`next-auth@beta`) + `@auth/prisma-adapter` | Complete rewrite from NextAuth v4 — see "Known Gotchas" |
 | Auth provider | Google OAuth, restricted to `@gmi.edu.my` and all subdomains | GMI confirmed Google Workspace-backed; restriction enforced in the `signIn` callback, before any DB row is created, so rejected sign-ins need no cleanup |
-| File storage | Cloudflare R2 (decided, not yet implemented) | S3-compatible, zero egress fees; chosen over Backblaze B2 (no APAC region — real latency cost for Malaysia-based users) and Supabase Storage (inconsistent with using Neon standalone rather than the Supabase platform) |
+| File storage | Cloudflare R2, served via the free Public Development URL (`r2.dev`) | S3-compatible, zero egress fees; chosen over Backblaze B2 (no APAC region — real latency cost for Malaysia-based users) and Supabase Storage (inconsistent with using Neon standalone rather than the Supabase platform). Public Development URL over a custom domain because the builder wants to build this project without spending money — see Known Gotchas and Decision Log |
 
 ---
 
-## Current State (as of 2026-08-10)
+## Current State (as of 2026-08-11)
 
 **Done and verified:**
 - Next.js scaffold, TypeScript/Tailwind/ESLint/App Router/`src/` dir
@@ -75,15 +75,25 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Auth.js v5 fully wired (`src/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`), Google OAuth, domain-restricted `signIn` callback, JWT session strategy
 - End-to-end tested: real GMI Google account signed in successfully; `User` and `Account` rows confirmed created correctly via Prisma Studio
 - All of the above committed, pushed, and tagged as `v0.1`
+- Cloudflare R2 bucket created (`campus-marketplace-images-dev`) + scoped API token (Object Read & Write, restricted to this bucket); credentials added to `.env`
+- `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` installed; R2 client at `src/lib/r2.ts`
+- Presigned-upload API route (`src/app/api/upload/route.ts`): requires an authenticated session, allowlists `image/jpeg|png|webp`, caps size at 5MB, keys objects as `listings/<userId>/<uuid>.<ext>`, returns a 60s-expiring presigned PUT URL. Verified against a running dev server — correctly returns 401 when unauthenticated.
+- `src/auth.ts` session callback added to expose `session.user.id` (needed to scope upload keys per user; not present by default under the JWT strategy), with matching module augmentation at `src/types/next-auth.d.ts`
+- `prisma/seed.ts` seeds 7 standard categories (Textbooks, Electronics, Furniture, Appliances, Clothing, Sports & Outdoors, Other), wired via `migrations.seed` in `prisma.config.ts`; run with `npx prisma db seed`. Idempotent (`upsert` on `slug`).
+- Listing creation flow built end-to-end: `src/app/listings/new/page.tsx` (server component, redirects unauthenticated visitors to `/api/auth/signin`, fetches categories), `ListingForm.tsx` (client component — file picker with local preview, calls `/api/upload` then `PUT`s the file straight to the presigned R2 URL, then calls the server action), `actions.ts` (`createListing` server action — validates title/description/price/condition/category server-side, writes the `Listing` row with `imageUrl` set to the raw R2 object key, not a working URL yet — see Decision Log 2026-08-11 on the `r2.dev`/custom-domain deferral)
+- Verified via automated checks: `tsc --noEmit` clean, `eslint` clean, dev server boots with no errors, unauthenticated `GET /listings/new` correctly redirects to the Google sign-in page.
+- **Authenticated golden path fully verified end-to-end by the builder (2026-08-11):** signed in with a real `@student.gmi.edu.my` account, posted a listing with an image through `/listings/new`, confirmed via direct DB + R2 query that the `Listing` row (correct seller/category/price/condition) and the R2 object (correct content-type, correct size) both exist. Required an R2 bucket CORS policy fix along the way — see Known Gotchas #14.
+- R2 bucket's **Public Development URL** (Cloudflare's current name for the `r2.dev` dev subdomain) enabled: `https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev`, stored as `R2_PUBLIC_URL` in `.env`. Chosen over a custom domain specifically because the builder wants to build this whole project without spending money, and a custom domain would require buying one (see the no-spend-constraint memory / Decision Log 2026-08-11).
+- `getImageUrl(key)` helper added to `src/lib/r2.ts`, converting a stored object key into a displayable URL via `R2_PUBLIC_URL`.
+- Listing browse page (`src/app/page.tsx`, replacing the default create-next-app scaffold) and listing detail page (`src/app/listings/[id]/page.tsx`) built: grid of `AVAILABLE` listings with image/title/price, category-pill filtering, a text search box (`title` substring match, case-insensitive), and a "Listing posted successfully" banner after the `?created=` redirect from `createListing`. `CONDITION_LABELS` extracted to `src/lib/listing-labels.ts` so both the form and detail page share it.
+- Verified in a real browser end-to-end by the builder, plus automated `curl` checks confirming: search and category filters both narrow results and both empty-correctly on no match, the detail page 404s on an unknown id, and the public R2 image URL is actually fetchable (200, `image/jpeg`) — not just constructed correctly.
 
 **Decided but not started:**
-- Cloudflare R2 bucket + API token creation
 - Cloudflare budget alert setup (no hard spending cap exists on R2 — alerts are the only safety net)
 
 **Not yet decided:**
-- Listing creation form / validation approach
-- Search/filter implementation details
-- Image upload UI/UX flow
+- Pagination for the listing browse grid (not needed yet at current data volume, but will be before real users show up)
+- Whether/how sellers can edit or mark their own listings as sold (no edit/delete UI built yet — `ListingStatus` exists in the schema but nothing sets it to `PENDING`/`SOLD`)
 
 ---
 
@@ -108,7 +118,14 @@ NEXTAUTH_SECRET       # openssl rand -base64 32
 NEXTAUTH_URL          # http://localhost:3000 for local dev
 ```
 
-Planned, not yet added: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`.
+Added and populated:
+```
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME         # "campus-marketplace-images-dev"
+R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" — bucket's Public Development URL
+```
 
 ---
 
@@ -122,6 +139,12 @@ Planned, not yet added: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_K
 6. **Two GitHub accounts exist on this machine**: `adamafzainizam` (this project) and `skibidam` (GMI-linked). SSH keys can only belong to one GitHub account at a time — if a "key already in use" error appears, check which account is logged into the browser before adding a key.
 7. **`npm audit` reports 3 pre-existing high-severity issues** in the `postcss`/`sharp`/`next` dependency chain. Deliberately not fixed — `npm audit fix --force` would downgrade Next.js by several major versions. Not currently exploitable (no untrusted CSS input; no unvalidated image processing yet). Revisit before production deployment, not before.
 8. **Cloudflare has no hard spending cap** on R2 — only threshold-based email alerts. Don't assume a "safety net" exists beyond that.
+9. **Auth.js v5's JWT session strategy does not include `session.user.id` by default** — only `name`/`email`/`image` are populated. Any code that needs the user's DB id off the session (e.g. scoping uploaded object keys per user) requires an explicit `session` callback copying `token.sub` into `session.user.id`, plus a `declare module "next-auth"` type augmentation (see `src/types/next-auth.d.ts`) or it won't type-check.
+10. **Correction to gotcha #7:** `npm audit` now also flags `nanoid` (via the `postcss` chain, pulled in transitively by both `next` and `@tailwindcss/postcss`) as a 4th pre-existing high-severity issue, not 3. It predates the R2/AWS SDK install (confirmed via `git diff` on `package-lock.json` showing no changes to the existing `nanoid` entry) — the AWS SDK packages did not introduce it. Same reasoning as #7 still applies: not currently exploitable, revisit before production deployment.
+11. **This project enforces npm's `allowScripts` allowlist** (see `package.json`) — installing a new package whose dependency tree includes a lifecycle (`postinstall`) script will silently skip that script and print an `npm warn allow-scripts` line rather than failing loudly. Run `npm approve-scripts <pkg>` to review and approve after checking the package is reputable (this project already scoped-approved `sharp`, `unrs-resolver`, `prisma`, `@prisma/engines`, and `esbuild` — the last needed by `tsx`, which the seed script depends on).
+12. **Process reminder, not a code gotcha:** the R2/upload work in this session (session callback, upload route, R2 client) was initially built directly on `main`, in violation of this file's own "one feature = one branch" standing instruction. Caught and fixed by branching to `feature/listing-crud` mid-session and carrying the uncommitted work over — but any AI agent picking up a task here should create the feature branch *first*, before writing any code, not after.
+13. **`redirect()` from `next/navigation`, when called inside a server action that a client component invokes directly (not via `<form action={...}>`), throws a control-flow error that a client-side `try/catch` around the call will silently swallow unless you rethrow it.** Use `unstable_rethrow(err)` (exported from `next/navigation` in this version) as the first line of the `catch` block — it rethrows Next.js's internal redirect/notFound/etc. errors and no-ops for anything else. Missing this makes the redirect silently fail and shows a generic error message instead of navigating. See `src/app/listings/new/ListingForm.tsx`.
+14. **R2 buckets have no CORS policy by default, which blocks browser-side presigned uploads.** A direct `PUT` from client-side JS to a presigned R2 URL fails as a generic, undebuggable `TypeError: Failed to fetch` (CORS preflight blocks it before any HTTP response exists to inspect) — the `POST /api/upload` call that generates the presigned URL succeeds fine, only the follow-up browser `PUT` to R2 itself fails, which is confusing because nothing shows up server-side. Fix: bucket → **Settings → CORS Policy** in the dashboard, allowing the app's origin, `PUT`/`GET`/`HEAD`, and `AllowedHeaders: ["content-type"]` (R2 does not support a wildcard `"*"` in `AllowedHeaders` the way AWS S3 does). **This cannot be set via the scoped Object-Read-&-Write API token** — `PutBucketCorsCommand` returns `AccessDenied` — because CORS is a bucket-admin operation, not a data-plane one; it has to go through the dashboard (or a token with Admin Read & Write scope). Current policy only allows `http://localhost:3000` — add the production origin here once deployed (Week 7), or uploads will break there too.
 
 ---
 
@@ -131,15 +154,23 @@ Planned, not yet added: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_K
 - **2026-08-03** — Chose Auth.js v5 + Google OAuth over credential-based auth: identity verification comes free from Google, and it naturally enforces "GMI community only" without hand-rolled password security.
 - **2026-08-09** — Domain restriction broadened from `@student.gmi.edu.my` only to all of `@gmi.edu.my` (including subdomains), at the builder's request, so GMI staff (not just students) can use the marketplace too.
 - **2026-08-10** — Chose Cloudflare R2 over Backblaze B2 for image storage, despite B2 requiring no credit card: R2's lack of a hard APAC region gap matters more than the card friction, given the app's real users are in Malaysia. UploadThing was also considered and passed on in favor of R2's more transferable, general S3-API knowledge for job-hunting purposes.
+- **2026-08-11** — Used presigned PUT (`@aws-sdk/s3-request-presigner` + `PutObjectCommand`) rather than presigned POST for uploads: simpler client flow (one `PUT` request), and the app already knows the exact file size client-side before upload, so signing `ContentLength` gives an effective size cap without needing POST's condition-policy machinery (which would've required the separate `@aws-sdk/s3-presigned-post` package).
+- **2026-08-11** — Deliberately deferred the choice between `r2.dev` public dev subdomain vs. a Cloudflare-managed custom domain for serving bucket images. Cloudflare explicitly documents `r2.dev` as a debug-only hostname (rate-limited, uncached, not meant for production), so it's not a long-term answer — but a custom domain requires a domain already onboarded as a Cloudflare DNS zone, which this project doesn't have yet. Decided to use `r2.dev` when image display is actually built (not yet), and switch to a custom domain at Week 7 deployment when a real domain is set up anyway, rather than blocking listings CRUD work on a domain decision today.
+- **2026-08-11** — Because the serving-domain decision above is still open, `Listing.imageUrl` is populated with the raw R2 object key (e.g. `listings/<userId>/<uuid>.jpg`) rather than a full URL, at listing-creation time. This keeps the create flow working without forcing the domain decision early; it does mean a small conversion helper (key → displayable URL) will be needed once the listing detail/browse pages are built and the domain choice is made.
+- **2026-08-11** — Seeded a fixed set of 7 categories (Textbooks, Electronics, Furniture, Appliances, Clothing, Sports & Outdoors, Other) via `prisma/seed.ts` rather than building category-management UI: matches the item types already named in this file's Project Overview, and category management isn't part of the 8-week build plan — categories are expected to be a fixed, curated list, not user-generated.
+- **2026-08-11** — Resolved the `r2.dev` vs. custom-domain deferral from earlier the same day: **the builder wants to complete this entire project without spending any money**, and a custom domain would require actually buying one (R2 → custom domain itself is free, but domain registration isn't). Enabled R2's Public Development URL instead — free, immediate, no purchase required. This is a standing constraint, not just a one-off call: any future choice between a free and a paid option on this project should default to free unless there's genuinely no free way to do it, in which case ask before spending anything.
 
 ---
 
 ## Next Steps
 
-1. Create Cloudflare R2 bucket + scoped API token (Object Read & Write, restricted to this bucket).
-2. Add R2 credentials to `.env`.
-3. Set a Cloudflare budget alert as a safety net (no hard cap exists).
-4. Install `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, write a presigned-URL upload API route.
-5. Build listing creation form (title, description, price, condition, category, image).
-6. Build listing detail page, category browsing, basic search/filter.
-7. Tag `v0.2` at the end of this phase.
+1. ~~Create Cloudflare R2 bucket + scoped API token~~ — done 2026-08-11.
+2. ~~Add R2 credentials to `.env`~~ — done 2026-08-11.
+3. Set a Cloudflare budget alert as a safety net (no hard cap exists) — still outstanding.
+4. ~~Install `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, write a presigned-URL upload API route~~ — done 2026-08-11 (`src/app/api/upload/route.ts`).
+5. ~~Build the client-side upload flow and listing creation form~~ — done 2026-08-11 (`src/app/listings/new/`: `page.tsx`, `ListingForm.tsx`, `actions.ts`), **and verified end-to-end by the builder** with a real GMI account and a real image upload.
+6. ~~Configure R2 bucket CORS policy~~ — done 2026-08-11, via dashboard (see Known Gotchas #14). Currently scoped to `http://localhost:3000` only — must add the production origin before Week 7 deployment.
+7. ~~Decide `r2.dev` vs. custom domain for serving images~~ — done 2026-08-11, `r2.dev` (see Decision Log).
+8. ~~Build listing detail page, category browsing, basic search/filter~~ — done 2026-08-11 (`src/app/page.tsx`, `src/app/listings/[id]/page.tsx`), verified in-browser and via automated checks.
+9. Remaining before tagging `v0.2`: the Cloudflare budget alert (item 3, still outstanding) — everything else in the Weeks 3-4 plan (listings CRUD + image upload) is done. Consider whether pagination or seller edit/mark-as-sold controls are needed before tagging, or whether those can be deferred to Weeks 5-6 alongside messaging.
+10. Tag `v0.2` once the above is settled.
