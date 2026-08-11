@@ -61,7 +61,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | ORM | Prisma 7.9.1 | Type-safe queries — but see "Known Gotchas," this version differs structurally from most training data/tutorials |
 | Auth | Auth.js v5 (`next-auth@beta`) + `@auth/prisma-adapter` | Complete rewrite from NextAuth v4 — see "Known Gotchas" |
 | Auth provider | Google OAuth, restricted to `@gmi.edu.my` and all subdomains | GMI confirmed Google Workspace-backed; restriction enforced in the `signIn` callback, before any DB row is created, so rejected sign-ins need no cleanup |
-| File storage | Cloudflare R2 (decided, not yet implemented) | S3-compatible, zero egress fees; chosen over Backblaze B2 (no APAC region — real latency cost for Malaysia-based users) and Supabase Storage (inconsistent with using Neon standalone rather than the Supabase platform) |
+| File storage | Cloudflare R2, served via the free Public Development URL (`r2.dev`) | S3-compatible, zero egress fees; chosen over Backblaze B2 (no APAC region — real latency cost for Malaysia-based users) and Supabase Storage (inconsistent with using Neon standalone rather than the Supabase platform). Public Development URL over a custom domain because the builder wants to build this project without spending money — see Known Gotchas and Decision Log |
 
 ---
 
@@ -124,6 +124,7 @@ R2_ACCOUNT_ID
 R2_ACCESS_KEY_ID
 R2_SECRET_ACCESS_KEY
 R2_BUCKET_NAME         # "campus-marketplace-images-dev"
+R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" — bucket's Public Development URL
 ```
 
 ---
@@ -168,8 +169,8 @@ R2_BUCKET_NAME         # "campus-marketplace-images-dev"
 3. Set a Cloudflare budget alert as a safety net (no hard cap exists) — still outstanding.
 4. ~~Install `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, write a presigned-URL upload API route~~ — done 2026-08-11 (`src/app/api/upload/route.ts`).
 5. ~~Build the client-side upload flow and listing creation form~~ — done 2026-08-11 (`src/app/listings/new/`: `page.tsx`, `ListingForm.tsx`, `actions.ts`), **and verified end-to-end by the builder** with a real GMI account and a real image upload.
-5a. ~~Configure R2 bucket CORS policy~~ — done 2026-08-11, via dashboard (see Known Gotchas #14). Currently scoped to `http://localhost:3000` only — must add the production origin before Week 7 deployment.
-6. ~~Decide `r2.dev` vs. custom domain for serving images~~ — done 2026-08-11, `r2.dev` (see Decision Log).
-7. ~~Build listing detail page, category browsing, basic search/filter~~ — done 2026-08-11 (`src/app/page.tsx`, `src/app/listings/[id]/page.tsx`), verified in-browser and via automated checks.
-8. Remaining before tagging `v0.2`: the Cloudflare budget alert (item 3, still outstanding) — everything else in the Weeks 3-4 plan (listings CRUD + image upload) is done. Consider whether pagination or seller edit/mark-as-sold controls are needed before tagging, or whether those can be deferred to Weeks 5-6 alongside messaging.
-9. Tag `v0.2` once the above is settled.
+6. ~~Configure R2 bucket CORS policy~~ — done 2026-08-11, via dashboard (see Known Gotchas #14). Currently scoped to `http://localhost:3000` only — must add the production origin before Week 7 deployment.
+7. ~~Decide `r2.dev` vs. custom domain for serving images~~ — done 2026-08-11, `r2.dev` (see Decision Log).
+8. ~~Build listing detail page, category browsing, basic search/filter~~ — done 2026-08-11 (`src/app/page.tsx`, `src/app/listings/[id]/page.tsx`), verified in-browser and via automated checks.
+9. Remaining before tagging `v0.2`: the Cloudflare budget alert (item 3, still outstanding) — everything else in the Weeks 3-4 plan (listings CRUD + image upload) is done. Consider whether pagination or seller edit/mark-as-sold controls are needed before tagging, or whether those can be deferred to Weeks 5-6 alongside messaging.
+10. Tag `v0.2` once the above is settled.
