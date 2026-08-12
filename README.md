@@ -25,6 +25,7 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Filter listings by category
 - [x] Search listings by title
 - [x] View a single listing in detail
+- [x] Live upload progress while a photo is sending
 - [ ] Edit your own listing / mark it as sold
 - [ ] Message a seller
 - [ ] Deployed and publicly reachable
@@ -116,7 +117,7 @@ R2 rejects a wildcard `"*"` in `AllowedHeaders`, unlike AWS S3.
 Photos never pass through the app's own server. Instead:
 
 1. The browser asks the server for permission to upload a specific file.
-2. The server checks you're signed in, checks the file is a JPEG/PNG/WebP under 5MB, and hands back a one-minute upload link tied to that exact file size.
+2. The server checks you're signed in, checks the file is a JPEG/PNG/WebP under 5MB, and hands back a short-lived upload link tied to that exact file size.
 3. The browser uploads the photo directly to Cloudflare.
 4. The browser tells the server where the photo landed, and the server saves the listing.
 
