@@ -33,7 +33,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 **8-week build plan:**
 - Weeks 1-2: Foundation — auth + data model DONE (tagged `v0.1`)
-- Weeks 3-4: Listings CRUD + image upload — CURRENT PHASE
+- Weeks 3-4: Listings CRUD + image upload — DONE (tagged `v0.2`)
+- Weeks 5-6: Real-time messaging — CURRENT PHASE
 - Weeks 5-6: Real-time messaging (buyer-seller, via Pusher/Ably)
 - Week 7: Deployment (Vercel) + polish
 - Week 8: Documentation + case study
@@ -48,7 +49,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Local path:** `/home/adom/Documents/campus-marketplace`
 - **Branch:** `main`
 - **Git identity for this repo:** `adamafzainizam` / `m.adamafzainizam@gmail.com` — local override, deliberately separate from another GitHub account (`skibidam`) tied to the builder's GMI/school email that also exists on this machine. Never assume the global git config is correct for this repo; it's set locally on purpose.
-- **Latest tag:** `v0.1` — "Foundation: Next.js scaffold, Prisma schema, Neon DB, Google OAuth with GMI domain restriction"
+- **Latest tag:** `v0.2` — "Listings: create/browse/search/filter, R2 image upload via presigned URLs, hardened upload validation". Previous: `v0.1` — "Foundation: Next.js scaffold, Prisma schema, Neon DB, Google OAuth with GMI domain restriction"
+- **`gh` CLI is authenticated as the WRONG account** (`skibidam`, the GMI/student one) and therefore cannot see this repo at all — `gh pr list` fails with "Could not resolve to a Repository". Plain `git` is unaffected, because the remote is SSH (`git@github.com:...`) and this repo has a **local** `user.email` override, so all 15 commits are correctly attributed to `adamafzainizam`; verified 2026-08-12. If you need `gh` here, run `gh auth login` for the `adamafzainizam` account and `gh auth switch`. Note also that the **global** git identity is the student email, so any *new* repo created outside this folder will default to the wrong identity unless a local override is set first.
 
 ---
 
@@ -65,7 +67,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-## Current State (as of 2026-08-11)
+## Current State (as of 2026-08-12 — Weeks 3-4 complete, tagged `v0.2`)
 
 **Done and verified:**
 - Next.js scaffold, TypeScript/Tailwind/ESLint/App Router/`src/` dir
@@ -175,13 +177,19 @@ R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" �
 
 ## Next Steps
 
-1. ~~Create Cloudflare R2 bucket + scoped API token~~ — done 2026-08-11.
-2. ~~Add R2 credentials to `.env`~~ — done 2026-08-11.
-3. Set a Cloudflare budget alert as a safety net (no hard cap exists) — still outstanding.
-4. ~~Install `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, write a presigned-URL upload API route~~ — done 2026-08-11 (`src/app/api/upload/route.ts`).
-5. ~~Build the client-side upload flow and listing creation form~~ — done 2026-08-11 (`src/app/listings/new/`: `page.tsx`, `ListingForm.tsx`, `actions.ts`), **and verified end-to-end by the builder** with a real GMI account and a real image upload.
-6. ~~Configure R2 bucket CORS policy~~ — done 2026-08-11, via dashboard (see Known Gotchas #14). Currently scoped to `http://localhost:3000` only — must add the production origin before Week 7 deployment.
-7. ~~Decide `r2.dev` vs. custom domain for serving images~~ — done 2026-08-11, `r2.dev` (see Decision Log).
-8. ~~Build listing detail page, category browsing, basic search/filter~~ — done 2026-08-11 (`src/app/page.tsx`, `src/app/listings/[id]/page.tsx`), verified in-browser and via automated checks.
-9. Remaining before tagging `v0.2`: the Cloudflare budget alert (item 3, still outstanding) — everything else in the Weeks 3-4 plan (listings CRUD + image upload) is done. Consider whether pagination or seller edit/mark-as-sold controls are needed before tagging, or whether those can be deferred to Weeks 5-6 alongside messaging.
-10. Tag `v0.2` once the above is settled.
+**Weeks 3-4 are complete and tagged `v0.2`** (2026-08-12). Everything from the previous Next Steps list is done except the budget alert, which is carried over below. For the history of what was done and why, see Current State and the Decision Log rather than this list.
+
+**Carried over / outstanding:**
+1. **Set a Cloudflare budget alert** — still not done, and it is the last item from the Weeks 3-4 list. Cloudflare has no hard spending cap (Known Gotchas #8), so a threshold alert is the only safety net. Manual dashboard step: Billing → Notifications. This matters more than usual given the no-spend constraint.
+2. **No automated tests exist yet**, despite "tests" being named as a professional habit this project is meant to demonstrate. Node 24 runs TypeScript natively, so `node:test` would add a real suite with **zero new dependencies** — a good fit for the no-spend constraint. `src/lib/upload-constraints.ts` is pure functions and the obvious place to start; the validation rules there were verified once with a throwaway script that was then deleted, which is exactly the work a real test suite would preserve.
+3. **Add the production origin to the R2 CORS policy** before Week 7 deployment, or uploads break in production (Known Gotchas #14). Currently `http://localhost:3000` only.
+
+**Deferred by decision, revisit when relevant:**
+4. Pagination for the browse grid — `findMany` is currently unbounded. Fine at present data volume, needed before real users.
+5. Seller controls: edit your own listing, mark as sold. `ListingStatus` exists in the schema but nothing ever sets `PENDING`/`SOLD`.
+
+**Next phase (Weeks 5-6): real-time messaging.**
+6. Confirm Pusher's or Ably's free tier is actually sufficient **before** building against it — this choice predates the no-spend constraint being made explicit, so it was never checked against it.
+7. Design the message data model (conversation per listing? per buyer-seller pair?) and add the migration.
+8. Build the messaging UI and wire up the real-time transport.
+9. Tag `v0.3` at the end of the phase.
