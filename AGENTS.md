@@ -94,8 +94,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Full golden path re-verified with the hardening in place (2026-08-12):** a listing posted through the browser with a ~992KB photo produced a correct DB row, an R2 object of exactly matching size and content type, a working public URL, and — importantly — an image key that passes the new ownership validation. The security fixes don't break the normal path.
 - **The "signed `ContentLength` caps upload size" claim is now empirically verified, not assumed** (it was previously only asserted in the Decision Log). Probed against the live bucket: `content-length` does appear in `X-Amz-SignedHeaders`, and R2 rejects a body larger than the signed size with `403 Forbidden` and stores nothing. The 5MB cap is genuinely enforced server-side — relevant to the no-spend constraint, since R2's free tier is 10GB.
 
-**Decided but not started:**
-- Cloudflare budget alert setup (no hard spending cap exists on R2 — alerts are the only safety net)
+- **Cloudflare budget alert is set (2026-08-12):** threshold **$1.00**, one email recipient, confirmed active in the dashboard (Billing → Billable usage → Budget alerts). Deliberately set very low rather than at some "reasonable" figure — the goal isn't to cap a budget, it's to fire the moment *any* billable spend appears at all, since the project is meant to cost nothing (Known Gotchas #8: Cloudflare has no hard spending cap, so this alert is the only safety net). Usage at time of setting was $0.00, entirely within free-tier limits. This closes the last outstanding item from the Weeks 3-4 plan.
 
 **Not yet decided:**
 - Pagination for the listing browse grid (not needed yet at current data volume, but will be before real users show up)
@@ -177,10 +176,10 @@ R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" �
 
 ## Next Steps
 
-**Weeks 3-4 are complete and tagged `v0.2`** (2026-08-12). Everything from the previous Next Steps list is done except the budget alert, which is carried over below. For the history of what was done and why, see Current State and the Decision Log rather than this list.
+**Weeks 3-4 are complete and tagged `v0.2`** (2026-08-12), and every item from the previous Next Steps list is now done, including the Cloudflare budget alert. For the history of what was done and why, see Current State and the Decision Log rather than this list.
 
 **Carried over / outstanding:**
-1. **Set a Cloudflare budget alert** — still not done, and it is the last item from the Weeks 3-4 list. Cloudflare has no hard spending cap (Known Gotchas #8), so a threshold alert is the only safety net. Manual dashboard step: Billing → Notifications. This matters more than usual given the no-spend constraint.
+1. ~~Set a Cloudflare budget alert~~ — **done 2026-08-12**, $1.00 threshold with one email recipient. See Current State for the reasoning behind the deliberately low figure.
 2. **No automated tests exist yet**, despite "tests" being named as a professional habit this project is meant to demonstrate. Node 24 runs TypeScript natively, so `node:test` would add a real suite with **zero new dependencies** — a good fit for the no-spend constraint. `src/lib/upload-constraints.ts` is pure functions and the obvious place to start; the validation rules there were verified once with a throwaway script that was then deleted, which is exactly the work a real test suite would preserve.
 3. **Add the production origin to the R2 CORS policy** before Week 7 deployment, or uploads break in production (Known Gotchas #14). Currently `http://localhost:3000` only.
 
