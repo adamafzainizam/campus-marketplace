@@ -9,7 +9,11 @@ import {
   isValidFileSize,
 } from "@/lib/upload-constraints";
 
-const UPLOAD_URL_TTL_SECONDS = 60;
+// Long enough that a 5MB photo on a slow mobile connection can finish before
+// the link expires — a mid-upload expiry surfaces as an opaque 403. The window
+// is still short, and the URL is locked to one exact key, size and content type,
+// so a longer TTL doesn't widen what it can be used for.
+const UPLOAD_URL_TTL_SECONDS = 300;
 
 export async function POST(request: Request) {
   const session = await auth();
