@@ -25,7 +25,11 @@ async function main() {
   }
 
   console.log(`Seeded ${categories.length} categories.`);
-  await db.$disconnect();
 }
 
-main();
+main()
+  .catch((error) => {
+    console.error("Seeding failed:", error);
+    process.exitCode = 1;
+  })
+  .finally(() => db.$disconnect());
