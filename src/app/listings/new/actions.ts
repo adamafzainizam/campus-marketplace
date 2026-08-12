@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ListingCondition } from "@/generated/prisma/enums";
+import { isValidListingImageKey } from "@/lib/upload-constraints";
 
 type CreateListingInput = {
   title: string;
@@ -36,6 +37,13 @@ export async function createListing(input: CreateListingInput) {
   }
   if (!Object.values(ListingCondition).includes(input.condition as ListingCondition)) {
     throw new Error("Invalid condition.");
+  }
+
+  // The browser reports this key back to us after uploading straight to R2, so
+  // it's user input like everything else here — without this check a user could
+  // attach any path they like, including another user's uploaded image.
+  if (input.imageKey !== null && !isValidListingImageKey(input.imageKey, session.user.id)) {
+    throw new Error("Invalid image reference.");
   }
 
   const category = await db.category.findUnique({
