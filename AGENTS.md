@@ -65,10 +65,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 | Auth | Auth.js v5 (`next-auth@beta`) + `@auth/prisma-adapter` | Complete rewrite from NextAuth v4 — see "Known Gotchas" |
 | Auth provider | Google OAuth, restricted to `@gmi.edu.my` and all subdomains | GMI confirmed Google Workspace-backed; restriction enforced in the `signIn` callback, before any DB row is created, so rejected sign-ins need no cleanup |
 | File storage | Cloudflare R2, served via the free Public Development URL (`r2.dev`) | S3-compatible, zero egress fees; chosen over Backblaze B2 (no APAC region — real latency cost for Malaysia-based users) and Supabase Storage (inconsistent with using Neon standalone rather than the Supabase platform). Public Development URL over a custom domain because the builder wants to build this project without spending money — see Known Gotchas and Decision Log |
+| Realtime | Ably (managed WebSockets), free tier | Chosen over self-hosting Socket.io: "why buy rather than build this" is itself the interview story. Free tier verified 2026-08-13 — 6M msgs/month, 200 concurrent connections, no credit card. Postgres remains the store of record because Ably's free tier retains messages only 1 day |
+| Rate limiting | Postgres counters (no new service) | Must work across Vercel serverless instances; an in-memory Map would grant a fresh budget per instance. Upstash Redis rejected as a new billable service |
 
 ---
 
-## Current State (as of 2026-08-12 — Weeks 3-4 complete, tagged `v0.2`)
+## Current State (as of 2026-08-13 — Weeks 5-6 messaging built, security audit remediated; not yet tagged)
 
 **Done and verified:**
 - Next.js scaffold, TypeScript/Tailwind/ESLint/App Router/`src/` dir
@@ -98,6 +100,21 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **First automated test suite exists (2026-08-12, branch `feature/test-suite`):** 24 tests over `src/lib/upload-constraints.ts`, run with `npm test`, using `node:test` and Node 24's native TypeScript type-stripping — **zero new dependencies**. Covers all four exported functions, with explicit regression tests for the two security bugs in Known Gotchas #15 (prototype-chain allowlist bypass) and #17 (unvalidated image key), plus a round-trip test asserting `buildListingImageKey` always produces keys `isValidListingImageKey` accepts — the drift the Decision Log 2026-08-12 centralisation entry was worried about, now checked mechanically. **The suite was itself verified by mutation testing:** each security fix was reverted in turn and the intended test confirmed to fail, so the tests are known not to be vacuous. `tsc --noEmit`, `eslint`, and `next build` all still pass.
 - **Cloudflare budget alert is set (2026-08-12):** threshold **$1.00**, one email recipient, confirmed active in the dashboard (Billing → Billable usage → Budget alerts). Deliberately set very low rather than at some "reasonable" figure — the goal isn't to cap a budget, it's to fire the moment *any* billable spend appears at all, since the project is meant to cost nothing (Known Gotchas #8: Cloudflare has no hard spending cap, so this alert is the only safety net). Usage at time of setting was $0.00, entirely within free-tier limits. This closes the last outstanding item from the Weeks 3-4 plan.
 
+- **Security audit of the whole existing codebase (2026-08-13, branch `feature/messaging`).** Six findings, each verified against a running server rather than inferred. Fixed in this order of severity:
+  - **S1, HIGH — nothing was rate limited anywhere.** Verified with 30 rapid requests to `/api/upload` returning zero `429`s. An authenticated user could mint unlimited presigned URLs and push unlimited 5MB objects into R2, whose free tier is 10GB — and Cloudflare has no hard spending cap (Gotcha #8), so the $1 budget alert notifies *after* billing starts. This was a direct path from an ordinary GMI account to a real bill. Fixed with Postgres-backed rate limiting (see Decision Log).
+  - **S2, MEDIUM — orphaned R2 objects.** Upload happens before `createListing`, so abandoning the form leaves an object nothing references, still publicly readable at its `r2.dev` URL. **Only partly addressed:** rate limiting bounds the cost, but scheduled cleanup needs a cron and is still outstanding (see Next Steps).
+  - **S3, MEDIUM — server actions validated no input types.** `createListing` called `input.title.trim()` before checking `title` was a string; a POST of `{"title": null}` gave an unhandled TypeError and a 500. Fixed by extracting the rules to `src/lib/listing-constraints.ts`, where every function takes `unknown`.
+  - **S4, MEDIUM — no security headers at all.** Verified absent, now set in `next.config.ts`.
+  - **S5, LOW and latent — `include: { seller: true }` over-fetched every User column including email.** **Verified NOT leaking**: the rendered payload contains no email, because the page is a pure Server Component. Fixed as defence-in-depth, since it becomes real the moment that object reaches a Client Component.
+  - **S6, LOW — unbounded `findMany`** on the browse page. Now `take: 60`, search term length-capped.
+  - Verified clean: no secrets tracked or ever committed, no hardcoded credentials, CSRF covered by the framework's Origin/Host check, Prisma parameterizes the search query.
+- **Real-time messaging built (2026-08-13).** One thread per `(listing, buyer)` pair; `Conversation`, `Message`, `ConversationRead` models migrated. Inbox at `/messages`, thread at `/messages/[id]`, "Message seller" on the listing detail page, unread badges, and Ably presence ("X is in this chat"). Typing indicators deliberately dropped to conserve message quota.
+  - **The security property the whole feature rests on: clients never receive `publish` capability.** `/api/ably/token` issues tokens with `subscribe` and `presence` only, scoped to channels a DB lookup confirms the caller participates in. Messages enter a channel *only* from the server after a verified write, so a stolen token cannot forge one.
+  - Postgres owns all history — Ably's free tier retains messages for **1 day**, so it can never be the store of record.
+  - **Ably free tier verified 2026-08-13:** 6M messages/month, 200 concurrent connections, 200 concurrent channels, 500 msg/s, 64KiB max message, **no credit card required**. Comfortably sufficient; satisfies the no-spend constraint.
+- **Test suite grew to 69 tests** (from 24), covering `upload-constraints`, `listing-constraints`, `message-constraints`, and `rate-limit-rules`. Five security controls were mutation-tested — each reverted in turn and the intended test confirmed to fail: the Ably channel-id guard, the participant check, the condition allowlist, the rate-limit allowlist (which would fail *open*), and the string type guard from S3.
+- **Rate limiter verified against the live database**, not just unit-tested: blocks on request 21 of a limit of 20, an expired window resets the count to 1 rather than locking a user out permanently, and 30 parallel requests produce 30 distinct counts with no lost updates.
+
 **Not yet decided:**
 - Pagination for the listing browse grid (not needed yet at current data volume, but will be before real users show up)
 - Whether/how sellers can edit or mark their own listings as sold (no edit/delete UI built yet — `ListingStatus` exists in the schema but nothing sets it to `PENDING`/`SOLD`)
@@ -111,6 +128,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `ListingCondition` and `ListingStatus` are enums, not free-text strings — enforced at the DB level to prevent typo bugs (e.g. status checks silently failing).
 - `Listing`'s relations use `onDelete: Restrict` (default) — deliberately blocks deleting a `User`/`Category` that still has listings, forcing an explicit decision rather than silent cascade.
 - `Account`/`Session` use `onDelete: Cascade` from `User` — they're meaningless without their user, so cascading is correct there.
+- `Conversation` is uniquely keyed `@@unique([listingId, buyerId])` — one thread per buyer per listing. This is also what makes `startConversation` idempotent, so a double-click can't create two threads.
+- `Conversation` deliberately has **no `sellerId`**. The seller is `listing.sellerId`; duplicating it would create two sources of truth for who owns a listing. The cost is that "my conversations" is `buyerId = me OR listing.sellerId = me` rather than a single column match.
+- `Message` cascades from `Conversation` (meaningless without it), but `Conversation` **restricts** deletion of its `Listing` — see Decision Log 2026-08-13.
+- `RateLimit` is keyed by a plain string (`"<action>:<userId>"`) rather than a composite key, because the counter is written by raw SQL that needs a single conflict target for `ON CONFLICT`.
 - Auth.js adapter models (`Account`, `Session`, `VerificationToken`) use exact field names required by `@auth/prisma-adapter` — do not rename fields like `sessionToken` or `providerAccountId`, the adapter queries by these exact names.
 
 ---
@@ -132,6 +153,16 @@ R2_ACCESS_KEY_ID
 R2_SECRET_ACCESS_KEY
 R2_BUCKET_NAME         # "campus-marketplace-images-dev"
 R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" — bucket's Public Development URL
+```
+
+---
+
+**Required but NOT yet populated — messaging will not work until this is set:**
+```
+ABLY_API_KEY           # Ably root API key, server-only. Deliberately NOT prefixed
+                       # NEXT_PUBLIC_ — that would inline a full-privilege credential
+                       # into the client bundle. Get one free at ably.com (no credit
+                       # card); the free tier is confirmed sufficient for this project.
 ```
 
 ---
@@ -163,6 +194,12 @@ R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" �
 
 ---
 
+23. **The `@/*` alias failure in tests is *transitive*, not just direct.** Known Gotchas #21 covers a test importing `@/lib/foo`. The subtler case: a test correctly imports `./listing-constraints.ts` relatively, but *that module* imports `@/generated/prisma/enums` — and the test still dies with `ERR_MODULE_NOT_FOUND: Cannot find package '@/generated'`. Any module that a test reaches, at any depth, must use relative imports with explicit `.ts` extensions. This is why `src/lib/listing-constraints.ts` imports the Prisma enums relatively while the rest of the codebase uses `@/`.
+24. **`server-only` makes a module unimportable from standalone scripts, including verification scripts.** `src/lib/ably.ts` and `src/lib/rate-limit.ts` both import `server-only`, which is correct — it turns "leaked a credential into the client bundle" into a build error. But it also means `npx tsx -e 'import("./src/lib/rate-limit.ts")'` fails with *"This module cannot be imported from a Client Component module."* To verify logic in such a module from a script, either test the pure half (which is why `rate-limit-rules.ts` exists separately) or replicate the query directly against the database. Don't remove `server-only` to make a script work.
+25. **A rate limiter must be one atomic SQL statement, and its window reset needs testing separately from its limit.** Read-then-write in application code is a race an attacker will win. This project uses a single `INSERT ... ON CONFLICT DO UPDATE` with `CASE` expressions for both the counter and the window. Verified against the live database: 30 parallel requests produced 30 distinct counts (no lost updates). Note the reset needs its own test with a *backdated* `windowEnd` — passing a negative window to the normal code path does **not** exercise it, because the stored window hasn't expired yet. Getting the reset wrong means users are locked out permanently rather than for an hour.
+26. **The `pg` driver now warns that `sslmode=require` will be treated as `verify-full`.** Appears on every standalone script run against Neon: *"The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'."* It is a forward-compatibility notice, not an error, and the direction is stricter rather than looser — so nothing is currently at risk. Worth knowing before Week 7 deployment, in case the connection string needs an explicit `sslmode`.
+
+
 ## Decision Log
 
 - **2026-08-03** — Chose Neon over Supabase for the database: no credit card required, branching model mirrors the git workflow, avoids adopting Supabase's bundled platform features when the project deliberately uses separate best-of-breed tools elsewhere (Auth.js, not Supabase Auth).
@@ -178,29 +215,38 @@ R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" �
 - **2026-08-12** — Chose `node:test` + Node 24's native TypeScript support for the test suite, over Vitest or Jest. Both alternatives are better tools in the abstract, but each adds a dependency tree and a config file to a project whose standing constraint is to cost nothing and whose test targets are currently pure functions with no I/O and nothing to mock — the exact case where a framework earns least. `node:test` covers it with zero install. Revisit if React component tests are ever wanted, since that genuinely does need a framework (jsdom, a transform pipeline) that `node:test` alone doesn't provide.
 - **2026-08-12** — Test files are **co-located** (`src/lib/upload-constraints.test.ts`) rather than living in a separate `tests/` tree. Next.js only bundles what routes actually import, so a co-located `.test.ts` is inert in the production build (confirmed — `next build` output is unchanged), which means a separate tree would buy isolation this project doesn't need while making every import a `../../` climb. Co-location also means anyone reading a module sees its tests immediately, which matters for a portfolio project someone else will read.
 - **2026-08-12** — Verified the new test suite by **mutation testing** before trusting it: each of the two shipped security fixes was reverted in turn, and the test written to catch it was confirmed to actually fail. A regression test that has never been observed failing is only an assumption that it works. Worth repeating for any future security-relevant test, and cheap — three reverts and three test runs.
+- **2026-08-13** — Confirmed **Ably** over Pusher and closed the open question from the Weeks 5-6 plan. Free tier verified against the live pricing page: 6M messages/month, 200 concurrent connections and channels, 500 msg/s, no credit card. The number that actually shaped the architecture is **1-day message retention** — Ably therefore cannot be the store of record, so Postgres owns all history and Ably is live fan-out only. That was going to be the right design regardless; it is now a hard constraint rather than a preference.
+- **2026-08-13** — Messaging is **server-authoritative**: the client calls a server action, the server writes to Postgres and only then publishes to Ably. Rejected letting the client publish directly (two authorities that can diverge — a client could publish content that never reaches the DB) and an Ably webhook writing to the DB (more moving parts, harder to test, no benefit at this scale). The payoff is that **clients are never granted `publish` capability at all** — tokens carry `subscribe` and `presence` only, so a stolen token cannot forge a message because the ability isn't in it. This is Known Gotchas #17's lesson applied architecturally instead of patched on afterwards.
+- **2026-08-13** — Conversations are scoped **per (listing, buyer)**, not per (buyer, seller) pair, matching eBay/Carousell/Facebook Marketplace. A bare "is this still available?" is then never ambiguous, and a sold or deleted listing scopes cleanly to its own threads. The seller is derived from `listing.sellerId` rather than duplicated onto the conversation, keeping one source of truth for listing ownership.
+- **2026-08-13** — Read state is a **`ConversationRead` row per participant**, not `buyerLastReadAt`/`sellerLastReadAt` columns. There are only ever two participants so columns would work, but they force an "am I the buyer or the seller?" branch into every read and write, and that conditional is where unread-count bugs live.
+- **2026-08-13** — `Conversation → Listing` uses **`onDelete: Restrict`**, matching Listing's own relations. Deleting a listing that still has conversations should force an explicit decision rather than silently destroying message history — which turns the Week 7 edge case "deleted listing with an active conversation" into a database-enforced prompt instead of a surprise.
+- **2026-08-13** — Rate limiting is **Postgres-backed**, chosen over an in-memory `Map` and over Upstash Redis. Week 7 deploys to Vercel, where consecutive requests may hit different serverless instances that cold-start freely, so an in-memory counter hands an attacker a fresh budget per instance — protection that convinces in development and is close to worthless in production. Upstash is genuinely better at the job but adds an account, dependencies, and a service that can bill, against the standing no-spend constraint.
+- **2026-08-13** — CSP keeps `'unsafe-inline'` for scripts and styles, deliberately. Removing it requires a nonce, which requires middleware on every request, which opts every route out of static rendering. For an app whose only user-generated content is rendered as escaped text through JSX, that trade isn't worth it. Recorded rather than left implicit, so the next person doesn't assume it was an oversight — revisit if untrusted HTML is ever rendered.
+- **2026-08-13** — **Typing indicators dropped, presence kept.** Presence is a couple of messages per session (enter/leave); typing indicators fire continuously while someone types. Given the no-spend constraint and a finite free-tier message budget, presence buys most of the "someone is there" feeling at a small fraction of the quota.
 - **2026-08-11** — Resolved the `r2.dev` vs. custom-domain deferral from earlier the same day: **the builder wants to complete this entire project without spending any money**, and a custom domain would require actually buying one (R2 → custom domain itself is free, but domain registration isn't). Enabled R2's Public Development URL instead — free, immediate, no purchase required. This is a standing constraint, not just a one-off call: any future choice between a free and a paid option on this project should default to free unless there's genuinely no free way to do it, in which case ask before spending anything.
 
 ---
 
 ## Next Steps
 
-**Weeks 3-4 are complete and tagged `v0.2`** (2026-08-12), and every item from the previous Next Steps list is now done, including the Cloudflare budget alert. For the history of what was done and why, see Current State and the Decision Log rather than this list.
+**Weeks 5-6 messaging is built and the security audit is remediated** (2026-08-13, branch `feature/messaging`). Not yet tagged — `v0.3` waits on the end-to-end verification below. For what was done and why, see Current State and the Decision Log rather than this list.
+
+**BLOCKING — messaging is unverified end-to-end:**
+1. **Set `ABLY_API_KEY` in `.env`.** No Ably account exists yet, so nothing in the messaging flow has been exercised against the real service. Everything else is verified (69 tests, typecheck, lint, production build, live auth-gate probes, rate limiter against the live DB), but **sending a message browser-to-browser has never actually happened.** Sign up free at ably.com (no credit card), create an app, copy the root API key. Until then `/messages` renders and `/api/ably/token` returns 401 correctly, but opening a thread will throw `ABLY_API_KEY is not set`.
+2. Once the key is set, verify the golden path the way the upload flow was verified: two browser sessions, two different GMI accounts, message in both directions, confirm rows land in `messages`, confirm the unread badge clears, confirm presence shows "is in this chat".
 
 **Carried over / outstanding:**
-1. ~~Set a Cloudflare budget alert~~ — **done 2026-08-12**, $1.00 threshold with one email recipient. See Current State for the reasoning behind the deliberately low figure.
-2. ~~No automated tests exist yet~~ — **harness built and first suite landed 2026-08-12** (`npm test`, 24 tests, zero new dependencies). See Current State and Known Gotchas #20-22. **What's still untested, in rough priority order:**
-   - `createListing` validation in `src/app/listings/new/actions.ts` — the highest-value gap, but the rules are currently inline in a server action and would need extracting into a pure module first. That extraction is worth doing on its own merits.
-   - `/api/upload` route handler — needs request/session fixtures; more setup than the pure functions, so not a starting point.
-   - `src/lib/listing-labels.ts` — a static lookup map, near-zero logic, low value.
-   - Note for whoever writes the next suite: use **relative imports with explicit `.ts` extensions**, not `@/` (Known Gotchas #21). The glob in the `test` script picks up any new `src/**/*.test.ts` automatically, so no script change is needed.
-3. **Add the production origin to the R2 CORS policy** before Week 7 deployment, or uploads break in production (Known Gotchas #14). Currently `http://localhost:3000` only.
+3. **Orphaned R2 objects (audit finding S2) is only half-fixed.** Rate limiting bounds the cost, but an abandoned upload still leaves an object nothing references, publicly readable at its `r2.dev` URL. A real fix needs either an R2 lifecycle rule on a `pending/` prefix (upload there, copy on commit) or a scheduled cleanup job. Vercel Cron has a free tier — natural to wire up at Week 7 deployment.
+4. **Add the production origin to the R2 CORS policy** before Week 7 deployment, or uploads break in production (Known Gotchas #14). Currently `http://localhost:3000` only.
+5. **Add the production origin to the CSP and check `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`** at deployment. Next's docs call the latter out for multi-instance deploys so action references stay decryptable across instances.
+6. **Still untested, in rough priority order:** the `/api/upload` and `/api/ably/token` route handlers (both need request/session fixtures), `src/lib/conversations.ts` authorization paths (needs a DB fixture — the highest-value remaining gap, since it is the authorization layer), and `src/lib/listing-labels.ts` (static map, near-zero value). Note for whoever writes the next suite: relative imports with explicit `.ts` extensions, and mind that the rule is **transitive** (Known Gotchas #23).
 
 **Deferred by decision, revisit when relevant:**
-4. Pagination for the browse grid — `findMany` is currently unbounded. Fine at present data volume, needed before real users.
-5. Seller controls: edit your own listing, mark as sold. `ListingStatus` exists in the schema but nothing ever sets `PENDING`/`SOLD`.
+7. Pagination for the browse grid — now bounded at `take: 60`, which stops the unbounded case but is not real pagination. Needed before real users.
+8. Seller controls: edit your own listing, mark as sold. `ListingStatus` exists but nothing sets `PENDING`/`SOLD`. Note this now interacts with messaging — marking sold should probably surface in the thread.
+9. Blocking/reporting users. A real moderation need for a marketplace, deliberately out of scope for the 8-week plan.
+10. Message editing and deletion.
 
-**Next phase (Weeks 5-6): real-time messaging.**
-6. Confirm Pusher's or Ably's free tier is actually sufficient **before** building against it — this choice predates the no-spend constraint being made explicit, so it was never checked against it.
-7. Design the message data model (conversation per listing? per buyer-seller pair?) and add the migration.
-8. Build the messaging UI and wire up the real-time transport.
-9. Tag `v0.3` at the end of the phase.
+**Then:**
+11. Tag `v0.3` once item 2 passes.
+12. Week 7: deployment (Vercel) + polish. Week 8: README with screenshots, live link, setup instructions, and the case study.
