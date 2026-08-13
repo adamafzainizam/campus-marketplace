@@ -24,6 +24,10 @@ model User {
   sessions Session[]
   listings Listing[]
 
+  conversationsAsBuyer Conversation[]
+  messages             Message[]
+  conversationReads    ConversationRead[]
+
   @@map("users")
 }
 
@@ -94,10 +98,86 @@ model Listing {
   categoryId  String
   category    Category      @relation(fields: [categoryId], references: [id])
 
+  conversations Conversation[]
+
   @@index([sellerId])
   @@index([categoryId])
   @@index([status])
   @@map("listings")
+}
+
+/// One thread per (listing, buyer) pair — the model eBay, Carousell and
+/// Facebook Marketplace all use, so "is this still available?" is never
+/// ambiguous. The seller is NOT stored here; it is derived from
+/// listing.sellerId, which keeps a single source of truth for who owns a
+/// listing.
+model Conversation {
+  id        String   @id @default(cuid())
+  listingId String
+  buyerId   String
+  createdAt DateTime @default(now())
+  /// Bumped on every new message so the inbox can order by recency without
+  /// aggregating over the messages table.
+  updatedAt DateTime @updatedAt
+
+  /// Restrict, matching Listing's own relations: deleting a listing that still
+  /// has conversations should force an explicit decision rather than silently
+  /// destroying message history.
+  listing Listing @relation(fields: [listingId], references: [id])
+  buyer   User    @relation(fields: [buyerId], references: [id])
+
+  messages Message[]
+  reads    ConversationRead[]
+
+  @@unique([listingId, buyerId])
+  @@index([buyerId])
+  @@index([updatedAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String   @db.Text
+  createdAt      DateTime @default(now())
+
+  /// Cascade: messages are meaningless without their conversation, the same
+  /// reasoning Account/Session use from User.
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+/// Read state per participant. A row per participant rather than
+/// buyerLastReadAt/sellerLastReadAt columns: there are only ever two
+/// participants, but columns would force an "am I buyer or seller?" branch
+/// into every read and write, and that conditional is where unread-count bugs
+/// live.
+model ConversationRead {
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@map("conversation_reads")
+}
+
+/// Rate-limit counters. In Postgres rather than memory because Vercel runs
+/// multiple serverless instances that cold-start freely — an in-memory counter
+/// would grant a fresh budget per instance. See src/lib/rate-limit.ts.
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  windowEnd DateTime
+
+  @@index([windowEnd])
+  @@map("rate_limits")
 }
 
 enum ListingCondition {

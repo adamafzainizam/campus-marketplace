@@ -8,6 +8,7 @@ import {
   imageExtensionFor,
   isValidFileSize,
 } from "@/lib/upload-constraints";
+import { consumeRateLimit } from "@/lib/rate-limit";
 
 // Long enough that a 5MB photo on a slow mobile connection can finish before
 // the link expires — a mid-upload expiry surfaces as an opaque 403. The window
@@ -19,6 +20,18 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limited before any work is done. R2's free tier is 10GB and
+  // Cloudflare has no hard spending cap (Known Gotchas #8), so an unbounded
+  // mint endpoint is a direct route to a bill: this caps a single account at
+  // roughly 100MB/hour instead of unlimited.
+  const limit = await consumeRateLimit("upload", session.user.id);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: "Too many uploads. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
+    );
   }
 
   let body: unknown;
