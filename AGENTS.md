@@ -34,7 +34,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 **8-week build plan:**
 - Weeks 1-2: Foundation — auth + data model DONE (tagged `v0.1`)
 - Weeks 3-4: Listings CRUD + image upload — DONE (tagged `v0.2`)
-- Weeks 5-6: Real-time messaging (buyer-seller, via Pusher/Ably) — **CURRENT PHASE**. A *managed* WebSocket service was chosen over self-hosting Socket.io deliberately: the reasoning ("why buy rather than build this") is itself the interview story, and real-time is the least tutorial-shaped part of the project. **Open question before this phase starts: confirm Pusher's or Ably's free tier is actually sufficient**, given the no-spend constraint — this predates that constraint being made explicit.
+- Weeks 5-6: Real-time messaging (buyer-seller, via **Ably**) — DONE (tagged `v0.3`). A *managed* WebSocket service was chosen over self-hosting Socket.io deliberately: the reasoning ("why buy rather than build this") is itself the interview story, and real-time is the least tutorial-shaped part of the project. The open free-tier question was resolved 2026-08-13 in Ably's favour and verified against the live service.
 - Week 7: Deployment (Vercel) + polish — including edge cases that are cheap to handle now and are most of what "production-ready" means here: failed upload, deleted listing with an active conversation, etc.
 - Week 8: Documentation + case study — concretely: README with screenshots, a live link, and setup instructions; plus a short case study covering the problem, the architecture decisions, and one thing that would be improved with more time. This is the document a recruiter reads first.
 
@@ -48,7 +48,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Local path:** `/home/adom/Documents/campus-marketplace`
 - **Branch:** `main`
 - **Git identity for this repo:** `adamafzainizam` / `m.adamafzainizam@gmail.com` — local override, deliberately separate from another GitHub account (`skibidam`) tied to the builder's GMI/school email that also exists on this machine. Never assume the global git config is correct for this repo; it's set locally on purpose.
-- **Latest tag:** `v0.2` — "Listings: create/browse/search/filter, R2 image upload via presigned URLs, hardened upload validation". Previous: `v0.1` — "Foundation: Next.js scaffold, Prisma schema, Neon DB, Google OAuth with GMI domain restriction"
+- **Latest tag:** `v0.3` — "Real-time messaging via Ably, plus remediation of a six-finding security audit". Previous: `v0.2` — "Listings: create/browse/search/filter, R2 image upload via presigned URLs, hardened upload validation"; `v0.1` — "Foundation: Next.js scaffold, Prisma schema, Neon DB, Google OAuth with GMI domain restriction"
 - **`gh` CLI now works — fixed 2026-08-12.** It was previously authenticated only as `skibidam` (the GMI/student account), which cannot see this repo at all, so `gh pr list` failed with "Could not resolve to a Repository". Both accounts are now authenticated and `adamafzainizam` is active; `gh` can list, create, and merge PRs normally. If that error ever reappears, the fix is `gh auth switch --user adamafzainizam`, not re-authenticating. When running `gh auth login` here, choose **Skip** at the "upload your SSH public key" prompt — both keys are already on the account, and `~/.ssh/id_ed25519` is the dead one (Known Gotchas #5). Note that the **global** git identity is still the student email, so any *new* repo created outside this folder will default to the wrong identity unless a local override is set first; this repo has a **local** `user.email` override, so its commits have always been correctly attributed to `adamafzainizam`.
 
 **Local machine** (carried over from the old `dev-environment.md` scratch doc): Linux Mint Cinnamon 22.3 on an ASUS TUF Gaming A15 (FA506NC-HN168W). Node is installed via `nvm` rather than Mint's `apt` package, because the distro package lags behind current LTS and `nvm` allows per-project Node versions. There is deliberately **no local Postgres** — the project has developed against a hosted database from day one to avoid "works on my machine" gaps at deployment.
@@ -70,7 +70,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-## Current State (as of 2026-08-13 — Weeks 5-6 messaging built, security audit remediated; not yet tagged)
+## Current State (as of 2026-08-14 — Weeks 5-6 messaging complete, security audit remediated, tagged `v0.3`)
 
 **Done and verified:**
 - Next.js scaffold, TypeScript/Tailwind/ESLint/App Router/`src/` dir
@@ -113,6 +113,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Postgres owns all history — Ably's free tier retains messages for **1 day**, so it can never be the store of record.
   - **Ably free tier verified 2026-08-13:** 6M messages/month, 200 concurrent connections, 200 concurrent channels, 500 msg/s, 64KiB max message, **no credit card required**. Comfortably sufficient; satisfies the no-spend constraint.
 - **Test suite grew to 69 tests** (from 24), covering `upload-constraints`, `listing-constraints`, `message-constraints`, and `rate-limit-rules`. Five security controls were mutation-tested — each reverted in turn and the intended test confirmed to fail: the Ably channel-id guard, the participant check, the condition allowlist, the rate-limit allowlist (which would fail *open*), and the string type guard from S3.
+- **Ably verified against the live service (2026-08-14), key now set in `.env`.** The security property the design rests on is confirmed empirically, not merely asserted: a client holding a capability-scoped token that attempts to publish is rejected by **Ably itself** with `40160: Unable to publish a message due to lacking the required 'publish' capability`, while a server publish over the same channel is delivered to that client normally, and presence reports the client correctly. A stolen or tampered client token genuinely cannot forge a message.
+- **Conversation authorization verified at the database level (2026-08-14):** with a seeded thread, the `buyerId = me OR listing.sellerId = me` predicate returned the conversation for the seller and for the buyer, and **not** for an unrelated third user.
+- **Messaging exercised in a real browser (2026-08-14), single session.** Signed in as a real GMI account, opened a seeded thread, sent a message; persistence, auth gating, unread clearing and the thread UI all behaved. **Still unverified: live delivery between two different sessions.** Nobody has yet watched a message appear in a second browser without a refresh. The transport is proven to work (see the Ably check above) and the wiring is proven to work, but the two ends have not been observed talking to each other. `v0.3` was tagged anyway, by the builder's explicit call — recorded here so the gap isn't mistaken for a completed check.
 - **Rate limiter verified against the live database**, not just unit-tested: blocks on request 21 of a limit of 20, an expired window resets the count to 1 rather than locking a user out permanently, and 30 parallel requests produce 30 distinct counts with no lost updates.
 
 **Not yet decided:**
@@ -231,9 +234,9 @@ ABLY_API_KEY           # Ably root API key, server-only. Deliberately NOT prefix
 
 **Weeks 5-6 messaging is built and the security audit is remediated** (2026-08-13, branch `feature/messaging`). Not yet tagged — `v0.3` waits on the end-to-end verification below. For what was done and why, see Current State and the Decision Log rather than this list.
 
-**BLOCKING — messaging is unverified end-to-end:**
-1. **Set `ABLY_API_KEY` in `.env`.** No Ably account exists yet, so nothing in the messaging flow has been exercised against the real service. Everything else is verified (69 tests, typecheck, lint, production build, live auth-gate probes, rate limiter against the live DB), but **sending a message browser-to-browser has never actually happened.** Sign up free at ably.com (no credit card), create an app, copy the root API key. Until then `/messages` renders and `/api/ably/token` returns 401 correctly, but opening a thread will throw `ABLY_API_KEY is not set`.
-2. Once the key is set, verify the golden path the way the upload flow was verified: two browser sessions, two different GMI accounts, message in both directions, confirm rows land in `messages`, confirm the unread badge clears, confirm presence shows "is in this chat".
+**Outstanding verification:**
+1. ~~Set `ABLY_API_KEY`~~ — **done 2026-08-14**, verified against the live service. See Current State.
+2. **Two-session real-time delivery is still unobserved.** A single browser session was tested successfully, and the Ably transport was verified independently, but no one has watched a message land in a second browser without a refresh. Do this when a second GMI account is convenient: two sessions, message both ways, confirm no refresh is needed and that presence flips to "is in this chat". This is the last gap between "built and tested" and "seen working".
 
 **Carried over / outstanding:**
 3. **Orphaned R2 objects (audit finding S2) is only half-fixed.** Rate limiting bounds the cost, but an abandoned upload still leaves an object nothing references, publicly readable at its `r2.dev` URL. A real fix needs either an R2 lifecycle rule on a `pending/` prefix (upload there, copy on commit) or a scheduled cleanup job. Vercel Cron has a free tier — natural to wire up at Week 7 deployment.
