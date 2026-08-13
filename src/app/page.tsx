@@ -7,7 +7,12 @@ export default async function Home({
 }: {
   searchParams: Promise<{ category?: string; q?: string; created?: string }>;
 }) {
-  const { category: categorySlug, q: query, created } = await searchParams;
+  const { category: categorySlug, q: rawQuery, created } = await searchParams;
+
+  // Search terms come straight off the URL. Prisma parameterizes the value so
+  // there is no injection path, but the length is still worth bounding so a
+  // multi-megabyte query string can't be turned into database work.
+  const query = typeof rawQuery === "string" ? rawQuery.trim().slice(0, 100) : undefined;
 
   const [listings, categories] = await Promise.all([
     db.listing.findMany({
@@ -16,8 +21,16 @@ export default async function Home({
         ...(categorySlug ? { category: { slug: categorySlug } } : {}),
         ...(query ? { title: { contains: query, mode: "insensitive" } } : {}),
       },
-      include: { category: true },
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        imageUrl: true,
+      },
       orderBy: { createdAt: "desc" },
+      // Bounded so the query can't grow without limit as listings accumulate.
+      // Real pagination is still owed; this stops the unbounded case first.
+      take: 60,
     }),
     db.category.findMany({ orderBy: { name: "asc" } }),
   ]);
@@ -32,12 +45,20 @@ export default async function Home({
 
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Campus Marketplace</h1>
-        <Link
-          href="/listings/new"
-          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background"
-        >
-          Post a listing
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/messages"
+            className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium dark:border-zinc-700"
+          >
+            Messages
+          </Link>
+          <Link
+            href="/listings/new"
+            className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background"
+          >
+            Post a listing
+          </Link>
+        </div>
       </div>
 
       <form className="mb-6 flex flex-wrap gap-3" action="/" method="get">
