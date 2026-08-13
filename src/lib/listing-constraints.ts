@@ -1,0 +1,99 @@
+/**
+ * Single source of truth for listing-creation rules.
+ *
+ * Extracted from the `createListing` server action so the rules can be tested
+ * directly. A server action is a public POST endpoint — Next.js's own guidance
+ * for this version is blunt about it: "Treat FormData, query parameters, and
+ * headers as untrusted." Every function here therefore takes `unknown` and
+ * establishes the type before calling any method on the value. The previous
+ * inline version called `input.title.trim()` before checking `title` was a
+ * string, which turned a hostile payload into an unhandled TypeError and a 500.
+ */
+
+// Relative, with an explicit extension, rather than the `@/` alias used
+// elsewhere: this module is imported by a test, and `node --test` resolves
+// imports itself without reading tsconfig `paths`. The alias fails at runtime
+// even when it is a *transitive* import — see Known Gotchas #21.
+import { ListingCondition } from "../generated/prisma/enums.ts";
+
+export const TITLE_MIN_LENGTH = 3;
+export const TITLE_MAX_LENGTH = 100;
+export const DESCRIPTION_MIN_LENGTH = 10;
+export const DESCRIPTION_MAX_LENGTH = 2000;
+
+/** Up to 8 digits and at most 2 decimals, matching Decimal(10,2) in the schema. */
+const PRICE_PATTERN = /^\d{1,8}(\.\d{1,2})?$/;
+
+export type Valid<T> = { ok: true; value: T };
+export type Invalid = { ok: false; error: string };
+export type Result<T> = Valid<T> | Invalid;
+
+const invalid = (error: string): Invalid => ({ ok: false, error });
+
+export function validateTitle(value: unknown): Result<string> {
+  if (typeof value !== "string") return invalid("Title is required.");
+  const title = value.trim();
+  if (title.length < TITLE_MIN_LENGTH || title.length > TITLE_MAX_LENGTH) {
+    return invalid(
+      `Title must be between ${TITLE_MIN_LENGTH} and ${TITLE_MAX_LENGTH} characters.`,
+    );
+  }
+  return { ok: true, value: title };
+}
+
+export function validateDescription(value: unknown): Result<string> {
+  if (typeof value !== "string") return invalid("Description is required.");
+  const description = value.trim();
+  if (
+    description.length < DESCRIPTION_MIN_LENGTH ||
+    description.length > DESCRIPTION_MAX_LENGTH
+  ) {
+    return invalid(
+      `Description must be between ${DESCRIPTION_MIN_LENGTH} and ${DESCRIPTION_MAX_LENGTH} characters.`,
+    );
+  }
+  return { ok: true, value: description };
+}
+
+/**
+ * Price stays a string all the way to Prisma, which is what Decimal(10,2)
+ * wants. Converting to a float to check it would reintroduce exactly the
+ * precision problem the schema chose Decimal to avoid.
+ */
+export function validatePrice(value: unknown): Result<string> {
+  if (typeof value !== "string") return invalid("Price is required.");
+  const price = value.trim();
+  if (!PRICE_PATTERN.test(price)) {
+    return invalid("Price must be a number with up to 2 decimal places.");
+  }
+  if (Number(price) <= 0) {
+    return invalid("Price must be greater than zero.");
+  }
+  return { ok: true, value: price };
+}
+
+/**
+ * Guarded with `Object.hasOwn` rather than a bare lookup, for the same reason
+ * `imageExtensionFor` is — see Known Gotchas #15. An allowlist keyed by user
+ * input is bypassable through the prototype chain otherwise.
+ */
+export function validateCondition(value: unknown): Result<ListingCondition> {
+  if (typeof value !== "string") return invalid("Condition is required.");
+  if (!Object.hasOwn(ListingCondition, value)) {
+    return invalid("Invalid condition.");
+  }
+  return { ok: true, value: value as ListingCondition };
+}
+
+/**
+ * Ids are opaque to this module — it only confirms the shape is plausible
+ * before the value reaches a database query. cuid() ids are alphanumeric.
+ */
+export function validateId(value: unknown, label: string): Result<string> {
+  if (typeof value !== "string") return invalid(`${label} is required.`);
+  const id = value.trim();
+  if (id.length === 0 || id.length > 64 || !/^[A-Za-z0-9_-]+$/.test(id)) {
+    return invalid(`Invalid ${label.toLowerCase()}.`);
+  }
+  return { ok: true, value: id };
+}
