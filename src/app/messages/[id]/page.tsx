@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getThreadFor } from "@/lib/conversations";
 import { MessageThread } from "./MessageThread";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default async function ConversationPage({
   params,
@@ -13,7 +14,7 @@ export default async function ConversationPage({
 
   const session = await auth();
   if (!session?.user?.id) {
-    redirect(`/api/auth/signin?callbackUrl=/messages/${id}`);
+    redirect(`/signin?callbackUrl=/messages/${id}`);
   }
 
   // Returns null both when the conversation doesn't exist and when it isn't
@@ -26,10 +27,13 @@ export default async function ConversationPage({
   return (
     <div className="mx-auto flex h-dvh w-full max-w-3xl flex-col px-6 py-6">
       <div className="mb-4 border-b border-zinc-200 pb-4 dark:border-zinc-800">
-        <Link href="/messages" className="text-sm text-zinc-600 dark:text-zinc-400">
-          &larr; All messages
-        </Link>
-        <h1 className="mt-2 text-lg font-semibold">
+        <Breadcrumbs
+          items={[
+            { label: "Messages", href: "/messages" },
+            { label: thread.listingTitle },
+          ]}
+        />
+        <h1 className="text-lg font-semibold">
           <Link href={`/listings/${thread.listingId}`} className="hover:underline">
             {thread.listingTitle}
           </Link>

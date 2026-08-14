@@ -3,23 +3,20 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listInboxFor } from "@/lib/conversations";
 import { getImageUrl } from "@/lib/r2";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default async function MessagesPage() {
   const session = await auth();
   if (!session?.user?.id) {
-    redirect("/api/auth/signin?callbackUrl=/messages");
+    redirect("/signin?callbackUrl=/messages");
   }
 
   const conversations = await listInboxFor(session.user.id);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-12">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Messages</h1>
-        <Link href="/" className="text-sm text-zinc-600 dark:text-zinc-400">
-          Back to listings
-        </Link>
-      </div>
+      <Breadcrumbs items={[{ label: "Messages" }]} />
+      <h1 className="mb-8 text-2xl font-semibold">Messages</h1>
 
       {conversations.length === 0 ? (
         <p className="text-zinc-600 dark:text-zinc-400">

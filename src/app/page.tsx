@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default async function Home({
   searchParams,
@@ -43,23 +44,11 @@ export default async function Home({
         </p>
       )}
 
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Campus Marketplace</h1>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/messages"
-            className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium dark:border-zinc-700"
-          >
-            Messages
-          </Link>
-          <Link
-            href="/listings/new"
-            className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background"
-          >
-            Post a listing
-          </Link>
-        </div>
-      </div>
+      {/* Brand and primary nav now live in the site-wide header, so they
+          appear on every page rather than only this one. */}
+      <Breadcrumbs items={[]} />
+
+      <h1 className="mb-8 text-2xl font-semibold">Browse listings</h1>
 
       <form className="mb-6 flex flex-wrap gap-3" action="/" method="get">
         <input
