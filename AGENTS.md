@@ -118,7 +118,25 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Messaging exercised in a real browser (2026-08-14), single session.** Signed in as a real GMI account, opened a seeded thread, sent a message; persistence, auth gating, unread clearing and the thread UI all behaved. **Still unverified: live delivery between two different sessions.** Nobody has yet watched a message appear in a second browser without a refresh. The transport is proven to work (see the Ably check above) and the wiring is proven to work, but the two ends have not been observed talking to each other. `v0.3` was tagged anyway, by the builder's explicit call — recorded here so the gap isn't mistaken for a completed check.
 - **Rate limiter verified against the live database**, not just unit-tested: blocks on request 21 of a limit of 20, an expired window resets the count to 1 rather than locking a user out permanently, and 30 parallel requests produce 30 distinct counts with no lost updates.
 
-**Week 7 in progress (2026-08-14, branch `feature/deployment`) — code done, dashboard work outstanding:**
+**DEPLOYED 2026-08-14 — live at `https://campus-marketplace-adamafzainizam.vercel.app`.**
+
+The live URL is **not** `campus-marketplace.vercel.app`. That name was already taken globally by an unrelated project (which, confusingly, is also a student marketplace called "CampusMarket"), so Vercel silently assigned the `-adamafzainizam` suffix. `NEXTAUTH_URL` was briefly pointed at the stranger's domain as a result — see Known Gotchas #29.
+
+Infrastructure as deployed:
+- **Vercel** Hobby plan, team `adamafzainizam`, project `campus-marketplace`, building `main`. Deployment Protection (Vercel Authentication) had to be **disabled** — it is on by default and makes the whole site require a Vercel login, which for a portfolio site is worse than not deploying it.
+- **Neon**: the root branch is named `production` (Neon's current default name, not something anyone chose) and had been serving as the dev database since day one. Rather than branching prod off dev, a **`development` child branch** was created and local `.env` repointed at it, then `production` was cleared of test data — keeping the 7 categories, since an empty category table renders the listing form with a dead dropdown. This is Neon's own recommended topology: root = production, children = dev.
+- **R2**: a second bucket, `campus-marketplace-images-prod`, with its own account-scoped Object Read & Write token and its own Public Development URL. This **reverses the 2026-08-14 decision to reuse one bucket** — see the Decision Log entry for why the cleanup job forced the change.
+
+Verified against the live site from a terminal, not assumed:
+- All six security headers present. The production CSP carries the **prod** bucket in `img-src` with no trace of the dev one, proving `R2_PUBLIC_URL` was readable at build time; `upgrade-insecure-requests` present; no `unsafe-eval` or `localhost` leaked from the dev branch of the config.
+- `401` from `/api/ably/token`, `POST /api/upload`, and `/api/cron/cleanup-orphans` (both with no header and with a wrong secret) while signed out.
+- `/` returns 200; `/listings/new` and `/messages` correctly 307 to sign-in.
+- R2 CORS preflight (`OPTIONS` with `Origin` + `Access-Control-Request-Method: PUT`) returns **204** with correct allow-headers from the production origin, and **403 with no CORS headers at all** from an unrelated origin — both the positive and the negative case.
+- An authorized cron run against production returned `200 {"scanned":0,"referenced":0,"deleted":0}`, which exercises production's Neon credentials and R2 credentials in a single call.
+
+**Still unverified at time of writing:** everything needing a browser — sign-in, posting a listing with a photo (the check that would catch a CORS mistake), image rendering, and messaging. Plus the two-session real-time test, still outstanding from Weeks 5-6.
+
+**Week 7 code work (2026-08-14, merged in PR #9):**
 - **Orphaned R2 objects (audit finding S2) is now fully closed.** `/api/cron/cleanup-orphans` lists the `listings/` prefix, and deletes objects no `Listing.imageUrl` references; `vercel.json` schedules it daily at 03:00 UTC. The reference set is read *before* the bucket listing (Gotcha #28), a 24-hour grace period protects uploads whose listing hasn't been submitted yet, a 500-object per-run cap bounds the blast radius, and keys outside the `listings/` prefix are refused outright. Rules live in `src/lib/orphan-cleanup-rules.ts` with no I/O, matching the `rate-limit-rules.ts` split.
 - **Test suite grew to 86 tests** (from 69). Five cleanup security controls were mutation-tested — each reverted in turn and the intended test confirmed to fail: the fail-closed secret check, the secret comparison itself, the 24-hour grace period, the prefix guard, and the per-run cap.
 - **The cleanup job was verified against the live bucket and database, not just unit-tested.** Unauthenticated, wrong-secret and missing-`Bearer`-scheme requests all return 401. An authorized run reported `scanned:2, referenced:2, deleted:0` — a real positive result, since both objects predate the grace period and would have been deleted had key matching been broken. A throwaway unreferenced object was then scanned and deliberately spared while fresh, and deleted once the grace period was disabled, with both referenced objects untouched.
@@ -148,22 +166,26 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Environment Variables (`.env`, gitignored — names only, no values here)
 
+**Local `.env` now describes DEVELOPMENT only.** Since 2026-08-14 the local file points at the Neon `development` branch and the `-dev` R2 bucket; production's values live in Vercel. The two sets are deliberately different and must not be conflated — pointing local dev at production's database or bucket is the mistake this split exists to prevent.
+
 ```
-DATABASE_URL          # Neon pooled connection string
-GOOGLE_CLIENT_ID
-GOOGLE_CLIENT_SECRET
-NEXTAUTH_SECRET       # openssl rand -base64 32
+DATABASE_URL          # Neon pooled connection string — the DEVELOPMENT branch
+GOOGLE_CLIENT_ID      # shared between local and production
+GOOGLE_CLIENT_SECRET  # shared between local and production
+NEXTAUTH_SECRET       # openssl rand -base64 32 (production has its own, different value)
 NEXTAUTH_URL          # http://localhost:3000 for local dev
 ```
 
 Added and populated:
 ```
-R2_ACCOUNT_ID
-R2_ACCESS_KEY_ID
+R2_ACCOUNT_ID          # shared — per Cloudflare account, not per bucket
+R2_ACCESS_KEY_ID       # token scoped to the DEV bucket only
 R2_SECRET_ACCESS_KEY
 R2_BUCKET_NAME         # "campus-marketplace-images-dev"
-R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" — bucket's Public Development URL
+R2_PUBLIC_URL          # "https://pub-c0990a88042a463b99371ed032ec3b90.r2.dev" — dev bucket's Public Development URL
 ```
+
+**Production values (set in Vercel, 13 variables).** `campus-marketplace-images-prod` has its own account-scoped token and its own Public Development URL (`https://pub-5b71e404511d4106af3652de10bcf5da.r2.dev`); `DATABASE_URL` is the Neon `production` branch; `NEXTAUTH_URL` is `https://campus-marketplace-adamafzainizam.vercel.app` (note the suffix — Known Gotchas #29). A local gitignored copy is kept at `.env.vercel.local`, with the production database string at `.env.prod-db.local`, so neither has to be reassembled by hand.
 
 ---
 
@@ -223,6 +245,8 @@ Note that `R2_PUBLIC_URL` is read at **build** time as well as at runtime — `n
 26. **The `pg` driver now warns that `sslmode=require` will be treated as `verify-full`.** Appears on every standalone script run against Neon: *"The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'."* It is a forward-compatibility notice, not an error, and the direction is stricter rather than looser — so nothing is currently at risk. Worth knowing before Week 7 deployment, in case the connection string needs an explicit `sslmode`.
 27. **The generated Prisma client is gitignored, so a fresh clone cannot build — and Vercel builds from a fresh clone.** `/src/generated/prisma` is in `.gitignore` with zero files tracked, which is correct (generated code doesn't belong in git) but means `next build` on any machine that hasn't run `prisma generate` fails with `module-not-found` on `./src/generated/prisma/enums`, traced through `src/lib/db.ts` into every page. Confirmed empirically on 2026-08-14 by moving the directory aside and building. Fixed by making the build script `prisma generate && next build`. This is easy to miss locally because the directory always exists on a machine that has ever run a migration — the failure only appears on a clean checkout, i.e. the first deploy.
 28. **A cleanup job that deletes storage must read its reference set *before* listing the bucket.** In that order, a listing created while the job runs is either already in the reference set, or its object isn't in the bucket listing yet — both outcomes are safe. The reverse order leaves a window where the object exists but its `Listing` row does not, and the job deletes a live image. The same reasoning is why `/api/cron/cleanup-orphans` keeps a 24-hour grace period: the browser uploads to R2 *before* `createListing` runs, so a freshly uploaded object is legitimately unreferenced for as long as someone is still filling in the form.
+29. **A `.vercel.app` subdomain is globally unique, and Vercel silently gives you a suffixed one when your name is taken.** Asking for project `campus-marketplace` produced `campus-marketplace-adamafzainizam.vercel.app`, while `campus-marketplace.vercel.app` belongs to a stranger's app. Nothing in the Vercel UI announces this. The damage is that `NEXTAUTH_URL` and the Google OAuth callback get configured against a domain you don't control, and sign-in then fails with an opaque redirect error that looks like an Auth.js misconfiguration — so the instinct is to debug the wrong layer entirely. **Always probe the deployed site rather than assuming the name you asked for is the name you got.** The tell: `curl` the domain and check whether the `<title>` and your security headers are actually yours. A domain serving 200 on `/` but 404 on every route, with none of your headers, is somebody else's app.
+30. **Vercel Deployment Protection is ON by default and makes the entire site require a Vercel login.** Every route 302s to `vercel.com/sso-api`, including the production domain, so the site is invisible to anyone without dashboard access — fatal for a portfolio project whose whole purpose is being opened by a recruiter. Turn it off at Settings → Deployment Protection → Vercel Authentication → Disabled. From `curl` this looks like a redirect to an SSO URL with a `_vercel_sso_nonce` cookie, which is distinctive enough to recognise immediately.
 
 
 ## Decision Log
@@ -250,6 +274,8 @@ Note that `R2_PUBLIC_URL` is read at **build** time as well as at runtime — `n
 - **2026-08-13** — **Typing indicators dropped, presence kept.** Presence is a couple of messages per session (enter/leave); typing indicators fire continuously while someone types. Given the no-spend constraint and a finite free-tier message budget, presence buys most of the "someone is there" feeling at a small fraction of the quota.
 - **2026-08-14** — **The four Week 7 deployment decisions, resolved with the builder** (options and reasoning in `docs/week7-deployment-brief.md`; the resulting procedure in `docs/week7-deployment-runbook.md`): ship on `.vercel.app` rather than blocking on a domain the no-spend constraint won't buy, keeping `r2.dev` for images and recording its rate-limited/uncached caveat as a case-study trade-off; a **separate Neon branch** for production, since sharing one database between local dev and a live site is exactly what Neon's branching was chosen to avoid; **reuse the existing R2 bucket**, because a second one doubles the CORS surface (the failure mode in Gotcha #14 is undebuggable) for no real gain at this scale; and **do orphan cleanup now**, while already in the deployment context.
 - **2026-08-14** — Orphan cleanup is a **daily Vercel Cron hitting a route handler**, not an R2 lifecycle rule on a `pending/` prefix. The lifecycle-rule design (upload to `pending/`, copy to `listings/` on commit) needs no scheduler, but it makes every successful upload do a copy plus a delete and adds a second key format for `isValidListingImageKey` to police — more moving parts in the *golden* path to tidy up after the abandoned one. The cron route keeps all the complexity in the rarely-run job. Vercel Cron's free tier keeps it within the no-spend constraint.
+- **2026-08-14** — **Reversed the same day's "reuse one R2 bucket" decision; production gets its own bucket** (`campus-marketplace-images-prod`). The original reasoning — a second bucket doubles the CORS surface, and Gotcha #14's failure mode is undebuggable — was sound *before the cleanup job existed*. Afterwards it isn't: the cron job deletes every object production's database doesn't reference, and production's database has never heard of anything created during local development. One shared bucket therefore means prod silently deletes dev's images roughly a day after they're uploaded, and the cause would be near-impossible to guess from the symptom. Two buckets cost one extra CORS policy and one extra token; one bucket costs an entire class of cross-environment data loss. Recorded as a reversal rather than edited in place, because *why* it changed is the useful part: a decision that was correct became incorrect when a new component landed, which is worth recognising as a pattern.
+- **2026-08-14** — **Local dev repointed at a new Neon `development` branch; the pre-existing root branch, already named `production`, became production.** Neon names the default branch `production` on new projects, so the database that had served as dev since 2026-08-03 was called "production" all along. Branching *dev off prod* rather than *prod off dev* keeps the root as production (Neon's own recommended topology) and means production needed clearing rather than rebuilding. Its test listings had to go regardless: their `imageUrl` keys point at objects in the dev bucket, which production's `R2_PUBLIC_URL` cannot serve. Categories were deliberately kept — an empty category table renders the listing form with a dead dropdown.
 - **2026-08-14** — The cleanup route **fails closed on a missing `CRON_SECRET`**, and its secret comparison runs through a SHA-256 digest before `timingSafeEqual`. Failing open on a missing secret would turn one forgotten Vercel environment variable into a public deletion endpoint — strictly worse than a cleanup job that never runs. The digest is what lets `timingSafeEqual` (which throws on unequal-length buffers) accept any input while leaking neither the secret's contents nor its length. Both properties are mutation-tested.
 - **2026-08-11** — Resolved the `r2.dev` vs. custom-domain deferral from earlier the same day: **the builder wants to complete this entire project without spending any money**, and a custom domain would require actually buying one (R2 → custom domain itself is free, but domain registration isn't). Enabled R2's Public Development URL instead — free, immediate, no purchase required. This is a standing constraint, not just a one-off call: any future choice between a free and a paid option on this project should default to free unless there's genuinely no free way to do it, in which case ask before spending anything.
 
