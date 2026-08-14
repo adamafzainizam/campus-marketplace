@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { unstable_rethrow } from "next/navigation";
-import { createListing } from "./actions";
+import { createListing, updateListing } from "./actions";
 import { ListingCondition, ListingType, RentalPeriod } from "@/generated/prisma/enums";
 import {
   CONDITION_LABELS,
@@ -16,6 +16,23 @@ type Category = {
   name: string;
 };
 
+/**
+ * The listing being edited, when the form is in edit mode. Absent means a new
+ * listing. Kept as one optional prop rather than a `mode` flag plus separate
+ * initial values, so it is impossible to be in edit mode without the values.
+ */
+export type EditableListing = {
+  id: string;
+  title: string;
+  description: string;
+  price: string;
+  condition: ListingCondition;
+  type: ListingType;
+  rentalPeriod: RentalPeriod | null;
+  categoryId: string;
+  imageUrl: string | null;
+};
+
 /** What the form is currently doing, so the button can say something useful. */
 type Stage =
   | { kind: "idle" }
@@ -23,14 +40,31 @@ type Stage =
   | { kind: "uploading"; percent: number | null }
   | { kind: "saving" };
 
-export function ListingForm({ categories }: { categories: Category[] }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [condition, setCondition] = useState<ListingCondition>(ListingCondition.GOOD);
-  const [type, setType] = useState<ListingType>(ListingType.SALE);
-  const [rentalPeriod, setRentalPeriod] = useState<RentalPeriod>(RentalPeriod.WEEK);
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+export function ListingForm({
+  categories,
+  listing,
+  existingImageUrl,
+}: {
+  categories: Category[];
+  listing?: EditableListing;
+  /** Displayable URL for the current photo, when editing. */
+  existingImageUrl?: string | null;
+}) {
+  const editing = listing !== undefined;
+
+  const [title, setTitle] = useState(listing?.title ?? "");
+  const [description, setDescription] = useState(listing?.description ?? "");
+  const [price, setPrice] = useState(listing?.price ?? "");
+  const [condition, setCondition] = useState<ListingCondition>(
+    listing?.condition ?? ListingCondition.GOOD,
+  );
+  const [type, setType] = useState<ListingType>(listing?.type ?? ListingType.SALE);
+  const [rentalPeriod, setRentalPeriod] = useState<RentalPeriod>(
+    listing?.rentalPeriod ?? RentalPeriod.WEEK,
+  );
+  const [categoryId, setCategoryId] = useState(
+    listing?.categoryId ?? categories[0]?.id ?? "",
+  );
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>({ kind: "idle" });
@@ -83,7 +117,8 @@ export function ListingForm({ categories }: { categories: Category[] }) {
     try {
       const imageKey = file ? await uploadImage(file) : null;
       setStage({ kind: "saving" });
-      const result = await createListing({
+
+      const fields = {
         title,
         description,
         price,
@@ -93,12 +128,21 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         // client holds no opinion about which fields matter.
         rentalPeriod,
         categoryId,
-        imageKey,
-      });
+      };
 
-      // createListing only returns when something went wrong; on success it
-      // redirects. Returned failures carry a real message, unlike thrown ones
-      // which Next masks in production builds.
+      const result = editing
+        ? await updateListing(listing.id, {
+            ...fields,
+            // Omitted entirely when no new photo was chosen, so an edit that
+            // doesn't touch the image doesn't clear it. Sending null would
+            // mean "remove the photo".
+            ...(imageKey === null ? {} : { imageKey }),
+          })
+        : await createListing({ ...fields, imageKey });
+
+      // Both only return when something went wrong; on success they redirect.
+      // Returned failures carry a real message, unlike thrown ones which Next
+      // masks in production builds.
       if (result && !result.ok) {
         setError(result.error);
         setStage({ kind: "idle" });
@@ -120,9 +164,9 @@ export function ListingForm({ categories }: { categories: Category[] }) {
           ? "Uploading photo..."
           : `Uploading photo... ${stage.percent}%`;
       case "saving":
-        return "Saving listing...";
+        return editing ? "Saving changes..." : "Saving listing...";
       default:
-        return "Post listing";
+        return editing ? "Save changes" : "Post listing";
     }
   }
 
@@ -255,7 +299,7 @@ export function ListingForm({ categories }: { categories: Category[] }) {
 
       <div className="flex flex-col gap-1">
         <label htmlFor="image" className="text-sm font-medium">
-          Photo (optional)
+          {editing ? "Replace photo (optional)" : "Photo (optional)"}
         </label>
         <input
           id="image"
@@ -263,13 +307,22 @@ export function ListingForm({ categories }: { categories: Category[] }) {
           accept="image/jpeg,image/png,image/webp"
           onChange={handleFileChange}
         />
-        {previewUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={previewUrl}
-            alt="Selected preview"
-            className="mt-2 h-40 w-40 rounded object-cover"
-          />
+        {/* The chosen file wins over the stored one, so the preview always
+            shows what will actually be saved. */}
+        {(previewUrl ?? existingImageUrl) && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl ?? existingImageUrl ?? ""}
+              alt={previewUrl ? "Selected preview" : "Current photo"}
+              className="mt-2 h-40 w-40 rounded object-cover"
+            />
+            {editing && !previewUrl && (
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Leave this empty to keep the current photo.
+              </p>
+            )}
+          </>
         )}
       </div>
 
