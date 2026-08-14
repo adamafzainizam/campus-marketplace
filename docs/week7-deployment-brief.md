@@ -82,14 +82,24 @@ Mirror the checks already run locally, against the live site:
 
 ---
 
-## Reminder that will save time
+## Also queued, lower priority
 
-**The SSH agent drops on every new shell**, and the failure looks like *"repository does not exist"* rather than an auth error. It cost time three separate times in the last session. Before any push:
+- **Seller controls** — edit a listing, mark it sold. `ListingStatus` exists in the schema but nothing ever sets `PENDING`/`SOLD`. The most visible functional gap; a marketplace demo where nothing can be marked sold looks unfinished. Note it now interacts with messaging (marking sold should probably surface in the thread).
+- **Pagination** — the browse grid is bounded at `take: 60`, which stops the unbounded case but is not real pagination.
+- **Untested code, in priority order:** `src/lib/conversations.ts` authorization paths (highest value — it is the authorization layer, and it currently has no automated test; it was verified manually against the database instead), then the `/api/upload` and `/api/ably/token` route handlers. Both route handlers need request/session fixtures.
 
-```bash
-eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_new
-```
+---
 
-The durable fix — a per-account key plus a `~/.ssh/config` host alias, so `adamafzainizam` and `skibidam` stop sharing one key context — has been noted as unimplemented since early in the project. Half an hour would end the recurrence, and deployment week is when pushes get frequent.
+## Process reminders that have cost time before
 
-Also: branch **before** writing code (Known Gotchas #12), and after a migration always verify the generated client actually contains the new models (Known Gotchas #2 — it fired again during Weeks 5-6).
+- **Branch before writing code**, not after (Known Gotchas #12). One feature, one branch, one PR — it is an explicit learning goal, not incidental.
+- **`ssh-add` after every new terminal session.** This failed three times in the Weeks 5-6 session alone, and the error message is misleading — a missing key surfaces as *"repository does not exist"*, which looks like a permissions problem. Run `eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519_new`. The proper fix (per-account key + `~/.ssh/config` host alias) is still unimplemented and would take about half an hour.
+- **After any migration, verify the generated client actually updated** (Known Gotchas #2). This fired again in the Weeks 5-6 session: `prisma migrate dev` applied the migration but did not regenerate the client. Check `src/generated/prisma/models/` for the expected files.
+- **Retry once before debugging a 500** (Known Gotchas #16). Neon auto-suspends; a cold start looks exactly like an application bug. This also fired in the Weeks 5-6 session — an empty listings page that was purely a cold start.
+- **Read `node_modules/next/dist/docs/` before writing Next-specific code.** This version differs from training data, and the deployment and self-hosting guides are directly relevant to this phase.
+
+---
+
+## Suggested opening move for the next session
+
+Read `AGENTS.md`, then this file, then resolve the four open decisions above with the builder before touching anything. The deployment itself is mostly mechanical once those are settled; getting them wrong means redoing DNS, CORS, and environment configuration.
