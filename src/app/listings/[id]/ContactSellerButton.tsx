@@ -19,9 +19,16 @@ export function ContactSellerButton({ listingId }: { listingId: string }) {
     setBusy(true);
     setError(null);
     try {
-      const conversationId = await startConversation(listingId);
-      router.push(`/messages/${conversationId}`);
+      const result = await startConversation(listingId);
+      if (!result.ok) {
+        setError(result.error);
+        setBusy(false);
+        return;
+      }
+      router.push(`/messages/${result.value}`);
     } catch (err) {
+      // Only genuinely unexpected failures reach here now; expected ones come
+      // back as `result.error` above, which survives production error masking.
       setError(err instanceof Error ? err.message : "Could not open the chat.");
       setBusy(false);
     }

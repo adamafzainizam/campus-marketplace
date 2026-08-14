@@ -7,6 +7,11 @@ import { publish } from "@/lib/ably";
 import { getParticipantsIfMember } from "@/lib/conversations";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import {
+  actionFailed,
+  actionOk,
+  type ActionResult,
+} from "@/lib/action-result";
+import {
   conversationChannel,
   counterpartyId,
   isSafeChannelId,
@@ -23,12 +28,14 @@ import { validateId } from "@/lib/listing-constraints";
  * came through the UI.
  */
 
-async function requireUserId(): Promise<string> {
+/**
+ * Returns the caller's id, or null when signed out. Callers turn that into an
+ * ActionFailure — thrown errors are masked in production builds, so an
+ * expected "you're signed out" would reach the user as an opaque digest.
+ */
+async function currentUserId(): Promise<string | null> {
   const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("You need to be signed in.");
-  }
-  return session.user.id;
+  return session?.user?.id ?? null;
 }
 
 /**
@@ -36,15 +43,18 @@ async function requireUserId(): Promise<string> {
  * seller. Idempotent: the unique constraint on (listingId, buyerId) means a
  * double-click can't create two threads.
  */
-export async function startConversation(rawListingId: unknown): Promise<string> {
-  const userId = await requireUserId();
+export async function startConversation(
+  rawListingId: unknown,
+): Promise<ActionResult<string>> {
+  const userId = await currentUserId();
+  if (!userId) return actionFailed("You need to be signed in to message a seller.");
 
   const listingId = validateId(rawListingId, "Listing");
-  if (!listingId.ok) throw new Error(listingId.error);
+  if (!listingId.ok) return actionFailed(listingId.error);
 
   const limit = await consumeRateLimit("conversation", userId);
   if (!limit.allowed) {
-    throw new Error(
+    return actionFailed(
       `Too many conversations started. Try again in ${limit.retryAfter} seconds.`,
     );
   }
@@ -54,10 +64,10 @@ export async function startConversation(rawListingId: unknown): Promise<string> 
     select: { id: true, sellerId: true },
   });
   if (!listing) {
-    throw new Error("That listing no longer exists.");
+    return actionFailed("That listing no longer exists.");
   }
   if (listing.sellerId === userId) {
-    throw new Error("You can't start a conversation on your own listing.");
+    return actionFailed("You can't start a conversation on your own listing.");
   }
 
   const conversation = await db.conversation.upsert({
@@ -69,24 +79,25 @@ export async function startConversation(rawListingId: unknown): Promise<string> 
     select: { id: true },
   });
 
-  return conversation.id;
+  return actionOk(conversation.id);
 }
 
 export async function sendMessage(
   rawConversationId: unknown,
   rawBody: unknown,
-): Promise<void> {
-  const userId = await requireUserId();
+): Promise<ActionResult> {
+  const userId = await currentUserId();
+  if (!userId) return actionFailed("You need to be signed in to send a message.");
 
   const conversationId = validateId(rawConversationId, "Conversation");
-  if (!conversationId.ok) throw new Error(conversationId.error);
+  if (!conversationId.ok) return actionFailed(conversationId.error);
 
   const body = validateMessageBody(rawBody);
-  if (!body.ok) throw new Error(body.error);
+  if (!body.ok) return actionFailed(body.error);
 
   const limit = await consumeRateLimit("message", userId);
   if (!limit.allowed) {
-    throw new Error(
+    return actionFailed(
       `You're sending messages too quickly. Try again in ${limit.retryAfter} seconds.`,
     );
   }
@@ -98,7 +109,7 @@ export async function sendMessage(
     userId,
   );
   if (!participants) {
-    throw new Error("Conversation not found.");
+    return actionFailed("Conversation not found.");
   }
 
   const message = await db.message.create({
@@ -137,20 +148,25 @@ export async function sendMessage(
   }
 
   revalidatePath("/messages");
+
+  return actionOk();
 }
 
-export async function markRead(rawConversationId: unknown): Promise<void> {
-  const userId = await requireUserId();
+export async function markRead(
+  rawConversationId: unknown,
+): Promise<ActionResult> {
+  const userId = await currentUserId();
+  if (!userId) return actionFailed("You need to be signed in.");
 
   const conversationId = validateId(rawConversationId, "Conversation");
-  if (!conversationId.ok) throw new Error(conversationId.error);
+  if (!conversationId.ok) return actionFailed(conversationId.error);
 
   const participants = await getParticipantsIfMember(
     conversationId.value,
     userId,
   );
   if (!participants) {
-    throw new Error("Conversation not found.");
+    return actionFailed("Conversation not found.");
   }
 
   await db.conversationRead.upsert({
@@ -164,4 +180,6 @@ export async function markRead(rawConversationId: unknown): Promise<void> {
     update: { lastReadAt: new Date() },
     select: { conversationId: true },
   });
+
+  return actionOk();
 }
