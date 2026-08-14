@@ -453,3 +453,93 @@ small, .text-fine {
   .notice-success { background: var(--success-subtle); color: var(--success); }
   .notice-danger { background: var(--danger-subtle); color: var(--danger); }
 }
+
+/* ==========================================================================
+   Loading placeholders
+   --------------------------------------------------------------------------
+   The shimmer travels rather than pulsing the whole block: a moving highlight
+   reads as "work is happening", while a block fading in and out reads as a
+   broken image. Under reduced motion it becomes a static tint, because the
+   information ("this is not content yet") survives without the movement.
+   ========================================================================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sunken);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(100% 0 0 / 0.45),
+    transparent
+  );
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(100% 0 0 / 0.06),
+      transparent
+    );
+  }
+}
+
+@keyframes skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; content: none; }
+  .skeleton { background: var(--surface-sunken); }
+}
+
+/* ==========================================================================
+   Pending navigation
+   --------------------------------------------------------------------------
+   The clicked element itself reports that it was heard (§1: respond to the
+   input, immediately). A global spinner somewhere else on screen answers
+   "something is loading" but not "your click registered", which is the actual
+   question a user is asking when they click twice.
+   ========================================================================== */
+
+.nav-pending {
+  position: relative;
+  cursor: progress;
+}
+
+.nav-pending::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  transform-origin: left;
+  animation: pending-bar 1.1s var(--ease-out) infinite;
+}
+
+@keyframes pending-bar {
+  0%   { transform: scaleX(0);   opacity: 1; }
+  70%  { transform: scaleX(1);   opacity: 1; }
+  100% { transform: scaleX(1);   opacity: 0.25; }
+}
+
+/* Cards dim rather than growing a bar, because a 2px line under a photo is
+   invisible — the whole tile acknowledging the tap is what reads. */
+.card-pending { opacity: 0.55; cursor: progress; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-pending::after { animation: none; transform: scaleX(1); }
+}

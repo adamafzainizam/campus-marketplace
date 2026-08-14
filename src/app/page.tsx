@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getCategories } from "@/lib/categories";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { PendingLink } from "@/components/PendingLink";
 import { ListingType } from "@/generated/prisma/enums";
 import { LISTING_TYPE_LABELS, formatPrice } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
@@ -54,7 +56,7 @@ export default async function Home({
       // Real pagination is still owed; this stops the unbounded case first.
       take: 60,
     }),
-    db.category.findMany({ orderBy: { name: "asc" } }),
+    getCategories(),
     auth(),
   ]);
 
@@ -173,9 +175,11 @@ export default async function Home({
         <ul className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4">
           {listings.map((listing) => (
             <li key={listing.id}>
-              <Link
+              <PendingLink
                 href={`/listings/${listing.id}`}
-                className="card-interactive flex flex-col gap-2.5"
+                className="card-interactive block"
+                innerClassName="flex flex-col gap-2.5"
+                pendingClassName="card-pending"
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
                   {listing.imageUrl ? (
@@ -217,7 +221,7 @@ export default async function Home({
                     {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
                   </p>
                 </div>
-              </Link>
+              </PendingLink>
             </li>
           ))}
         </ul>
@@ -236,12 +240,12 @@ function FilterChip({
   children: React.ReactNode;
 }) {
   return (
-    <Link
+    <PendingLink
       href={href}
       aria-current={selected ? "true" : undefined}
       className={`chip${selected ? " chip-selected" : ""}`}
     >
       {children}
-    </Link>
+    </PendingLink>
   );
 }

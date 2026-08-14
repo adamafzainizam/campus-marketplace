@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { getCategories } from "@/lib/categories";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ListingForm } from "@/app/listings/new/ListingForm";
@@ -36,7 +37,7 @@ export default async function EditListingPage({
         sellerId: true,
       },
     }),
-    db.category.findMany({ orderBy: { name: "asc" } }),
+    getCategories(),
   ]);
 
   // Deliberately the same 404 for "doesn't exist" and "isn't yours": telling

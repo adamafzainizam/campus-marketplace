@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingLink } from "@/components/PendingLink";
 import { auth, signOut } from "@/auth";
 
 /**
@@ -29,18 +30,18 @@ export async function SiteHeader() {
 
         <nav className="flex items-center gap-1.5 sm:gap-2">
           {user && (
-            <Link href="/listings/mine" className="btn btn-ghost btn-sm">
+            <PendingLink href="/listings/mine" className="btn btn-ghost btn-sm">
               <span className="hidden sm:inline">My listings</span>
               <span className="sm:hidden">Mine</span>
-            </Link>
+            </PendingLink>
           )}
-          <Link href="/messages" className="btn btn-ghost btn-sm">
+          <PendingLink href="/messages" className="btn btn-ghost btn-sm">
             Messages
-          </Link>
-          <Link href="/listings/new" className="btn btn-primary btn-sm">
+          </PendingLink>
+          <PendingLink href="/listings/new" className="btn btn-primary btn-sm">
             <span className="hidden sm:inline">Post a listing</span>
             <span className="sm:hidden">Post</span>
-          </Link>
+          </PendingLink>
 
           {user ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -62,9 +63,9 @@ export async function SiteHeader() {
               </form>
             </div>
           ) : (
-            <Link href="/signin" className="btn btn-ghost btn-sm">
+            <PendingLink href="/signin" className="btn btn-ghost btn-sm">
               Sign in
-            </Link>
+            </PendingLink>
           )}
         </nav>
       </div>
