@@ -5,10 +5,13 @@ import {
   GOOGLE_AUTH_ORIGIN,
   buildContentSecurityPolicy,
   buildSecurityHeaders,
+  r2UploadOrigins,
 } from "./security-headers.ts";
 
 const R2 = "https://pub-5b71e404511d4106af3652de10bcf5da.r2.dev";
-const R2_API = "https://ab46c96ecc631434c9ccfd75862cd83c.r2.cloudflarestorage.com";
+const ACCOUNT = "ab46c96ecc631434c9ccfd75862cd83c";
+const BUCKET = "campus-marketplace-images-prod";
+const R2_API = `https://${BUCKET}.${ACCOUNT}.r2.cloudflarestorage.com`;
 
 function directive(csp: string, name: string): string {
   const found = csp
@@ -30,7 +33,7 @@ describe("form-action and the Google sign-in redirect", () => {
   // noticed at deployment, because an existing session cookie skips the form.
   it("allows the browser to follow the sign-in redirect to Google", () => {
     for (const isDev of [true, false]) {
-      const csp = buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
+      const csp = buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] });
       assert.match(
         directive(csp, "form-action"),
         new RegExp(GOOGLE_AUTH_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
@@ -41,7 +44,7 @@ describe("form-action and the Google sign-in redirect", () => {
 
   it("still restricts form submissions to self plus Google, nothing wider", () => {
     const formAction = directive(
-      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API }),
+      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] }),
       "form-action",
     );
     assert.ok(formAction.includes("'self'"));
@@ -55,7 +58,7 @@ describe("form-action and the Google sign-in redirect", () => {
 
 describe("img-src", () => {
   it("includes the R2 origin when one is configured", () => {
-    const csp = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
+    const csp = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] });
     assert.ok(directive(csp, "img-src").includes(R2));
   });
 
@@ -63,7 +66,7 @@ describe("img-src", () => {
   // wildcard that allows images from anywhere.
   it("blocks remote images rather than allowing all when R2 is unset", () => {
     const imgSrc = directive(
-      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "", r2ApiOrigin: R2_API }),
+      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "", r2ApiOrigins: [R2_API] }),
       "img-src",
     );
     assert.ok(!imgSrc.includes("*"), "img-src must never fall back to a wildcard");
@@ -72,8 +75,8 @@ describe("img-src", () => {
 });
 
 describe("development-only relaxations stay out of production", () => {
-  const prod = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
-  const dev = buildContentSecurityPolicy({ isDev: true, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
+  const prod = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] });
+  const dev = buildContentSecurityPolicy({ isDev: true, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] });
 
   it("keeps unsafe-eval in dev only", () => {
     assert.ok(dev.includes("'unsafe-eval'"), "React Fast Refresh needs it in dev");
@@ -95,7 +98,7 @@ describe("connect-src", () => {
   it("allows Ably over https and wss in both environments", () => {
     for (const isDev of [true, false]) {
       const connect = directive(
-        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API }),
+        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] }),
         "connect-src",
       );
       for (const origin of [
@@ -112,7 +115,7 @@ describe("connect-src", () => {
 
 describe("buildSecurityHeaders", () => {
   const keysOf = (isDev: boolean) =>
-    buildSecurityHeaders({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API }).map((h) => h.key);
+    buildSecurityHeaders({ isDev, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] }).map((h) => h.key);
 
   it("sets the five always-on headers", () => {
     const keys = keysOf(false);
@@ -135,7 +138,7 @@ describe("buildSecurityHeaders", () => {
   });
 
   it("gives every header a non-empty value", () => {
-    for (const header of buildSecurityHeaders({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API })) {
+    for (const header of buildSecurityHeaders({ isDev: false, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] })) {
       assert.ok(header.value.length > 0, `${header.key} has an empty value`);
     }
   });
@@ -154,7 +157,7 @@ describe("connect-src and the browser upload to R2", () => {
   it("allows the upload endpoint, which is not the image-serving origin", () => {
     for (const isDev of [true, false]) {
       const connect = directive(
-        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API }),
+        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigins: [R2_API] }),
         "connect-src",
       );
       assert.ok(
@@ -169,7 +172,7 @@ describe("connect-src and the browser upload to R2", () => {
     const csp = buildContentSecurityPolicy({
       isDev: false,
       r2ImageOrigin: R2,
-      r2ApiOrigin: R2_API,
+      r2ApiOrigins: [R2_API],
     });
     // The upload host has no business serving images, and vice versa.
     assert.ok(!directive(csp, "img-src").includes(R2_API));
@@ -180,10 +183,53 @@ describe("connect-src and the browser upload to R2", () => {
   // must not widen the policy.
   it("omits the origin rather than widening when R2 is unconfigured", () => {
     const connect = directive(
-      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "", r2ApiOrigin: "" }),
+      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "", r2ApiOrigins: [] }),
       "connect-src",
     );
     assert.ok(!connect.includes("cloudflarestorage"), connect);
     assert.ok(!connect.includes(" *"), `connect-src must not fall back to a wildcard: ${connect}`);
+  });
+});
+
+describe("r2UploadOrigins", () => {
+  // THE regression test for the third CSP outage.
+  //
+  // The AWS SDK addresses R2 virtual-hosted style: the bucket becomes a
+  // subdomain, so the real upload host is
+  // <bucket>.<account>.r2.cloudflarestorage.com. The first fix allowed only
+  // the account host. CSP host matching is exact — a parent domain does not
+  // match its subdomains — so the upload stayed blocked, with the policy
+  // looking correct at a glance.
+  it("puts the bucket in front of the account, as the SDK actually requests", () => {
+    const origins = r2UploadOrigins(ACCOUNT, BUCKET);
+    assert.ok(
+      origins.includes(`https://${BUCKET}.${ACCOUNT}.r2.cloudflarestorage.com`),
+      `virtual-hosted origin missing: ${origins.join(" ")}`,
+    );
+  });
+
+  // Kept as well as, not instead of: the SDK falls back to path-style
+  // addressing for bucket names that are not DNS-compatible.
+  it("also allows the bare account host for path-style addressing", () => {
+    assert.ok(r2UploadOrigins(ACCOUNT, BUCKET).includes(
+      `https://${ACCOUNT}.r2.cloudflarestorage.com`,
+    ));
+  });
+
+  it("emits nothing when the account is unconfigured, rather than a broken origin", () => {
+    assert.deepEqual(r2UploadOrigins("", BUCKET), []);
+    assert.deepEqual(r2UploadOrigins(undefined, undefined), []);
+  });
+
+  it("falls back to the account host alone when no bucket is configured", () => {
+    assert.deepEqual(r2UploadOrigins(ACCOUNT, ""), [
+      `https://${ACCOUNT}.r2.cloudflarestorage.com`,
+    ]);
+  });
+
+  it("never emits a wildcard", () => {
+    for (const origin of r2UploadOrigins(ACCOUNT, BUCKET)) {
+      assert.ok(!origin.includes("*"), `wildcard in ${origin}`);
+    }
   });
 });
