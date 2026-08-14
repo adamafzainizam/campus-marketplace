@@ -129,9 +129,35 @@ Once the URL exists, most of the above can be checked from here with `curl`.
 
 ---
 
+## The two-session real-time test
+
+This is the last gap between "built and tested" and "seen working", carried over from Weeks 5-6. Messaging was only ever exercised in a single browser: the Ably transport was verified independently against the live service, and the app wiring was verified in the browser, but nobody has watched those two halves meet.
+
+**Do it after deployment, against the live URL, with a second person on their own device.** It cannot easily be done locally: the dev server is reachable on the LAN, but the Google OAuth client only has `http://localhost:3000` registered as a callback, so a second person pointing at `http://<lan-ip>:3000` cannot sign in at all. Deployment removes that obstacle rather than adding one.
+
+The helper needs their own `@gmi.edu.my` or `@student.gmi.edu.my` account — the domain restriction in the `signIn` callback rejects everything else, which is itself worth watching them hit.
+
+Procedure, with both people on the live site at the same time:
+
+1. You post a listing. They open it and click **Message seller**.
+2. **Both keep the thread open, and nobody refreshes for the rest of the test.** A refresh invalidates the result — the whole point is that the message arrives over the websocket, not on page load.
+3. They send a message. It must appear on your screen without you touching anything.
+4. You reply. Same thing in reverse.
+5. Check presence flips to "is in this chat" on both sides, and that it clears when one person closes the tab.
+6. Have them close the thread, then send them another message, and confirm the unread badge appears on their inbox.
+
+What a failure looks like, and what it would mean:
+
+- **Message never arrives, but is there after a refresh** — the Postgres write succeeded and the Ably publish or subscribe didn't. Check whether `/api/ably/token` is returning a token at all; a missing or wrong `ABLY_API_KEY` in the Vercel environment is the most likely production-only cause. Note that CSP is *not* a likely culprit: `next.config.ts` already allows `https://*.ably.io`, `wss://*.ably.io`, `https://*.ably-realtime.com` and `wss://*.ably-realtime.com` in production, not just in dev. A `connect-src` violation in the console would mean the policy changed, not that it was never configured.
+- **Message never arrives even after a refresh** — the server action failed; not a real-time problem at all.
+- **A `40160` error in the console** — a client attempted to publish. That should be impossible by design, since tokens carry `subscribe` and `presence` only; if it appears, something is publishing from the client that shouldn't be.
+
+Record the result in `AGENTS.md` either way. A negative result is worth as much as a positive one here.
+
+---
+
 ## Still open, carried forward
 
-- **Two-session real-time delivery has never been observed.** Worth doing locally with a second GMI account before or alongside deployment — a real-time bug is far cheaper to find on localhost.
 - Seller controls (edit, mark sold) — the most visible functional gap.
 - Pagination beyond `take: 60`.
 - `src/lib/conversations.ts` has no automated test; it is the authorization layer.
