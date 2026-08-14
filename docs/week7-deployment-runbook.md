@@ -1,3 +1,27 @@
+> **COMPLETED 2026-08-15.** Deployment is done and the site is live at
+> `https://campus-marketplace-adamafzainizam.vercel.app`. This file is kept as the
+> record of the procedure that was actually followed, and because the
+> **two-session real-time test at the end is still outstanding** — that section is
+> the only part still to do. Read `AGENTS.md` first for current state.
+>
+> **Three things below were overtaken by events. Don't follow them as written:**
+>
+> - **Step 3 says to reuse `campus-marketplace-images-dev`.** That was reversed the
+>   same day — production has its own bucket, `campus-marketplace-images-prod`, with
+>   its own token, Public Development URL, and CORS policy. The cleanup job deletes
+>   objects production's database doesn't reference, and production has never heard
+>   of anything created in local development, so one shared bucket meant prod
+>   silently deleting dev's images a day after upload.
+> - **Step 3's `NEXTAUTH_URL` placeholder wasn't needed.** The Vercel import screen
+>   shows the project name before deploying, so the real URL was known in advance —
+>   except that Vercel silently suffixed it (Known Gotchas #29). Probe the deployed
+>   site rather than assuming the name you asked for is the name you got.
+> - **Step 6 was insufficient.** `vercel.json` schedules the job, but the build
+>   script had no `prisma migrate deploy`, so a schema change would have shipped a
+>   client that knew about columns production lacked. Fixed; see Gotcha #32.
+
+---
+
 # Week 7 deployment runbook
 
 **Companion to `week7-deployment-brief.md`.** The brief framed the decisions; this is the ordered procedure that follows from them.

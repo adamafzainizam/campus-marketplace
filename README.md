@@ -4,7 +4,9 @@ A buy/sell/rent board for GMI (German-Malaysian Institute) students and staff, s
 
 Sign-in is restricted to GMI Google accounts, so everyone you're dealing with is actually part of the campus community.
 
-> **Status:** in active development. Listings and image upload work end to end; messaging between buyer and seller is next. See [What works so far](#what-works-so-far).
+**Live: [campus-marketplace-adamafzainizam.vercel.app](https://campus-marketplace-adamafzainizam.vercel.app)** — anyone can browse without an account.
+
+> **Status:** deployed and working. All eight weeks of feature work are done; the remaining task is this document and a written case study.
 
 ---
 
@@ -26,9 +28,13 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Search listings by title
 - [x] View a single listing in detail
 - [x] Live upload progress while a photo is sending
-- [ ] Edit your own listing / mark it as sold
-- [ ] Message a seller
-- [ ] Deployed and publicly reachable
+- [x] Rent as well as sell — prices read as "RM 20 / week", not just a bare number
+- [x] Real-time messaging between buyer and seller, with unread badges and presence
+- [x] Manage your own listings — edit anything, mark reserved, sold, or archived
+- [x] Deployed and publicly reachable
+- [x] Works on a phone as well as a desktop, in light and dark
+
+Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no blocking or reporting, which a real marketplace would need.
 
 ---
 
@@ -43,6 +49,9 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 | Database access | Prisma 7 | Queries are type-checked against the actual schema |
 | Authentication | Auth.js v5 | Google handles identity, so no passwords are ever stored |
 | Image storage | Cloudflare R2 | S3-compatible and charges nothing for bandwidth, which matters when a page is mostly photos |
+| Real-time | Ably | Managed WebSockets. Buying this rather than self-hosting Socket.io was deliberate — see the case study |
+| Hosting | Vercel | Free tier, deploys on push to `main`, and runs the scheduled cleanup job |
+| Tests | `node:test` | Node's built-in runner, so the test suite adds no dependencies at all |
 
 ---
 
@@ -70,6 +79,9 @@ R2_ACCESS_KEY_ID=      # from an R2 API token
 R2_SECRET_ACCESS_KEY=
 R2_BUCKET_NAME=
 R2_PUBLIC_URL=         # the bucket's Public Development URL
+
+ABLY_API_KEY=          # server-only; never prefix this NEXT_PUBLIC_
+CRON_SECRET=           # any random string; guards the cleanup job
 ```
 
 This file is gitignored and should never be committed.
@@ -91,6 +103,14 @@ npm run dev
 ```
 
 Then open http://localhost:3000.
+
+**Running the tests**
+
+```bash
+npm test
+```
+
+173 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
 
 ### One thing that will trip you up
 
@@ -134,10 +154,17 @@ prisma/
 src/
   app/
     page.tsx          home page: browse, search, filter
+    signin/           sign-in, and why an account was rejected
     listings/new/     the "post a listing" form
-    listings/[id]/    a single listing
+    listings/[id]/    a single listing, and its edit page
+    listings/mine/    manage your own listings
+    messages/         inbox and conversation threads
     api/upload/       issues upload permissions
-  lib/                database client, storage client, shared rules
+    api/ably/token/   issues capability-scoped realtime tokens
+    api/cron/         nightly cleanup of unreferenced photos
+  components/         header, breadcrumbs, loading skeletons
+  lib/                database and storage clients, plus the shared rules —
+                      every one of these is pure and has tests
   auth.ts             sign-in config and the GMI email restriction
 ```
 
@@ -149,11 +176,11 @@ An 8-week plan, worked on roughly 10–15 hours a week.
 
 | Weeks | Focus | Status |
 |---|---|---|
-| 1–2 | Sign-in and database design | Done |
-| 3–4 | Listings and image upload | Done |
-| 5–6 | Buyer–seller messaging | Next |
-| 7 | Deployment and polish | Not started |
-| 8 | Documentation and write-up | Not started |
+| 1–2 | Sign-in and database design | Done — `v0.1` |
+| 3–4 | Listings and image upload | Done — `v0.2` |
+| 5–6 | Buyer–seller messaging | Done — `v0.3` |
+| 7 | Deployment and polish | Done — `v0.4`, live |
+| 8 | Documentation and write-up | In progress |
 
 ---
 
