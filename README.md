@@ -112,7 +112,7 @@ Then open http://localhost:3000.
 npm test
 ```
 
-173 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
+191 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
 
 ### One thing that will trip you up
 
@@ -161,6 +161,7 @@ src/
     listings/[id]/    a single listing, and its edit page
     listings/mine/    manage your own listings
     messages/         inbox and conversation threads
+    legal/            terms, privacy, acceptable use, disclaimer
     api/upload/       issues upload permissions
     api/ably/token/   issues capability-scoped realtime tokens
     api/cron/         nightly cleanup of unreferenced photos
@@ -183,6 +184,20 @@ An 8-week plan, worked on roughly 10–15 hours a week.
 | 5–6 | Buyer–seller messaging | Done — `v0.3` |
 | 7 | Deployment and polish | Done — `v0.4`, live |
 | 8 | Documentation and write-up | Case study done; screenshots outstanding |
+
+---
+
+## A note on affiliation
+
+**This is an independent student project. It is not affiliated with, endorsed by, or operated by the German-Malaysian Institute.** The name describes who the marketplace is for, not who runs it. Every page on the live site says so, and [`/legal/disclaimer`](https://campus-marketplace-adamafzainizam.vercel.app/legal/disclaimer) sets it out in full, along with a direct contact route for GMI should they have any concern.
+
+The site publishes [terms](https://campus-marketplace-adamafzainizam.vercel.app/legal/terms), a [privacy policy](https://campus-marketplace-adamafzainizam.vercel.app/legal/privacy) written against Malaysia's PDPA 2010, and an [acceptable use policy](https://campus-marketplace-adamafzainizam.vercel.app/legal/acceptable-use) that prohibits, among other things, trading in exam materials or assignment-writing services.
+
+---
+
+## Licence
+
+[MIT](./LICENSE) — read it, learn from it, reuse it, just keep the copyright notice.
 
 ---
 
