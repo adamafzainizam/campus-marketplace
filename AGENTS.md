@@ -252,4 +252,5 @@ ABLY_API_KEY           # Ably root API key, server-only. Deliberately NOT prefix
 
 **Then:**
 11. Tag `v0.3` once item 2 passes.
-12. Week 7: deployment (Vercel) + polish. Week 8: README with screenshots, live link, setup instructions, and the case study.
+12. **Week 7: deployment (Vercel) + polish — start here.** A handoff brief is written at **`docs/week7-deployment-brief.md`**: it collects the four open decisions that need resolving first (custom domain vs `.vercel.app` and how that interacts with the deferred `r2.dev` question; production database; production R2 bucket; whether to do orphan cleanup now), the six things that will break in production if missed, and the verification to run afterwards. Read it before touching anything.
+13. Week 8: README with screenshots, live link, setup instructions, and the case study.
