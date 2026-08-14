@@ -17,6 +17,13 @@ export type AllowedImageType = keyof typeof ALLOWED_IMAGE_TYPES;
 export const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 /**
+ * Every object this app writes to R2 lives under this prefix. The orphan
+ * cleanup job reads it from here so the job can never be pointed at a wider
+ * part of the bucket than the part this app owns.
+ */
+export const LISTING_IMAGE_PREFIX = "listings/";
+
+/**
  * Resolves a content type to its file extension, or null if it isn't allowed.
  *
  * Uses `Object.hasOwn` rather than a plain `ALLOWED_IMAGE_TYPES[contentType]`
