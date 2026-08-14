@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
-import { buildSecurityHeaders } from "./src/lib/security-headers";
+import {
+  buildSecurityHeaders,
+  r2UploadOrigins,
+} from "./src/lib/security-headers";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -19,16 +22,17 @@ const r2ImageOrigin = process.env.R2_PUBLIC_URL ?? "";
  * This is a different host from `r2ImageOrigin` above: images are *served* from
  * the r2.dev domain and *uploaded* to the S3 API domain.
  */
-const r2ApiOrigin = process.env.R2_ACCOUNT_ID
-  ? `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
-  : "";
+const r2ApiOrigins = r2UploadOrigins(
+  process.env.R2_ACCOUNT_ID,
+  process.env.R2_BUCKET_NAME,
+);
 
 const nextConfig: NextConfig = {
   async headers() {
     return [
       {
         source: "/:path*",
-        headers: buildSecurityHeaders({ isDev, r2ImageOrigin, r2ApiOrigin }),
+        headers: buildSecurityHeaders({ isDev, r2ImageOrigin, r2ApiOrigins }),
       },
     ];
   },

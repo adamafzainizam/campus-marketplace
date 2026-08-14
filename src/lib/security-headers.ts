@@ -25,10 +25,10 @@ export type SecurityHeaderOptions = {
   /** Value of R2_PUBLIC_URL — where images are *served* from. Empty when unset. */
   r2ImageOrigin: string;
   /**
-   * R2's S3 API origin — where the browser *uploads* to, which is a different
-   * host from the one that serves images. Empty when unset.
+   * Origins the browser *uploads* to — different hosts from the one that
+   * serves images. Build with `r2UploadOrigins`. Empty when unconfigured.
    */
-  r2ApiOrigin: string;
+  r2ApiOrigins: string[];
 };
 
 /**
@@ -47,10 +47,35 @@ export type SecurityHeaderOptions = {
  * `'unsafe-eval'` and the localhost websocket origins are development-only,
  * for React Fast Refresh; they are absent from production builds.
  */
+/**
+ * The origins R2 uploads actually go to.
+ *
+ * The AWS SDK addresses R2 **virtual-hosted style**: it rewrites the
+ * configured endpoint so the bucket becomes a subdomain, giving
+ * `<bucket>.<account>.r2.cloudflarestorage.com`. Allowing only the account
+ * host does not work — CSP host matching is exact, and a parent domain does
+ * not match its subdomains. That mistake blocked uploads while the policy
+ * looked plausible.
+ *
+ * The bare account host is kept as well, because the SDK falls back to
+ * path-style addressing for bucket names that are not DNS-compatible.
+ */
+export function r2UploadOrigins(
+  accountId: string | undefined,
+  bucket: string | undefined,
+): string[] {
+  if (!accountId) return [];
+
+  const account = `https://${accountId}.r2.cloudflarestorage.com`;
+  return bucket
+    ? [`https://${bucket}.${accountId}.r2.cloudflarestorage.com`, account]
+    : [account];
+}
+
 export function buildContentSecurityPolicy({
   isDev,
   r2ImageOrigin,
-  r2ApiOrigin,
+  r2ApiOrigins,
 }: SecurityHeaderOptions): string {
   return [
     `default-src 'self'`,
@@ -67,8 +92,10 @@ export function buildContentSecurityPolicy({
     // r2.dev host in img-src. Omitting it blocks the request before it leaves
     // the browser, which surfaces as an opaque network error.
     `connect-src 'self' https://*.ably.io wss://*.ably.io https://*.ably-realtime.com wss://*.ably-realtime.com${
-      r2ApiOrigin ? ` ${r2ApiOrigin}` : ""
-    }${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
+      ""
+    }${r2ApiOrigins.length > 0 ? ` ${r2ApiOrigins.join(" ")}` : ""}${
+      isDev ? " ws://localhost:* http://localhost:*" : ""
+    }`,
     `frame-ancestors 'none'`,
     `base-uri 'self'`,
     // 'self' covers every form in the app; Google is required for the OAuth
