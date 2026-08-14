@@ -8,6 +8,7 @@ import {
 } from "./security-headers.ts";
 
 const R2 = "https://pub-5b71e404511d4106af3652de10bcf5da.r2.dev";
+const R2_API = "https://ab46c96ecc631434c9ccfd75862cd83c.r2.cloudflarestorage.com";
 
 function directive(csp: string, name: string): string {
   const found = csp
@@ -29,7 +30,7 @@ describe("form-action and the Google sign-in redirect", () => {
   // noticed at deployment, because an existing session cookie skips the form.
   it("allows the browser to follow the sign-in redirect to Google", () => {
     for (const isDev of [true, false]) {
-      const csp = buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2 });
+      const csp = buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
       assert.match(
         directive(csp, "form-action"),
         new RegExp(GOOGLE_AUTH_ORIGIN.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
@@ -40,7 +41,7 @@ describe("form-action and the Google sign-in redirect", () => {
 
   it("still restricts form submissions to self plus Google, nothing wider", () => {
     const formAction = directive(
-      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2 }),
+      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API }),
       "form-action",
     );
     assert.ok(formAction.includes("'self'"));
@@ -54,7 +55,7 @@ describe("form-action and the Google sign-in redirect", () => {
 
 describe("img-src", () => {
   it("includes the R2 origin when one is configured", () => {
-    const csp = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2 });
+    const csp = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
     assert.ok(directive(csp, "img-src").includes(R2));
   });
 
@@ -62,7 +63,7 @@ describe("img-src", () => {
   // wildcard that allows images from anywhere.
   it("blocks remote images rather than allowing all when R2 is unset", () => {
     const imgSrc = directive(
-      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "" }),
+      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "", r2ApiOrigin: R2_API }),
       "img-src",
     );
     assert.ok(!imgSrc.includes("*"), "img-src must never fall back to a wildcard");
@@ -71,8 +72,8 @@ describe("img-src", () => {
 });
 
 describe("development-only relaxations stay out of production", () => {
-  const prod = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2 });
-  const dev = buildContentSecurityPolicy({ isDev: true, r2ImageOrigin: R2 });
+  const prod = buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
+  const dev = buildContentSecurityPolicy({ isDev: true, r2ImageOrigin: R2, r2ApiOrigin: R2_API });
 
   it("keeps unsafe-eval in dev only", () => {
     assert.ok(dev.includes("'unsafe-eval'"), "React Fast Refresh needs it in dev");
@@ -94,7 +95,7 @@ describe("connect-src", () => {
   it("allows Ably over https and wss in both environments", () => {
     for (const isDev of [true, false]) {
       const connect = directive(
-        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2 }),
+        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API }),
         "connect-src",
       );
       for (const origin of [
@@ -111,7 +112,7 @@ describe("connect-src", () => {
 
 describe("buildSecurityHeaders", () => {
   const keysOf = (isDev: boolean) =>
-    buildSecurityHeaders({ isDev, r2ImageOrigin: R2 }).map((h) => h.key);
+    buildSecurityHeaders({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API }).map((h) => h.key);
 
   it("sets the five always-on headers", () => {
     const keys = keysOf(false);
@@ -134,8 +135,55 @@ describe("buildSecurityHeaders", () => {
   });
 
   it("gives every header a non-empty value", () => {
-    for (const header of buildSecurityHeaders({ isDev: false, r2ImageOrigin: R2 })) {
+    for (const header of buildSecurityHeaders({ isDev: false, r2ImageOrigin: R2, r2ApiOrigin: R2_API })) {
       assert.ok(header.value.length > 0, `${header.key} has an empty value`);
     }
+  });
+});
+
+describe("connect-src and the browser upload to R2", () => {
+  // THE regression test for the second CSP outage.
+  //
+  // The browser PUTs the photo straight to R2's S3 API endpoint, which is a
+  // different host from the r2.dev origin that serves images. connect-src
+  // listed only 'self' and Ably, so the request was blocked before it left the
+  // browser — surfacing as "Could not reach image storage", which reads like a
+  // network problem and sent debugging to CORS instead. Same origin as the
+  // form-action outage: the 2026-08-13 audit added the CSP, and nothing
+  // re-exercised the upload path for two days.
+  it("allows the upload endpoint, which is not the image-serving origin", () => {
+    for (const isDev of [true, false]) {
+      const connect = directive(
+        buildContentSecurityPolicy({ isDev, r2ImageOrigin: R2, r2ApiOrigin: R2_API }),
+        "connect-src",
+      );
+      assert.ok(
+        connect.includes(R2_API),
+        `connect-src must allow the R2 API origin (isDev=${isDev}): ${connect}`,
+      );
+    }
+  });
+
+  it("does not confuse the two R2 origins", () => {
+    assert.notEqual(R2, R2_API, "the serving and upload origins are different hosts");
+    const csp = buildContentSecurityPolicy({
+      isDev: false,
+      r2ImageOrigin: R2,
+      r2ApiOrigin: R2_API,
+    });
+    // The upload host has no business serving images, and vice versa.
+    assert.ok(!directive(csp, "img-src").includes(R2_API));
+    assert.ok(!directive(csp, "connect-src").includes(R2));
+  });
+
+  // Same fail-closed rule as img-src: a missing R2_ACCOUNT_ID at build time
+  // must not widen the policy.
+  it("omits the origin rather than widening when R2 is unconfigured", () => {
+    const connect = directive(
+      buildContentSecurityPolicy({ isDev: false, r2ImageOrigin: "", r2ApiOrigin: "" }),
+      "connect-src",
+    );
+    assert.ok(!connect.includes("cloudflarestorage"), connect);
+    assert.ok(!connect.includes(" *"), `connect-src must not fall back to a wildcard: ${connect}`);
   });
 });

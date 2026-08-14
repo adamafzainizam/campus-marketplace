@@ -22,8 +22,13 @@ export const GOOGLE_AUTH_ORIGIN = "https://accounts.google.com";
 
 export type SecurityHeaderOptions = {
   isDev: boolean;
-  /** Value of R2_PUBLIC_URL; empty string when unset. */
+  /** Value of R2_PUBLIC_URL — where images are *served* from. Empty when unset. */
   r2ImageOrigin: string;
+  /**
+   * R2's S3 API origin — where the browser *uploads* to, which is a different
+   * host from the one that serves images. Empty when unset.
+   */
+  r2ApiOrigin: string;
 };
 
 /**
@@ -45,6 +50,7 @@ export type SecurityHeaderOptions = {
 export function buildContentSecurityPolicy({
   isDev,
   r2ImageOrigin,
+  r2ApiOrigin,
 }: SecurityHeaderOptions): string {
   return [
     `default-src 'self'`,
@@ -56,9 +62,13 @@ export function buildContentSecurityPolicy({
     `font-src 'self' data:`,
     // Ably serves realtime over both hostnames; the browser opens a websocket
     // to whichever the SDK selects, so both schemes are needed for each.
+    // The R2 API origin is required for the browser's direct upload: the photo
+    // is PUT straight to a presigned URL on R2's S3 endpoint, which is NOT the
+    // r2.dev host in img-src. Omitting it blocks the request before it leaves
+    // the browser, which surfaces as an opaque network error.
     `connect-src 'self' https://*.ably.io wss://*.ably.io https://*.ably-realtime.com wss://*.ably-realtime.com${
-      isDev ? " ws://localhost:* http://localhost:*" : ""
-    }`,
+      r2ApiOrigin ? ` ${r2ApiOrigin}` : ""
+    }${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
     `frame-ancestors 'none'`,
     `base-uri 'self'`,
     // 'self' covers every form in the app; Google is required for the OAuth
