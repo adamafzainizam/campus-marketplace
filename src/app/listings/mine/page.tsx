@@ -42,14 +42,14 @@ export default async function MyListingsPage() {
         <h1 className="text-2xl font-semibold">My listings</h1>
         <Link
           href="/listings/new"
-          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background"
+          className="btn btn-primary"
         >
           Post a listing
         </Link>
       </div>
 
       {listings.length === 0 ? (
-        <p className="text-zinc-600 dark:text-zinc-400">
+        <p className="text-secondary">
           You haven&rsquo;t posted anything yet.{" "}
           <Link href="/listings/new" className="underline underline-offset-2">
             Post your first listing
@@ -61,9 +61,9 @@ export default async function MyListingsPage() {
           {listings.map((listing) => (
             <li
               key={listing.id}
-              className="flex flex-col gap-4 rounded border border-zinc-200 p-4 sm:flex-row dark:border-zinc-800"
+              className="card flex flex-col gap-4 p-4 sm:flex-row"
             >
-              <div className="h-24 w-24 shrink-0 overflow-hidden rounded bg-zinc-100 dark:bg-zinc-900">
+              <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
                 {listing.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -82,12 +82,12 @@ export default async function MyListingsPage() {
                   >
                     {listing.title}
                   </Link>
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <span className="text-sm text-secondary">
                     {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
                   </span>
                 </div>
 
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm text-secondary">
                   {statusLabel(listing.status, listing.type)}
                   {listing._count.conversations > 0 && (
                     <>
@@ -108,7 +108,7 @@ export default async function MyListingsPage() {
                   />
                   <Link
                     href={`/listings/${listing.id}/edit`}
-                    className="rounded border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
+                    className="btn btn-secondary btn-sm"
                   >
                     Edit
                   </Link>

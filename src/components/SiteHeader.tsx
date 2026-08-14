@@ -2,52 +2,50 @@ import Link from "next/link";
 import { auth, signOut } from "@/auth";
 
 /**
- * Site-wide header: brand, primary navigation, and — the point of it — who you
- * are signed in as.
+ * Site-wide header: brand, primary navigation, and who you are signed in as.
  *
- * Previously the header was inline in the home page only, so every other page
- * gave no indication of whether you were signed in. Anyone can browse; posting
- * and messaging require a GMI account, and the header is where that difference
- * becomes visible instead of surfacing as a surprise redirect.
+ * Built as a translucent material that content scrolls *under*, rather than an
+ * opaque bar consuming a fixed strip of the viewport. The saturation bump and
+ * the border are what stop it reading as flat grey — it should look like light
+ * catching a surface.
+ *
+ * Nav labels name their destination ("My listings", "Messages") rather than
+ * vague umbrellas: specificity is what makes navigation predictable.
  */
 export async function SiteHeader() {
   const session = await auth();
   const user = session?.user;
 
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-800">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
-        <Link href="/" className="text-base font-semibold sm:text-lg">
-          <span className="text-zinc-500 dark:text-zinc-400">GMI</span> Campus
-          Marketplace
+    <header className="chrome sticky top-0 z-50">
+      <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-2.5 sm:px-6 sm:py-3">
+        <Link
+          href="/"
+          className="pressable mr-auto flex items-baseline gap-1.5 text-[0.9375rem] font-semibold tracking-[-0.01em] sm:text-base"
+        >
+          <span className="text-accent">GMI</span>
+          <span>Campus Marketplace</span>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <nav className="flex items-center gap-1.5 sm:gap-2">
           {user && (
-            <Link
-              href="/listings/mine"
-              className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium sm:px-4 dark:border-zinc-700"
-            >
-              My listings
+            <Link href="/listings/mine" className="btn btn-ghost btn-sm">
+              <span className="hidden sm:inline">My listings</span>
+              <span className="sm:hidden">Mine</span>
             </Link>
           )}
-          <Link
-            href="/messages"
-            className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium sm:px-4 dark:border-zinc-700"
-          >
+          <Link href="/messages" className="btn btn-ghost btn-sm">
             Messages
           </Link>
-          <Link
-            href="/listings/new"
-            className="rounded bg-foreground px-3 py-2 text-sm font-medium text-background sm:px-4"
-          >
-            Post a listing
+          <Link href="/listings/new" className="btn btn-primary btn-sm">
+            <span className="hidden sm:inline">Post a listing</span>
+            <span className="sm:hidden">Post</span>
           </Link>
 
           {user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <span
-                className="hidden max-w-[12rem] truncate text-sm text-zinc-600 sm:inline lg:max-w-[16rem] dark:text-zinc-400"
+                className="hidden max-w-[9rem] truncate text-fine text-secondary lg:inline"
                 title={user.email ?? undefined}
               >
                 {user.name ?? user.email}
@@ -58,19 +56,13 @@ export async function SiteHeader() {
                   await signOut({ redirectTo: "/" });
                 }}
               >
-                <button
-                  type="submit"
-                  className="text-sm text-zinc-600 underline underline-offset-2 dark:text-zinc-400"
-                >
+                <button type="submit" className="btn btn-ghost btn-sm">
                   Sign out
                 </button>
               </form>
             </div>
           ) : (
-            <Link
-              href="/signin"
-              className="text-sm text-zinc-600 underline underline-offset-2 dark:text-zinc-400"
-            >
+            <Link href="/signin" className="btn btn-ghost btn-sm">
               Sign in
             </Link>
           )}

@@ -171,7 +171,7 @@ export function MessageThread({
 
   return (
     <>
-      <p className="mb-2 text-xs text-zinc-500" aria-live="polite">
+      <p className="mb-2 text-fine text-tertiary" aria-live="polite">
         {counterpartyPresent
           ? `${counterpartyName} is in this chat`
           : connected
@@ -190,10 +190,10 @@ export function MessageThread({
               >
                 <div
                   className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
-                    mine
-                      ? "bg-foreground text-background"
-                      : "bg-zinc-100 dark:bg-zinc-800"
-                  } ${message.pending ? "opacity-60" : ""}`}
+ mine
+ ? "bg-accent text-[var(--accent-contrast)]"
+ : "bg-surface-sunken border border-line"
+ } ${message.pending ? "opacity-60" : ""}`}
                 >
                   {/* Rendered as text through JSX, so React escapes it. Never
                       introduce dangerouslySetInnerHTML on this path. */}
@@ -207,12 +207,12 @@ export function MessageThread({
       </div>
 
       {error && (
-        <p className="py-2 text-sm text-red-600" role="alert">
+        <p className="py-2 text-sm text-danger" role="alert">
           {error}
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-line pt-4">
         <label htmlFor="message-body" className="sr-only">
           Message
         </label>
@@ -223,12 +223,12 @@ export function MessageThread({
           maxLength={MESSAGE_MAX_LENGTH}
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Write a message..."
-          className="flex-1 rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field flex-1"
         />
         <button
           type="submit"
           disabled={sending || draft.trim().length === 0}
-          className="rounded bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50"
+          className="btn btn-primary"
         >
           {sending ? "Sending..." : "Send"}
         </button>

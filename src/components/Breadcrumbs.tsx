@@ -14,13 +14,13 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
 
   return (
     <nav aria-label="Breadcrumb" className="mb-6">
-      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-secondary">
         {trail.map((crumb, index) => {
           const isLast = index === trail.length - 1;
           return (
             <li key={`${crumb.label}-${index}`} className="flex items-center gap-x-2">
               {index > 0 && (
-                <span aria-hidden="true" className="text-zinc-400 dark:text-zinc-600">
+                <span aria-hidden="true" className="text-tertiary">
                   ›
                 </span>
               )}

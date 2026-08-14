@@ -1,26 +1,455 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ==========================================================================
+   Design tokens
+   --------------------------------------------------------------------------
+   Every value here is a deliberate choice rather than a default, which is the
+   point of Apple's "craft" principle: nothing random, everything defensible.
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+   Colours are OKLCH so that lightness steps are perceptually even — the same
+   numeric step looks like the same step to the eye, which plain hex does not
+   give you. Dark mode is a token swap, not a second set of components.
+   ========================================================================== */
+
+:root {
+  /* Surfaces, from furthest back to nearest front. */
+  --surface-sunken: oklch(96.5% 0.003 265);
+  --surface: oklch(99.2% 0.002 265);
+  --surface-raised: oklch(100% 0 0);
+
+  /* Text. Three levels is enough hierarchy; a fourth starts to look like a
+     bug rather than an intention. */
+  --text: oklch(21% 0.012 265);
+  --text-secondary: oklch(48% 0.011 265);
+  --text-tertiary: oklch(62% 0.010 265);
+
+  --border: oklch(91% 0.004 265);
+  --border-strong: oklch(84% 0.006 265);
+
+  /* One accent. A marketplace's colour should come from the photographs, not
+     from the chrome competing with them. */
+  --accent: oklch(54% 0.17 258);
+  --accent-hover: oklch(48% 0.17 258);
+  --accent-contrast: oklch(99% 0 0);
+  --accent-subtle: oklch(96% 0.03 258);
+
+  --success: oklch(52% 0.13 155);
+  --success-subtle: oklch(96% 0.04 155);
+  --danger: oklch(55% 0.19 25);
+  --danger-subtle: oklch(96% 0.03 25);
+
+  /* Translucent chrome. Content scrolls *under* this rather than being
+     clipped by an opaque strip (§12). */
+  --material-chrome: oklch(99.2% 0.002 265 / 0.72);
+  --material-blur: 20px;
+
+  /* Shadows are two-part: a tight contact shadow that grounds the element,
+     plus a wider ambient one. A single blurred box-shadow reads as a sticker. */
+  --shadow-sm: 0 1px 2px oklch(21% 0.012 265 / 0.05),
+               0 1px 3px oklch(21% 0.012 265 / 0.04);
+  --shadow-md: 0 2px 4px oklch(21% 0.012 265 / 0.05),
+               0 6px 16px oklch(21% 0.012 265 / 0.07);
+  --shadow-lg: 0 4px 8px oklch(21% 0.012 265 / 0.06),
+               0 16px 40px oklch(21% 0.012 265 / 0.10);
+
+  --radius-sm: 0.5rem;
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 999px;
+
+  /* Motion. Critically damped by default — no overshoot on things the user
+     did not physically throw (§4). The "response" names mirror Apple's
+     parameter rather than calling these durations, because that is what they
+     are conceptually. */
+  --response-fast: 120ms;
+  --response: 200ms;
+  --response-slow: 320ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0.39); /* mirror of the above (§7) */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --surface-sunken: oklch(14% 0.006 265);
+    --surface: oklch(17.5% 0.007 265);
+    --surface-raised: oklch(21.5% 0.008 265);
+
+    --text: oklch(96% 0.003 265);
+    --text-secondary: oklch(72% 0.008 265);
+    --text-tertiary: oklch(58% 0.008 265);
+
+    --border: oklch(28% 0.008 265);
+    --border-strong: oklch(36% 0.010 265);
+
+    --accent: oklch(70% 0.15 258);
+    --accent-hover: oklch(76% 0.15 258);
+    --accent-contrast: oklch(17% 0.01 265);
+    --accent-subtle: oklch(28% 0.06 258);
+
+    --success: oklch(72% 0.14 155);
+    --success-subtle: oklch(26% 0.05 155);
+    --danger: oklch(70% 0.17 25);
+    --danger-subtle: oklch(27% 0.06 25);
+
+    --material-chrome: oklch(17.5% 0.007 265 / 0.72);
+
+    /* Shadows do almost nothing on dark surfaces; depth comes from the
+       surface steps above, so these stay subtle rather than pretending. */
+    --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.30);
+    --shadow-md: 0 2px 4px oklch(0% 0 0 / 0.30), 0 6px 16px oklch(0% 0 0 / 0.25);
+    --shadow-lg: 0 4px 8px oklch(0% 0 0 / 0.35), 0 16px 40px oklch(0% 0 0 / 0.30);
   }
 }
 
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--surface-raised);
+  --color-content: var(--text);
+  --color-secondary: var(--text-secondary);
+  --color-tertiary: var(--text-tertiary);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-contrast: var(--accent-contrast);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+
+  --radius-sm: var(--radius-sm);
+  --radius-DEFAULT: var(--radius);
+  --radius-lg: var(--radius-lg);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+html {
+  /* Spacing lives in rem so the layout scales *with* the user's text size
+     rather than breaking around it (§15). */
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  /* The previous rule here hard-coded Arial, which silently overrode the
+     Geist font the layout goes to the trouble of loading. */
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Type scale. Tracking is size-specific — a single letter-spacing value is
+   wrong somewhere, because large text reads too loose and small text too
+   tight at the same setting (§15). Leading tightens as size grows. */
+h1, .text-display {
+  font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: -0.021em;
+  font-weight: 640;
+}
+
+h2 {
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.014em;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 1.0625rem;
+  line-height: 1.35;
+  letter-spacing: -0.008em;
+  font-weight: 600;
+}
+
+small, .text-fine {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  letter-spacing: 0.004em; /* small text wants slightly *positive* tracking */
+}
+
+/* Numbers that sit in columns or change in place shouldn't jitter. */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ==========================================================================
+   Interaction
+   ========================================================================== */
+
+/* Focus is a single consistent ring everywhere, so "where am I" is never a
+   guess. Uses :focus-visible so a mouse click doesn't paint a ring. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Feedback on pointer-*down*, not on release (§1). Waiting for click to show
+   anything is the single thing that makes a UI feel dead. */
+.pressable {
+  transition:
+    transform var(--response-fast) var(--ease-out),
+    background-color var(--response-fast) var(--ease-out),
+    border-color var(--response-fast) var(--ease-out),
+    opacity var(--response-fast) var(--ease-out);
+  touch-action: manipulation; /* removes the legacy ~300ms tap delay */
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+/* Cards lift slightly toward the pointer, and press in when tapped — the
+   in-between state hints at the outcome (§8). */
+.card-interactive {
+  transition:
+    transform var(--response) var(--ease-out),
+    box-shadow var(--response) var(--ease-out);
+}
+@media (hover: hover) {
+  .card-interactive:hover { transform: translateY(-2px); }
+}
+.card-interactive:active { transform: scale(0.985); }
+
+/* Scroll edge effect instead of a hard 1px divider under floating chrome
+   (§12) — the fade only exists where content actually passes under. */
+.scroll-edge {
+  mask-image: linear-gradient(to bottom, transparent, black 0.75rem);
+}
+
+/* Horizontal filter rails: hide the scrollbar but keep the scrolling. */
+.rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; }
+
+/* ==========================================================================
+   Accessibility signals
+   These are three independent user settings, not one "accessibility mode".
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reduced motion is not "no feedback" — it's a non-vestibular equivalent.
+     Transforms go, colour and opacity feedback stay. */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pressable:active,
+  .card-interactive:hover,
+  .card-interactive:active {
+    transform: none;
+  }
+  .pressable:active { opacity: 0.7; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root { --material-chrome: var(--surface); --material-blur: 0px; }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --text-secondary: var(--text);
+    --border: var(--border-strong);
+    --material-chrome: var(--surface);
+    --material-blur: 0px;
+  }
+  .card-interactive, .field { border-color: var(--border-strong); }
+}
+
+/* ==========================================================================
+   Components
+   --------------------------------------------------------------------------
+   Defined once so that anything that looks the same behaves the same and is
+   the same size — familiarity and predictability (§16.4). Inline utilities
+   are still used for layout; these carry identity and interaction.
+   ========================================================================== */
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    /* Comfortably past the 44px touch target on the primary sizes. */
+    min-height: 2.75rem;
+    padding: 0.625rem 1.125rem;
+    border-radius: var(--radius);
+    font-size: 0.9375rem;
+    font-weight: 550;
+    letter-spacing: -0.006em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      transform var(--response-fast) var(--ease-out),
+      background-color var(--response-fast) var(--ease-out),
+      border-color var(--response-fast) var(--ease-out),
+      opacity var(--response-fast) var(--ease-out);
+    touch-action: manipulation;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled, .btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+    border: 1px solid transparent;
+  }
+  @media (hover: hover) {
+    .btn-primary:not(:disabled):hover { background: var(--accent-hover); }
+  }
+
+  .btn-secondary {
+    background: var(--surface-raised);
+    color: var(--text);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (hover: hover) {
+    .btn-secondary:not(:disabled):hover { border-color: var(--border-strong); }
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    min-height: 2.25rem;
+    padding: 0.375rem 0.625rem;
+  }
+  @media (hover: hover) {
+    .btn-ghost:hover { color: var(--text); background: var(--surface-sunken); }
+  }
+
+  .btn-sm { min-height: 2.25rem; padding: 0.375rem 0.75rem; font-size: 0.875rem; }
+
+  /* Form fields. Labels sit above, always visible — a placeholder that
+     doubles as the label disappears exactly when it's needed. */
+  .field {
+    width: 100%;
+    background: var(--surface-raised);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    min-height: 2.75rem;
+    transition:
+      border-color var(--response-fast) var(--ease-out),
+      box-shadow var(--response-fast) var(--ease-out);
+  }
+  .field::placeholder { color: var(--text-tertiary); }
+  .field:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 550;
+    letter-spacing: -0.003em;
+    color: var(--text);
+  }
+
+  .hint { font-size: 0.8125rem; letter-spacing: 0.004em; color: var(--text-secondary); }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 560;
+    letter-spacing: 0.006em;
+    white-space: nowrap;
+  }
+  .badge-neutral { background: var(--surface-sunken); color: var(--text-secondary); }
+  .badge-accent { background: var(--accent); color: var(--accent-contrast); }
+  .badge-outline { border: 1px solid var(--border-strong); color: var(--text-secondary); }
+
+  /* Chips are a rail of filters; the selected one is filled, not merely
+     outlined, so the current state is obvious at a glance. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.125rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    transition:
+      transform var(--response-fast) var(--ease-out),
+      background-color var(--response-fast) var(--ease-out),
+      color var(--response-fast) var(--ease-out),
+      border-color var(--response-fast) var(--ease-out);
+    touch-action: manipulation;
+  }
+  .chip:active { transform: scale(0.96); }
+  @media (hover: hover) {
+    .chip:hover { border-color: var(--border-strong); color: var(--text); }
+  }
+  .chip-selected {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--surface);
+  }
+  @media (hover: hover) {
+    .chip-selected:hover { color: var(--surface); border-color: var(--text); }
+  }
+
+  .card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Translucent chrome that content scrolls under (§12). The bright top edge
+     is light catching the material, which is what stops it reading as a flat
+     grey bar. */
+  .chrome {
+    background: var(--material-chrome);
+    backdrop-filter: blur(var(--material-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--material-blur)) saturate(180%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .notice {
+    display: flex;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .notice-success { background: var(--success-subtle); color: var(--success); }
+  .notice-danger { background: var(--danger-subtle); color: var(--danger); }
 }

@@ -47,7 +47,7 @@ export function ListingStatusControl({
           value={current}
           disabled={pending}
           onChange={(e) => handleChange(e.target.value as ListingStatus)}
-          className="rounded border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field h-9 min-h-0 w-auto py-1 text-sm disabled:opacity-50"
         >
           {SELLER_SELECTABLE_STATUSES.map((value) => (
             <option key={value} value={value}>
@@ -57,7 +57,7 @@ export function ListingStatusControl({
         </select>
       </label>
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-fine text-danger" role="alert">
           {error}
         </p>
       )}

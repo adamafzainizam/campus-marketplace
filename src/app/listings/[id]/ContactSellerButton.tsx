@@ -35,17 +35,17 @@ export function ContactSellerButton({ listingId }: { listingId: string }) {
   }
 
   return (
-    <div className="mt-4 flex flex-col gap-2">
+    <div className="mt-5 flex flex-col gap-2">
       <button
         type="button"
         onClick={handleClick}
         disabled={busy}
-        className="rounded bg-foreground px-4 py-2 text-sm text-background disabled:opacity-50"
+        className="btn btn-primary w-full sm:w-auto"
       >
         {busy ? "Opening chat..." : "Message seller"}
       </button>
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="notice notice-danger" role="alert">
           {error}
         </p>
       )}

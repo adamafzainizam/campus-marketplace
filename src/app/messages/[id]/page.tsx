@@ -26,7 +26,7 @@ export default async function ConversationPage({
 
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mb-4 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+      <div className="mb-4 border-b border-line pb-4">
         <Breadcrumbs
           items={[
             { label: "Messages", href: "/messages" },
@@ -38,7 +38,7 @@ export default async function ConversationPage({
             {thread.listingTitle}
           </Link>
         </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm text-secondary">
           with {thread.counterpartyName}
         </p>
       </div>
