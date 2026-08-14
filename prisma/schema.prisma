@@ -82,27 +82,36 @@ model Category {
 }
 
 model Listing {
-  id          String        @id @default(cuid())
+  id          String           @id @default(cuid())
   title       String
   description String
-  price       Decimal       @db.Decimal(10, 2)
+  price       Decimal          @db.Decimal(10, 2)
   condition   ListingCondition
-  status      ListingStatus @default(AVAILABLE)
-  imageUrl    String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  status      ListingStatus    @default(AVAILABLE)
 
-  sellerId    String
-  seller      User          @relation(fields: [sellerId], references: [id])
+  /// Defaults to SALE so every pre-existing listing keeps its meaning: they
+  /// were all created when selling was the only thing the app could express.
+  type         ListingType   @default(SALE)
+  /// Set only when type is RENT; enforced in application code rather than by
+  /// the database, since Postgres cannot express a conditional NOT NULL here
+  /// without a CHECK constraint Prisma would not manage.
+  rentalPeriod RentalPeriod?
+  imageUrl     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
-  categoryId  String
-  category    Category      @relation(fields: [categoryId], references: [id])
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
 
   conversations Conversation[]
 
   @@index([sellerId])
   @@index([categoryId])
   @@index([status])
+  @@index([type])
   @@map("listings")
 }
 
@@ -192,4 +201,21 @@ enum ListingStatus {
   AVAILABLE
   PENDING
   SOLD
+}
+
+/// Whether the seller is selling the item outright or renting it out.
+/// The project has described itself as buy/sell/rent from the start, but
+/// nothing in the data model could express a rental until now.
+enum ListingType {
+  SALE
+  RENT
+}
+
+/// The unit a rental price is quoted in, so "RM20" is unambiguous.
+/// SEMESTER is included because it is the natural unit on a campus.
+enum RentalPeriod {
+  DAY
+  WEEK
+  MONTH
+  SEMESTER
 }

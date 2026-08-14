@@ -9,7 +9,9 @@ import {
   validateCondition,
   validateDescription,
   validateId,
+  validateListingType,
   validatePrice,
+  validateRentalPeriod,
   validateTitle,
 } from "@/lib/listing-constraints";
 
@@ -54,6 +56,14 @@ export async function createListing(input: unknown) {
   const categoryId = validateId(raw.categoryId, "Category");
   if (!categoryId.ok) throw new Error(categoryId.error);
 
+  const type = validateListingType(raw.type);
+  if (!type.ok) throw new Error(type.error);
+
+  // Contextual on the type: required for a rental, discarded for a sale, so a
+  // crafted payload can't leave a sale rendering as "RM 20.00 / week".
+  const rentalPeriod = validateRentalPeriod(raw.rentalPeriod, type.value);
+  if (!rentalPeriod.ok) throw new Error(rentalPeriod.error);
+
   // The browser reports this key back to us after uploading straight to R2, so
   // it's user input like everything else here — without this check a user could
   // attach any path they like, including another user's uploaded image.
@@ -76,6 +86,8 @@ export async function createListing(input: unknown) {
       description: description.value,
       price: price.value,
       condition: condition.value,
+      type: type.value,
+      rentalPeriod: rentalPeriod.value,
       categoryId: category.id,
       sellerId: userId,
       imageUrl: imageKey,

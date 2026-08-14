@@ -15,7 +15,9 @@ import {
   validateCondition,
   validateDescription,
   validateId,
+  validateListingType,
   validatePrice,
+  validateRentalPeriod,
   validateTitle,
 } from "./listing-constraints.ts";
 
@@ -216,5 +218,61 @@ describe("validateId", () => {
     const result = validateId(null, "Conversation");
     assert.equal(result.ok, false);
     assert.match(result.ok === false ? result.error : "", /Conversation/);
+  });
+});
+
+describe("validateListingType", () => {
+  it("accepts both kinds of listing", () => {
+    assert.deepEqual(validateListingType("SALE"), { ok: true, value: "SALE" });
+    assert.deepEqual(validateListingType("RENT"), { ok: true, value: "RENT" });
+  });
+
+  it("rejects an unknown type", () => {
+    assert.equal(validateListingType("LEASE").ok, false);
+    assert.equal(validateListingType("sale").ok, false);
+  });
+
+  // Known Gotchas #15: an allowlist keyed by user input is bypassable through
+  // the prototype chain unless guarded with Object.hasOwn.
+  it("rejects inherited keys from the prototype chain", () => {
+    for (const key of ["constructor", "toString", "valueOf", "hasOwnProperty"]) {
+      assert.equal(validateListingType(key).ok, false, `${key} must be rejected`);
+    }
+  });
+
+  it("rejects non-string input", () => {
+    for (const value of [undefined, null, 42, {}, ["SALE"]]) {
+      assert.equal(validateListingType(value).ok, false);
+    }
+  });
+});
+
+describe("validateRentalPeriod", () => {
+  // A rental price without a unit is meaningless: "RM20" could be a day or a
+  // semester. The period is therefore required for RENT.
+  it("requires a period when the listing is a rental", () => {
+    assert.equal(validateRentalPeriod(undefined, "RENT").ok, false);
+    assert.equal(validateRentalPeriod("", "RENT").ok, false);
+    assert.deepEqual(validateRentalPeriod("WEEK", "RENT"), { ok: true, value: "WEEK" });
+    assert.deepEqual(validateRentalPeriod("SEMESTER", "RENT"), { ok: true, value: "SEMESTER" });
+  });
+
+  // A sale has no period. Anything supplied is discarded rather than stored,
+  // so a crafted payload cannot leave a sale displaying "RM20 / week".
+  it("stores null for a sale, whatever was submitted", () => {
+    assert.deepEqual(validateRentalPeriod(undefined, "SALE"), { ok: true, value: null });
+    assert.deepEqual(validateRentalPeriod("WEEK", "SALE"), { ok: true, value: null });
+    assert.deepEqual(validateRentalPeriod("nonsense", "SALE"), { ok: true, value: null });
+  });
+
+  it("rejects an unknown period on a rental", () => {
+    assert.equal(validateRentalPeriod("FORTNIGHT", "RENT").ok, false);
+    assert.equal(validateRentalPeriod("week", "RENT").ok, false);
+  });
+
+  it("rejects inherited keys from the prototype chain on a rental", () => {
+    for (const key of ["constructor", "toString", "valueOf"]) {
+      assert.equal(validateRentalPeriod(key, "RENT").ok, false, `${key} must be rejected`);
+    }
   });
 });
