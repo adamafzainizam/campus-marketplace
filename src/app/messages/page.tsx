@@ -19,18 +19,18 @@ export default async function MessagesPage() {
       <h1 className="mb-8 text-2xl font-semibold">Messages</h1>
 
       {conversations.length === 0 ? (
-        <p className="text-zinc-600 dark:text-zinc-400">
+        <p className="text-secondary">
           No conversations yet. Message a seller from a listing to start one.
         </p>
       ) : (
-        <ul className="flex flex-col divide-y divide-zinc-200 dark:divide-zinc-800">
+        <ul className="card flex flex-col divide-y divide-[var(--border)] overflow-hidden">
           {conversations.map((conversation) => (
             <li key={conversation.id}>
               <Link
                 href={`/messages/${conversation.id}`}
                 className="flex items-center gap-4 py-4"
               >
-                <div className="h-14 w-14 shrink-0 overflow-hidden rounded bg-zinc-100 dark:bg-zinc-900">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
                   {conversation.listingImageKey && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -55,7 +55,7 @@ export default async function MessagesPage() {
                       </span>
                     )}
                   </div>
-                  <p className="truncate text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="truncate text-sm text-secondary">
                     {conversation.counterpartyName}
                     {conversation.lastMessage
                       ? ` · ${conversation.lastMessage}`

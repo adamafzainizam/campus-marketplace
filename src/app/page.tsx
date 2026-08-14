@@ -59,61 +59,62 @@ export default async function Home({
   ]);
 
   const active = { category: categorySlug, q: query, type: typeFilter ?? undefined };
+  const filtered = Boolean(categorySlug || query || typeFilter);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       {created && (
-        <p className="mb-6 rounded bg-green-100 px-4 py-2 text-sm text-green-800 dark:bg-green-950 dark:text-green-200">
+        <p className="notice notice-success mb-6" role="status">
           Listing posted successfully.
         </p>
       )}
 
       <Breadcrumbs items={[]} />
 
-      <h1 className="text-2xl font-semibold sm:text-3xl">
-        Buy, sell, and rent within GMI
-      </h1>
-      <p className="mt-2 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
-        A marketplace for the German-Malaysian Institute community.{" "}
-        {session?.user ? (
-          <>Browse freely, and post whenever you&rsquo;re ready.</>
-        ) : (
-          <>
-            Anyone can browse. To post a listing or message a seller you&rsquo;ll
-            need to{" "}
-            <Link href="/signin" className="underline underline-offset-2">
-              sign in with your {ALLOWED_DOMAIN_LABEL} account
-            </Link>
-            .
-          </>
-        )}
-      </p>
+      <section className="mb-8">
+        <h1>Buy, sell, and rent within GMI</h1>
+        <p className="mt-2 max-w-prose text-secondary">
+          A marketplace for the German-Malaysian Institute community.{" "}
+          {session?.user ? (
+            <>Browse freely, and post whenever you&rsquo;re ready.</>
+          ) : (
+            <>
+              Anyone can browse. To post a listing or message a seller you&rsquo;ll
+              need to{" "}
+              <Link
+                href="/signin"
+                className="font-medium text-accent underline underline-offset-4"
+              >
+                sign in with your {ALLOWED_DOMAIN_LABEL} account
+              </Link>
+              .
+            </>
+          )}
+        </p>
+      </section>
 
-      <form
-        className="mb-6 flex flex-col gap-3 sm:flex-row"
-        action="/"
-        method="get"
-      >
+      <form className="mb-5 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
+        <label htmlFor="q" className="sr-only">
+          Search listings
+        </label>
         <input
-          type="text"
+          id="q"
+          type="search"
           name="q"
           defaultValue={query}
-          placeholder="Search listings..."
-          className="min-w-0 flex-1 rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          placeholder="Search listings…"
+          className="field min-w-0 flex-1"
         />
         {categorySlug && <input type="hidden" name="category" value={categorySlug} />}
         {typeFilter && <input type="hidden" name="type" value={typeFilter} />}
-        <button
-          type="submit"
-          className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-        >
+        <button type="submit" className="btn btn-secondary">
           Search
         </button>
       </form>
 
-      {/* Sale/rent, kept separate from categories: they are different questions
-          and combining them into one row of chips would imply otherwise. */}
-      <div className="mb-4 flex flex-wrap gap-2 text-sm">
+      {/* Sale/rent is a different question from category, so it gets its own
+          row rather than being mixed into one undifferentiated wall of chips. */}
+      <div className="mb-3 flex flex-wrap gap-2">
         <FilterChip href={browseHref(active, { type: undefined })} selected={!typeFilter}>
           Everything
         </FilterChip>
@@ -128,10 +129,10 @@ export default async function Home({
         ))}
       </div>
 
-      {/* Horizontally scrollable rather than wrapping to five rows on a phone,
-          now that there are seventeen categories. */}
-      <div className="mb-8 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex w-max gap-2 text-sm sm:w-auto sm:flex-wrap">
+      {/* Seventeen categories wrap to five rows on a phone, so this is a
+          scrolling rail there and wraps only where there is room. */}
+      <div className="rail -mx-4 mb-8 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap">
           <FilterChip
             href={browseHref(active, { category: undefined })}
             selected={!categorySlug}
@@ -151,44 +152,75 @@ export default async function Home({
       </div>
 
       {listings.length === 0 ? (
-        <p className="text-zinc-600 dark:text-zinc-400">No listings found.</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 md:grid-cols-4">
-          {listings.map((listing) => (
-            <Link
-              key={listing.id}
-              href={`/listings/${listing.id}`}
-              className="flex flex-col gap-2"
-            >
-              <div className="relative aspect-square w-full overflow-hidden rounded bg-zinc-100 dark:bg-zinc-900">
-                {listing.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={getImageUrl(listing.imageUrl)}
-                    alt={listing.title}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-                {listing.type === "RENT" && (
-                  <span className="absolute left-2 top-2 rounded bg-foreground px-2 py-0.5 text-xs font-medium text-background">
-                    For rent
-                  </span>
-                )}
-                {/* Sold and reserved listings stay visible, marked — it shows
-                    a visitor the marketplace is actually used. */}
-                {listing.status !== "AVAILABLE" && (
-                  <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-sm font-medium text-white">
-                    {statusLabel(listing.status, listing.type)}
-                  </span>
-                )}
-              </div>
-              <p className="truncate text-sm font-medium">{listing.title}</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
-              </p>
+        <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
+          <p className="font-medium">No listings found</p>
+          <p className="max-w-sm text-fine text-secondary">
+            {filtered
+              ? "Nothing matches those filters yet. Try a broader category, or clear the search."
+              : "Nothing has been posted yet. Be the first."}
+          </p>
+          {filtered ? (
+            <Link href="/" className="btn btn-secondary btn-sm mt-1">
+              Clear filters
             </Link>
-          ))}
+          ) : (
+            <Link href="/listings/new" className="btn btn-primary btn-sm mt-1">
+              Post a listing
+            </Link>
+          )}
         </div>
+      ) : (
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4">
+          {listings.map((listing) => (
+            <li key={listing.id}>
+              <Link
+                href={`/listings/${listing.id}`}
+                className="card-interactive flex flex-col gap-2.5"
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
+                  {listing.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={getImageUrl(listing.imageUrl)}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center text-fine text-tertiary">
+                      No photo
+                    </span>
+                  )}
+
+                  {listing.type === "RENT" && (
+                    <span className="badge badge-accent absolute left-2 top-2 shadow-sm">
+                      For rent
+                    </span>
+                  )}
+
+                  {/* Sold and reserved stay visible, marked — evidence the
+                      marketplace is used. Dimmed rather than hidden. */}
+                  {listing.status !== "AVAILABLE" && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <span className="badge bg-white text-neutral-900">
+                        {statusLabel(listing.status, listing.type)}
+                      </span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-0.5">
+                  <p className="truncate text-[0.9375rem] leading-snug font-medium">
+                    {listing.title}
+                  </p>
+                  <p className="tabular text-fine text-secondary">
+                    {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -206,11 +238,8 @@ function FilterChip({
   return (
     <Link
       href={href}
-      className={`whitespace-nowrap rounded-full border px-3 py-1 ${
-        selected
-          ? "border-foreground bg-foreground text-background"
-          : "border-zinc-300 dark:border-zinc-700"
-      }`}
+      aria-current={selected ? "true" : undefined}
+      className={`chip${selected ? " chip-selected" : ""}`}
     >
       {children}
     </Link>

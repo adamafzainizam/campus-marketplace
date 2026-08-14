@@ -171,9 +171,9 @@ export function ListingForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="title" className="text-sm font-medium">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="title" className="label">
           Title
         </label>
         <input
@@ -182,12 +182,12 @@ export function ListingForm({
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field"
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="description" className="text-sm font-medium">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="description" className="label">
           Description
         </label>
         <textarea
@@ -196,21 +196,21 @@ export function ListingForm({
           rows={4}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field"
         />
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-sm font-medium">Listing type</legend>
+        <legend className="label mb-1">Listing type</legend>
         <div className="flex flex-wrap gap-2">
           {Object.values(ListingType).map((value) => (
             <label
               key={value}
-              className={`cursor-pointer rounded border px-4 py-2 text-sm ${
-                type === value
-                  ? "border-foreground bg-foreground font-medium text-background"
-                  : "border-zinc-300 dark:border-zinc-700"
-              }`}
+              className={`chip cursor-pointer ${
+ type === value
+ ? "chip-selected"
+ : "border-line"
+ }`}
             >
               <input
                 type="radio"
@@ -226,8 +226,8 @@ export function ListingForm({
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="price" className="text-sm font-medium">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="price" className="label">
           {type === ListingType.RENT ? "Rental price (RM)" : "Price (RM)"}
         </label>
         <input
@@ -237,20 +237,20 @@ export function ListingForm({
           required
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field"
         />
       </div>
 
       {type === ListingType.RENT && (
-        <div className="flex flex-col gap-1">
-          <label htmlFor="rentalPeriod" className="text-sm font-medium">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="rentalPeriod" className="label">
             Price is per
           </label>
           <select
             id="rentalPeriod"
             value={rentalPeriod}
             onChange={(e) => setRentalPeriod(e.target.value as RentalPeriod)}
-            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="field"
           >
             {Object.values(RentalPeriod).map((value) => (
               <option key={value} value={value}>
@@ -261,15 +261,15 @@ export function ListingForm({
         </div>
       )}
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="condition" className="text-sm font-medium">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="condition" className="label">
           Condition
         </label>
         <select
           id="condition"
           value={condition}
           onChange={(e) => setCondition(e.target.value as ListingCondition)}
-          className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field"
         >
           {Object.values(ListingCondition).map((value) => (
             <option key={value} value={value}>
@@ -279,15 +279,15 @@ export function ListingForm({
         </select>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="category" className="text-sm font-medium">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="category" className="label">
           Category
         </label>
         <select
           id="category"
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="field"
         >
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
@@ -297,8 +297,8 @@ export function ListingForm({
         </select>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="image" className="text-sm font-medium">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="image" className="label">
           {editing ? "Replace photo (optional)" : "Photo (optional)"}
         </label>
         <input
@@ -315,10 +315,10 @@ export function ListingForm({
             <img
               src={previewUrl ?? existingImageUrl ?? ""}
               alt={previewUrl ? "Selected preview" : "Current photo"}
-              className="mt-2 h-40 w-40 rounded object-cover"
+              className="mt-2 h-40 w-40 rounded-lg border border-line object-cover shadow-sm"
             />
             {editing && !previewUrl && (
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="hint">
                 Leave this empty to keep the current photo.
               </p>
             )}
@@ -327,14 +327,14 @@ export function ListingForm({
       </div>
 
       {stage.kind === "uploading" && (
-        <div className="flex flex-col gap-1" aria-live="polite">
-          <div className="h-2 w-full overflow-hidden rounded bg-zinc-200 dark:bg-zinc-800">
+        <div className="flex flex-col gap-1.5" aria-live="polite">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-sunken">
             <div
-              className="h-full bg-foreground transition-[width] duration-200"
+              className="h-full bg-accent transition-[width] duration-200"
               style={{ width: `${stage.percent ?? 0}%` }}
             />
           </div>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+          <p className="text-xs text-secondary">
             {stage.percent === null
               ? "Uploading photo..."
               : `Uploading photo... ${stage.percent}%`}
@@ -343,7 +343,7 @@ export function ListingForm({
       )}
 
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="notice notice-danger" role="alert">
           {error}
         </p>
       )}
@@ -351,7 +351,7 @@ export function ListingForm({
       <button
         type="submit"
         disabled={submitting || !categoryId}
-        className="rounded bg-foreground px-4 py-2 text-background disabled:opacity-50"
+        className="btn btn-primary w-full"
       >
         {buttonLabel()}
       </button>

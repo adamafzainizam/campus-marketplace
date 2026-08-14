@@ -38,7 +38,7 @@ export default async function SignInPage({
 
       <h1 className="mb-3 text-2xl font-semibold">Sign in</h1>
 
-      <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mb-6 text-sm text-secondary">
         GMI Campus Marketplace is for the German-Malaysian Institute community. You&rsquo;ll need to sign in
         with your{" "}
         <strong className="font-medium text-foreground">
@@ -52,7 +52,7 @@ export default async function SignInPage({
       {error && (
         <p
           role="alert"
-          className="mb-6 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
+          className="notice notice-danger mb-6"
         >
           {messageFor(error)}
         </p>
@@ -66,13 +66,13 @@ export default async function SignInPage({
       >
         <button
           type="submit"
-          className="w-full rounded bg-foreground px-4 py-3 text-sm font-medium text-background"
+          className="btn btn-primary w-full"
         >
           Continue with Google
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mt-6 text-sm text-secondary">
         You can browse listings without signing in. An account is only needed to
         post a listing or message a seller.
       </p>
