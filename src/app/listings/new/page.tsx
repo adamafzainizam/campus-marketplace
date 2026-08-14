@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { ListingForm } from "./ListingForm";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default async function NewListingPage() {
   const session = await auth();
   if (!session?.user) {
-    redirect("/api/auth/signin?callbackUrl=/listings/new");
+    redirect("/signin?callbackUrl=/listings/new");
   }
 
   const categories = await db.category.findMany({
@@ -16,6 +17,7 @@ export default async function NewListingPage() {
 
   return (
     <div className="mx-auto w-full max-w-lg px-6 py-12">
+      <Breadcrumbs items={[{ label: "Post a listing" }]} />
       <h1 className="mb-6 text-2xl font-semibold">Post a listing</h1>
       <ListingForm categories={categories} />
     </div>

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
 import { CONDITION_LABELS } from "@/lib/listing-labels";
 import { ContactSellerButton } from "./ContactSellerButton";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default async function ListingDetailPage({
   params,
@@ -41,9 +42,7 @@ export default async function ListingDetailPage({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-12">
-      <Link href="/" className="mb-6 inline-block text-sm text-zinc-600 dark:text-zinc-400">
-        &larr; Back to listings
-      </Link>
+      <Breadcrumbs items={[{ label: listing.title }]} />
 
       <div className="grid gap-8 sm:grid-cols-2">
         <div className="aspect-square w-full overflow-hidden rounded bg-zinc-100 dark:bg-zinc-900">
@@ -80,7 +79,7 @@ export default async function ListingDetailPage({
             )
           ) : (
             <Link
-              href={`/api/auth/signin?callbackUrl=/listings/${listing.id}`}
+              href={`/signin?callbackUrl=/listings/${listing.id}`}
               className="mt-4 inline-block rounded bg-foreground px-4 py-2 text-center text-sm text-background"
             >
               Sign in to message seller
