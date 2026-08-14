@@ -6,7 +6,9 @@ Sign-in is restricted to GMI Google accounts, so everyone you're dealing with is
 
 **Live: [campus-marketplace-adamafzainizam.vercel.app](https://campus-marketplace-adamafzainizam.vercel.app)** — anyone can browse without an account.
 
-> **Status:** deployed and working. All eight weeks of feature work are done; the remaining task is this document and a written case study.
+**📝 [Read the case study](./docs/case-study.md)** — the architecture decisions, the four bugs that only appeared in production, and the one thing I'd do differently.
+
+> **Status:** deployed and working. All eight weeks of feature work are done.
 
 ---
 
@@ -181,7 +183,7 @@ An 8-week plan, worked on roughly 10–15 hours a week.
 | 3–4 | Listings and image upload | Done — `v0.2` |
 | 5–6 | Buyer–seller messaging | Done — `v0.3` |
 | 7 | Deployment and polish | Done — `v0.4`, live |
-| 8 | Documentation and write-up | In progress |
+| 8 | Documentation and write-up | Case study done; screenshots outstanding |
 
 ---
 
@@ -200,5 +202,7 @@ The site publishes [terms](https://campus-marketplace-adamafzainizam.vercel.app/
 ---
 
 ## Other documentation
+
+[`docs/case-study.md`](./docs/case-study.md) is the project write-up: why real-time messaging was bought rather than built, why the rate limiter lives in Postgres, the four bugs that could only appear in production, and the one part of the codebase I'd test properly given more time.
 
 [`AGENTS.md`](./AGENTS.md) is a working log kept alongside the code — every non-obvious decision and the reasoning behind it, plus the version-specific traps that cost real time to figure out. It's written for the AI tools used to build this, but it doubles as the honest engineering history of the project.
