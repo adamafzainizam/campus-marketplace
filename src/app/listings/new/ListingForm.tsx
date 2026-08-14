@@ -83,7 +83,7 @@ export function ListingForm({ categories }: { categories: Category[] }) {
     try {
       const imageKey = file ? await uploadImage(file) : null;
       setStage({ kind: "saving" });
-      await createListing({
+      const result = await createListing({
         title,
         description,
         price,
@@ -95,6 +95,15 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         categoryId,
         imageKey,
       });
+
+      // createListing only returns when something went wrong; on success it
+      // redirects. Returned failures carry a real message, unlike thrown ones
+      // which Next masks in production builds.
+      if (result && !result.ok) {
+        setError(result.error);
+        setStage({ kind: "idle" });
+        return;
+      }
     } catch (err) {
       unstable_rethrow(err);
       setError(err instanceof Error ? err.message : "Something went wrong.");

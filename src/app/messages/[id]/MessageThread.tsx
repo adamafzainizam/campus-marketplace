@@ -146,7 +146,18 @@ export function MessageThread({
     setDraft("");
 
     try {
-      await sendMessage(conversationId, body);
+      const result = await sendMessage(conversationId, body);
+      if (!result.ok) {
+        // Same rollback as the catch below: the optimistic message never
+        // reached the server, so it must not stay on screen, and the draft is
+        // handed back so nothing the user typed is lost.
+        setMessages((current) =>
+          current.filter((message) => message.id !== optimistic.id),
+        );
+        setDraft(body);
+        setError(result.error);
+        return;
+      }
     } catch (err) {
       setMessages((current) =>
         current.filter((message) => message.id !== optimistic.id),
