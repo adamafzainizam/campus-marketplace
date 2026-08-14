@@ -48,7 +48,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - **Local path:** `/home/adom/Documents/campus-marketplace`
 - **Branch:** `main`
 - **Git identity for this repo:** `adamafzainizam` / `m.adamafzainizam@gmail.com` — local override, deliberately separate from another GitHub account (`skibidam`) tied to the builder's GMI/school email that also exists on this machine. Never assume the global git config is correct for this repo; it's set locally on purpose.
-- **Latest tag:** `v0.3` — "Real-time messaging via Ably, plus remediation of a six-finding security audit". Previous: `v0.2` — "Listings: create/browse/search/filter, R2 image upload via presigned URLs, hardened upload validation"; `v0.1` — "Foundation: Next.js scaffold, Prisma schema, Neon DB, Google OAuth with GMI domain restriction"
+- **Latest tag:** `v0.4` — "Deployed to production on Vercel". Previous: `v0.3` — "Real-time messaging via Ably, plus remediation of a six-finding security audit"; `v0.2` — "Listings: create/browse/search/filter, R2 image upload via presigned URLs, hardened upload validation"; `v0.1` — "Foundation: Next.js scaffold, Prisma schema, Neon DB, Google OAuth with GMI domain restriction"
 - **`gh` CLI now works — fixed 2026-08-12.** It was previously authenticated only as `skibidam` (the GMI/student account), which cannot see this repo at all, so `gh pr list` failed with "Could not resolve to a Repository". Both accounts are now authenticated and `adamafzainizam` is active; `gh` can list, create, and merge PRs normally. If that error ever reappears, the fix is `gh auth switch --user adamafzainizam`, not re-authenticating. When running `gh auth login` here, choose **Skip** at the "upload your SSH public key" prompt — both keys are already on the account, and `~/.ssh/id_ed25519` is the dead one (Known Gotchas #5). Note that the **global** git identity is still the student email, so any *new* repo created outside this folder will default to the wrong identity unless a local override is set first; this repo has a **local** `user.email` override, so its commits have always been correctly attributed to `adamafzainizam`.
 
 **Local machine** (carried over from the old `dev-environment.md` scratch doc): Linux Mint Cinnamon 22.3 on an ASUS TUF Gaming A15 (FA506NC-HN168W). Node is installed via `nvm` rather than Mint's `apt` package, because the distro package lags behind current LTS and `nvm` allows per-project Node versions. There is deliberately **no local Postgres** — the project has developed against a hosted database from day one to avoid "works on my machine" gaps at deployment.
@@ -70,7 +70,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-## Current State (as of 2026-08-14 — Weeks 5-6 messaging complete, security audit remediated, tagged `v0.3`)
+## Current State (as of 2026-08-15 — deployed and live, tagged `v0.4`, Week 7 complete)
+
+> **Start here.** The single most useful orientation: the app is **live, working, and verified end to end in a browser**. Weeks 1–7 of the 8-week plan are done. What remains is Week 8 (README, screenshots, case study) and one carried-over verification (two-session real-time delivery). Everything below this box is detail and history.
+>
+> **Live:** `https://campus-marketplace-adamafzainizam.vercel.app`
+> **Tests:** 173 passing (`npm test`). `tsc --noEmit`, `eslint`, and `next build` all clean.
+> **Local dev:** `.env` points at the Neon **`development`** branch and the **`-dev`** R2 bucket. Production's values live in Vercel and are mirrored in gitignored `.env.vercel.local` / `.env.prod-db.local`.
+>
+> **If you change anything about the CSP, read Known Gotchas #31 and #34 first.** Three separate production outages came from that one policy.
+
 
 **Done and verified:**
 - Next.js scaffold, TypeScript/Tailwind/ESLint/App Router/`src/` dir
@@ -139,6 +148,21 @@ Verified against the live site from a terminal, not assumed:
 **Still outstanding:** the two-session real-time delivery test, carried over from Weeks 5-6. Everything else in Week 7 is done.
 
 **Getting there took four production-only bugs, all invisible in development.** Three were the 2026-08-13 audit's CSP blocking paths nobody re-exercised afterwards — `form-action` blocked the Google sign-in redirect, `connect-src` blocked the browser's upload to R2, and the fix for that one allowed the wrong host because the AWS SDK addresses R2 virtual-hosted style. The fourth was structural: every server action reported validation failures by throwing, and Next.js masks thrown errors in production builds, so "description too short" and a crash looked identical. The general lesson, recorded in the gotchas: **a security policy or error-handling choice that is invisible in development is exactly the kind that ships broken** — after tightening a CSP, walk every outbound request the browser makes, not just page loads.
+
+**Post-deployment work (2026-08-15) — everything below shipped after `v0.4` was tagged and is live.**
+
+Six PRs, in order. Each was driven by something the builder saw in a browser that no automated check had caught, which is itself the lesson:
+
+- **PR #10 — sign-in was completely broken.** `form-action 'self'` blocked the redirect to Google. Known Gotchas #31. The CSP moved out of `next.config.ts` into `src/lib/security-headers.ts` so it could be tested at all.
+- **PR #11 — a site-wide header, breadcrumbs, and a custom sign-in page.** Auth state had been invisible on every page but the home page. The sign-in page now states the `@gmi.edu.my` requirement *before* an account is picked and explains an `AccessDenied` rejection. Also added `auth-domain.ts` (the domain rule had **no tests at all** despite Gotcha #4 warning about exactly that check) and `safe-redirect.ts` (`callbackUrl` was being honoured unchecked, an open redirect).
+- **PR #12 — renting, broader categories, GMI branding, mobile.** `ListingType` and `RentalPeriod` migrated; categories 7 → 17; the viewport meta tag that made every responsive breakpoint actually work. The build script gained `prisma migrate deploy` — it had none, so a schema change would have produced a client that knew about columns production lacked (Gotcha #32).
+- **PRs #13 and #14 — photo upload was blocked by the CSP.** `connect-src` lacked R2's API host, and the first fix allowed the wrong one because the AWS SDK addresses R2 **virtual-hosted style**. Known Gotchas #34.
+- **PR #15 — every server action's validation errors were unreadable in production.** Next masks thrown errors in production builds, so "description too short" and a crash looked identical. All 23 throw sites now return an `ActionFailure`. Known Gotchas #35.
+- **PR #16 — seller controls.** `/listings/mine`, an edit page, and status management. `PENDING` renamed to `RESERVED`, `ARCHIVED` added. Ownership is enforced by scoping the write (`updateMany` on id *and* sellerId), not by a read-then-compare-then-update.
+- **PR #17 — a design system.** OKLCH tokens, size-specific typographic tracking, translucent chrome, shared `.btn`/`.field`/`.chip`/`.badge` classes, and the three accessibility signals handled separately. Also fixed a scaffold bug present since day one: `globals.css` forced Arial over the Geist webfont the layout loads (Gotcha #36).
+- **PR #18 — navigation feedback.** `loading.tsx` skeletons on every route plus `useLinkStatus` so the clicked element reports it was heard. Driven by measurement: warm TTFB 0.30–0.56s, cold start **7.3s** (Neon auto-suspend). Category list cached for an hour.
+
+**Verified in a browser by the builder (2026-08-15):** sign-in works, a rental listing was posted with a photo, `RM 20 / week` and the "For rent" badge render, the image serves from the production bucket, and the site reads correctly on both phone and desktop. The Vercel Cron job is registered and enabled — note **Hobby gives cron a one-hour flexible window**, so 03:00 UTC is approximate.
 
 **Week 7 code work (2026-08-14, merged in PR #9):**
 - **Orphaned R2 objects (audit finding S2) is now fully closed.** `/api/cron/cleanup-orphans` lists the `listings/` prefix, and deletes objects no `Listing.imageUrl` references; `vercel.json` schedules it daily at 03:00 UTC. The reference set is read *before* the bucket listing (Gotcha #28), a 24-hour grace period protects uploads whose listing hasn't been submitted yet, a 500-object per-run cap bounds the blast radius, and keys outside the `listings/` prefix are refused outright. Rules live in `src/lib/orphan-cleanup-rules.ts` with no I/O, matching the `rate-limit-rules.ts` split.
@@ -310,25 +334,35 @@ Note that `R2_PUBLIC_URL` is read at **build** time as well as at runtime — `n
 
 ## Next Steps
 
-**Weeks 5-6 messaging is built and the security audit is remediated** (2026-08-13, branch `feature/messaging`). Not yet tagged — `v0.3` waits on the end-to-end verification below. For what was done and why, see Current State and the Decision Log rather than this list.
+**Weeks 1–7 are complete and deployed.** For what was built and why, read Current State and the Decision Log rather than this list — it only tracks what is left.
 
-**Outstanding verification:**
-1. ~~Set `ABLY_API_KEY`~~ — **done 2026-08-14**, verified against the live service. See Current State.
-2. **Two-session real-time delivery is still unobserved.** A single browser session was tested successfully, and the Ably transport was verified independently, but no one has watched a message land in a second browser without a refresh. Do this when a second GMI account is convenient: two sessions, message both ways, confirm no refresh is needed and that presence flips to "is in this chat". This is the last gap between "built and tested" and "seen working".
+### 1. Outstanding verification (one item, carried over from Weeks 5-6)
 
-**Carried over / outstanding:**
-3. ~~**Orphaned R2 objects (audit finding S2) is only half-fixed.**~~ — **done 2026-08-14** on branch `feature/deployment`, via a daily Vercel Cron route. All six audit findings are now closed. See Current State.
-4. **Add the production origin to the R2 CORS policy** before Week 7 deployment, or uploads break in production (Known Gotchas #14). Currently `http://localhost:3000` only.
-5. **Add the production origin to the CSP and check `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY`** at deployment. Next's docs call the latter out for multi-instance deploys so action references stay decryptable across instances.
-6. **Still untested, in rough priority order:** the `/api/upload` and `/api/ably/token` route handlers (both need request/session fixtures), `src/lib/conversations.ts` authorization paths (needs a DB fixture — the highest-value remaining gap, since it is the authorization layer), and `src/lib/listing-labels.ts` (static map, near-zero value). Note for whoever writes the next suite: relative imports with explicit `.ts` extensions, and mind that the rule is **transitive** (Known Gotchas #23).
+**Two-session real-time delivery has still never been observed.** Messaging works in a single browser, the Ably transport is verified against the live service, and the wiring is verified — but nobody has watched a message land in a second browser without a refresh. The builder has a friend who can help; the friend needs their own `@gmi.edu.my` account.
 
-**Deferred by decision, revisit when relevant:**
-7. Pagination for the browse grid — now bounded at `take: 60`, which stops the unbounded case but is not real pagination. Needed before real users.
-8. Seller controls: edit your own listing, mark as sold. `ListingStatus` exists but nothing sets `PENDING`/`SOLD`. Note this now interacts with messaging — marking sold should probably surface in the thread.
-9. Blocking/reporting users. A real moderation need for a marketplace, deliberately out of scope for the 8-week plan.
-10. Message editing and deletion.
+Do it against the **live site**, not locally: the Google OAuth client only has `localhost:3000` registered, so a second person cannot sign in against a dev server at all. The full procedure, including what each failure mode would mean, is in **`docs/week7-deployment-runbook.md`**. The one rule that decides whether the test is valid: **neither person refreshes** once the thread is open, or the message arrives on page load and proves nothing.
 
-**Then:**
-11. Tag `v0.3` once item 2 passes.
-12. **Week 7: deployment (Vercel) — in progress.** The four open decisions are resolved (see Decision Log 2026-08-14) and the code-side work is done. What remains is dashboard work that cannot be done from a terminal: create the Neon production branch, create the Vercel project and set its environment variables, add the production callback to Google OAuth, and add the production origin to the R2 CORS policy. **`docs/week7-deployment-runbook.md`** is the ordered procedure — note the ordering problem it describes: the production URL does not exist until the first deploy, but three settings need it, so the first deploy is *expected* to be partially broken. `docs/week7-deployment-brief.md` remains the record of why each decision went the way it did.
-13. Week 8: README with screenshots, live link, setup instructions, and the case study.
+### 2. Week 8 — documentation and the case study
+
+The last week of the plan, and the document a recruiter reads first.
+
+- **README**: rewrite for a deployed project — screenshots, the live link, setup instructions that work from a fresh clone. Currently still says messaging is "next", which is three milestones stale.
+- **Case study**: the problem, the architecture decisions, and one thing that would be improved with more time.
+
+The deployment produced unusually good case-study material, and it would be a waste not to use it:
+- **Four bugs that could only appear in production**, three from one CSP (Gotchas #31, #34) and one from Next masking thrown server-action errors (#35). The common thread — each path was last exercised the day before the policy that broke it landed — is a better story than "it worked first time".
+- **A measured constraint**: warm TTFB is 0.30–0.56s, but a cold start is 7.3s because Neon auto-suspends on the free tier. The response was to make the wait legible (skeletons, per-element pending states) rather than pretend it away. Measuring before optimising, and being honest about the floor, is the point.
+- **The `.vercel.app` name collision** (#29) — the deployed URL is not the name that was asked for.
+
+### 3. Known gaps, roughly by value
+
+- **Untested code**: `src/lib/conversations.ts` authorization paths are the highest-value gap, since that *is* the authorization layer — it has been verified manually against the database but has no automated test (needs a DB fixture). Then `/api/upload` and `/api/ably/token` route handlers (need request/session fixtures). Note for whoever writes them: relative imports with explicit `.ts` extensions, and the rule is **transitive** (Gotcha #23).
+- **Pagination** for the browse grid. Bounded at `take: 60`, which stops the unbounded case but is not pagination. Needed before real users.
+- **The seller cannot mark a listing sold from inside a conversation**, only from `/listings/mine`. Marking sold should probably surface in the thread.
+
+### 4. Deferred by decision — revisit only when relevant
+
+- Blocking and reporting users. A real moderation need for a marketplace, deliberately out of the 8-week scope.
+- Message editing and deletion.
+- **Cache Components / `unstable_instant`** for guaranteed-instant navigation. Rejected 2026-08-15 because the guide is marked `version: draft` and the flag is experimental — revisit once it is stable.
+- A custom domain, which would let R2 images leave the rate-limited `r2.dev` host. Blocked by the no-spend constraint; a free student domain would unblock it.
