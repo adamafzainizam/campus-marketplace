@@ -6,7 +6,7 @@ import { safeInternalPath } from "@/lib/safe-redirect";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const metadata: Metadata = {
-  title: "Sign in — Campus Marketplace",
+  title: "Sign in",
 };
 
 /**
@@ -33,13 +33,13 @@ export default async function SignInPage({
   if ((await auth())?.user) redirect(safeInternalPath(callbackUrl));
 
   return (
-    <div className="mx-auto w-full max-w-lg px-6 py-12">
+    <div className="mx-auto w-full max-w-lg px-4 py-8 sm:px-6 sm:py-12">
       <Breadcrumbs items={[{ label: "Sign in" }]} />
 
       <h1 className="mb-3 text-2xl font-semibold">Sign in</h1>
 
       <p className="mb-6 text-sm text-zinc-600 dark:text-zinc-400">
-        Campus Marketplace is for the GMI community. You&rsquo;ll need to sign in
+        GMI Campus Marketplace is for the German-Malaysian Institute community. You&rsquo;ll need to sign in
         with your{" "}
         <strong className="font-medium text-foreground">
           {ALLOWED_DOMAIN_LABEL}

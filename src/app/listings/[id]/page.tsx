@@ -3,7 +3,11 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
-import { CONDITION_LABELS } from "@/lib/listing-labels";
+import {
+  CONDITION_LABELS,
+  LISTING_TYPE_LABELS,
+  formatPrice,
+} from "@/lib/listing-labels";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
@@ -29,6 +33,8 @@ export default async function ListingDetailPage({
       price: true,
       condition: true,
       status: true,
+      type: true,
+      rentalPeriod: true,
       imageUrl: true,
       sellerId: true,
       category: { select: { name: true } },
@@ -41,7 +47,7 @@ export default async function ListingDetailPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-12">
+    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <Breadcrumbs items={[{ label: listing.title }]} />
 
       <div className="grid gap-8 sm:grid-cols-2">
@@ -57,8 +63,19 @@ export default async function ListingDetailPage({
         </div>
 
         <div className="flex flex-col gap-3">
+          <span
+            className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${
+              listing.type === "RENT"
+                ? "bg-foreground text-background"
+                : "border border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
+            }`}
+          >
+            {LISTING_TYPE_LABELS[listing.type]}
+          </span>
           <h1 className="text-2xl font-semibold">{listing.title}</h1>
-          <p className="text-xl">RM {listing.price.toString()}</p>
+          <p className="text-xl">
+            {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
+          </p>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {listing.category.name} &middot; {CONDITION_LABELS[listing.condition]}
           </p>

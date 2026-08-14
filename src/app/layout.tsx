@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
@@ -14,8 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Campus Marketplace",
-  description: "Buy, sell, and rent secondhand items within the GMI community.",
+  // Named for the institution rather than generically: this is GMI's
+  // marketplace, not a campus marketplace in the abstract.
+  title: {
+    default: "GMI Campus Marketplace",
+    template: "%s | GMI Campus Marketplace",
+  },
+  description:
+    "Buy, sell, and rent secondhand items within the German-Malaysian Institute community.",
+};
+
+/**
+ * Stated explicitly rather than relying on the framework default. Without
+ * `width=device-width` a phone renders the page at a virtual desktop width and
+ * then zooms out, which makes every responsive breakpoint below inert.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -28,9 +44,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-dvh flex-col">
         <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       </body>
     </html>
   );

@@ -14,7 +14,11 @@
 // elsewhere: this module is imported by a test, and `node --test` resolves
 // imports itself without reading tsconfig `paths`. The alias fails at runtime
 // even when it is a *transitive* import — see Known Gotchas #21.
-import { ListingCondition } from "../generated/prisma/enums.ts";
+import {
+  ListingCondition,
+  ListingType,
+  RentalPeriod,
+} from "../generated/prisma/enums.ts";
 
 export const TITLE_MIN_LENGTH = 3;
 export const TITLE_MAX_LENGTH = 100;
@@ -83,6 +87,39 @@ export function validateCondition(value: unknown): Result<ListingCondition> {
     return invalid("Invalid condition.");
   }
   return { ok: true, value: value as ListingCondition };
+}
+
+/** Same prototype-chain guard as `validateCondition` — Known Gotchas #15. */
+export function validateListingType(value: unknown): Result<ListingType> {
+  if (typeof value !== "string") return invalid("Listing type is required.");
+  if (!Object.hasOwn(ListingType, value)) {
+    return invalid("Invalid listing type.");
+  }
+  return { ok: true, value: value as ListingType };
+}
+
+/**
+ * The rental period is contextual: required for a rental, meaningless for a
+ * sale.
+ *
+ * A rental price without a unit says nothing — "RM20" could be a day or a
+ * semester — so RENT must carry one. For SALE the submitted value is
+ * *discarded* rather than merely ignored, so a crafted payload cannot leave a
+ * sale rendering as "RM20 / week".
+ */
+export function validateRentalPeriod(
+  value: unknown,
+  type: ListingType,
+): Result<RentalPeriod | null> {
+  if (type !== "RENT") return { ok: true, value: null };
+
+  if (typeof value !== "string" || value.length === 0) {
+    return invalid("Choose how often the rental price applies.");
+  }
+  if (!Object.hasOwn(RentalPeriod, value)) {
+    return invalid("Invalid rental period.");
+  }
+  return { ok: true, value: value as RentalPeriod };
 }
 
 /**

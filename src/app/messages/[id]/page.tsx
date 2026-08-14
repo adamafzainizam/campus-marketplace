@@ -25,7 +25,7 @@ export default async function ConversationPage({
   }
 
   return (
-    <div className="mx-auto flex h-dvh w-full max-w-3xl flex-col px-6 py-6">
+    <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6">
       <div className="mb-4 border-b border-zinc-200 pb-4 dark:border-zinc-800">
         <Breadcrumbs
           items={[

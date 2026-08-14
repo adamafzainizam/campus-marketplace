@@ -16,21 +16,22 @@ export async function SiteHeader() {
 
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" className="text-lg font-semibold">
-          Campus Marketplace
+      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
+        <Link href="/" className="text-base font-semibold sm:text-lg">
+          <span className="text-zinc-500 dark:text-zinc-400">GMI</span> Campus
+          Marketplace
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-3">
+        <nav className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Link
             href="/messages"
-            className="rounded border border-zinc-300 px-4 py-2 text-sm font-medium dark:border-zinc-700"
+            className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium sm:px-4 dark:border-zinc-700"
           >
             Messages
           </Link>
           <Link
             href="/listings/new"
-            className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background"
+            className="rounded bg-foreground px-3 py-2 text-sm font-medium text-background sm:px-4"
           >
             Post a listing
           </Link>
@@ -38,7 +39,7 @@ export async function SiteHeader() {
           {user ? (
             <div className="flex items-center gap-3">
               <span
-                className="max-w-[16rem] truncate text-sm text-zinc-600 dark:text-zinc-400"
+                className="hidden max-w-[12rem] truncate text-sm text-zinc-600 sm:inline lg:max-w-[16rem] dark:text-zinc-400"
                 title={user.email ?? undefined}
               >
                 {user.name ?? user.email}

@@ -3,8 +3,12 @@
 import { useState } from "react";
 import { unstable_rethrow } from "next/navigation";
 import { createListing } from "./actions";
-import { ListingCondition } from "@/generated/prisma/enums";
-import { CONDITION_LABELS } from "@/lib/listing-labels";
+import { ListingCondition, ListingType, RentalPeriod } from "@/generated/prisma/enums";
+import {
+  CONDITION_LABELS,
+  LISTING_TYPE_LABELS,
+  RENTAL_PERIOD_LABELS,
+} from "@/lib/listing-labels";
 import { uploadToStorage } from "@/lib/upload-to-storage";
 
 type Category = {
@@ -24,6 +28,8 @@ export function ListingForm({ categories }: { categories: Category[] }) {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState<ListingCondition>(ListingCondition.GOOD);
+  const [type, setType] = useState<ListingType>(ListingType.SALE);
+  const [rentalPeriod, setRentalPeriod] = useState<RentalPeriod>(RentalPeriod.WEEK);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -82,6 +88,10 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         description,
         price,
         condition,
+        type,
+        // Ignored by the server for a sale, but sent unconditionally so the
+        // client holds no opinion about which fields matter.
+        rentalPeriod,
         categoryId,
         imageKey,
       });
@@ -137,9 +147,35 @@ export function ListingForm({ categories }: { categories: Category[] }) {
         />
       </div>
 
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium">Listing type</legend>
+        <div className="flex flex-wrap gap-2">
+          {Object.values(ListingType).map((value) => (
+            <label
+              key={value}
+              className={`cursor-pointer rounded border px-4 py-2 text-sm ${
+                type === value
+                  ? "border-foreground bg-foreground font-medium text-background"
+                  : "border-zinc-300 dark:border-zinc-700"
+              }`}
+            >
+              <input
+                type="radio"
+                name="listingType"
+                value={value}
+                checked={type === value}
+                onChange={() => setType(value)}
+                className="sr-only"
+              />
+              {LISTING_TYPE_LABELS[value]}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <div className="flex flex-col gap-1">
         <label htmlFor="price" className="text-sm font-medium">
-          Price (RM)
+          {type === ListingType.RENT ? "Rental price (RM)" : "Price (RM)"}
         </label>
         <input
           id="price"
@@ -151,6 +187,26 @@ export function ListingForm({ categories }: { categories: Category[] }) {
           className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
         />
       </div>
+
+      {type === ListingType.RENT && (
+        <div className="flex flex-col gap-1">
+          <label htmlFor="rentalPeriod" className="text-sm font-medium">
+            Price is per
+          </label>
+          <select
+            id="rentalPeriod"
+            value={rentalPeriod}
+            onChange={(e) => setRentalPeriod(e.target.value as RentalPeriod)}
+            className="rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            {Object.values(RentalPeriod).map((value) => (
+              <option key={value} value={value}>
+                {RENTAL_PERIOD_LABELS[value]}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1">
         <label htmlFor="condition" className="text-sm font-medium">
