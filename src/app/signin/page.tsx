@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
+import { legalPath } from "@/lib/legal";
 import { safeInternalPath } from "@/lib/safe-redirect";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
@@ -71,6 +73,29 @@ export default async function SignInPage({
           Continue with Google
         </button>
       </form>
+
+      {/*
+        Stated before the account picker, not after it. Consent given after the
+        fact is not consent, and this is also the last moment where somebody
+        can decline without a row already existing in the database.
+      */}
+      <p className="mt-4 text-fine text-secondary">
+        By signing in you agree to the{" "}
+        <Link
+          href={legalPath("terms")}
+          className="text-accent underline underline-offset-2"
+        >
+          Terms of Service
+        </Link>{" "}
+        and the{" "}
+        <Link
+          href={legalPath("privacy")}
+          className="text-accent underline underline-offset-2"
+        >
+          Privacy Policy
+        </Link>
+        . This is an independent student project, not a GMI service.
+      </p>
 
       <p className="mt-6 text-sm text-secondary">
         You can browse listings without signing in. An account is only needed to

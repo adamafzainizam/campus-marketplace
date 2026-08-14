@@ -452,7 +452,67 @@ small, .text-fine {
   }
   .notice-success { background: var(--success-subtle); color: var(--success); }
   .notice-danger { background: var(--danger-subtle); color: var(--danger); }
+
+  /* Long-form documents — currently the legal pages.
+     Nobody reads terms of service front to back; they skim for the one clause
+     that answers their question. So the hierarchy has to survive skimming,
+     which means headings that clearly outrank body text and a measure short
+     enough that the eye finds the next line without hunting. Body text sits at
+     --text-secondary and headings at --text, so structure is visible before a
+     single word is read. */
+  .prose {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+  .prose > * + * { margin-top: 1rem; }
+  .prose h2 {
+    margin-top: 2.25rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.011em;
+    color: var(--text);
+  }
+  .prose h3 {
+    margin-top: 1.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .prose strong { font-weight: 600; color: var(--text); }
+  .prose a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .prose ul, .prose ol { padding-left: 1.25rem; }
+  .prose ul { list-style: disc; }
+  .prose ol { list-style: decimal; }
+  .prose li + li { margin-top: 0.375rem; }
+  .prose li::marker { color: var(--text-tertiary); }
 }
+
+/* ==========================================================================
+   Thread viewport
+   --------------------------------------------------------------------------
+   The conversation thread sizes itself to whatever viewport is left over and
+   scrolls its own message list. A site footer below it would take a fixed
+   slice out of that — on a phone, most of the conversation — so the thread is
+   the one page that opts out of it.
+
+   Known Gotchas #33 is the precedent: adding the header broke this same page,
+   because anything that consumes vertical height competes with a view that
+   wants all of it. The footer is the same class of change, caught this time
+   before it shipped rather than after.
+
+   `:has()` rather than restructuring into route groups: the alternative is
+   moving the header and footer out of the root layout into sibling layouts,
+   which is a great deal of rearrangement to relocate one element. The marker
+   class is set by the thread page and its loading skeleton, so the footer
+   never flashes in mid-navigation and back out.
+   ========================================================================== */
+
+body:has(.thread-viewport) > footer { display: none; }
 
 /* ==========================================================================
    Loading placeholders
