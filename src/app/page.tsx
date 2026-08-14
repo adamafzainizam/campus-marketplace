@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ListingType } from "@/generated/prisma/enums";
 import { LISTING_TYPE_LABELS, formatPrice } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
+import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
 import { auth } from "@/auth";
 
@@ -34,7 +35,7 @@ export default async function Home({
   const [listings, categories, session] = await Promise.all([
     db.listing.findMany({
       where: {
-        status: "AVAILABLE",
+        status: { in: PUBLIC_STATUSES },
         ...(categorySlug ? { category: { slug: categorySlug } } : {}),
         ...(query ? { title: { contains: query, mode: "insensitive" } } : {}),
         ...(typeFilter ? { type: typeFilter } : {}),
@@ -46,6 +47,7 @@ export default async function Home({
         imageUrl: true,
         type: true,
         rentalPeriod: true,
+        status: true,
       },
       orderBy: { createdAt: "desc" },
       // Bounded so the query can't grow without limit as listings accumulate.
@@ -170,6 +172,13 @@ export default async function Home({
                 {listing.type === "RENT" && (
                   <span className="absolute left-2 top-2 rounded bg-foreground px-2 py-0.5 text-xs font-medium text-background">
                     For rent
+                  </span>
+                )}
+                {/* Sold and reserved listings stay visible, marked — it shows
+                    a visitor the marketplace is actually used. */}
+                {listing.status !== "AVAILABLE" && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-sm font-medium text-white">
+                    {statusLabel(listing.status, listing.type)}
                   </span>
                 )}
               </div>

@@ -199,8 +199,17 @@ enum ListingCondition {
 
 enum ListingStatus {
   AVAILABLE
-  PENDING
+  /// Someone has committed but the handover hasn't happened. Renamed from
+  /// PENDING, which described the seller's paperwork rather than the item.
+  RESERVED
+  /// Terminal for a sale; for a rental this is displayed as "Rented out",
+  /// since the vocabulary differs but the state does not.
   SOLD
+  /// Withdrawn by the seller. Exists because deleting a listing is blocked by
+  /// design when it has conversations (Conversation -> Listing is
+  /// onDelete: Restrict), so this is how a seller retires a listing without
+  /// destroying message history the other party may still want.
+  ARCHIVED
 }
 
 /// Whether the seller is selling the item outright or renting it out.

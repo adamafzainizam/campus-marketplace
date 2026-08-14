@@ -1,34 +1,30 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isValidListingImageKey } from "@/lib/upload-constraints";
 import { consumeRateLimit } from "@/lib/rate-limit";
-import { actionFailed, type ActionFailure } from "@/lib/action-result";
-import {
-  validateCondition,
-  validateDescription,
-  validateId,
-  validateListingType,
-  validatePrice,
-  validateRentalPeriod,
-  validateTitle,
-} from "@/lib/listing-constraints";
+import { validateListingInput } from "@/lib/listing-input";
+import { validateId } from "@/lib/listing-constraints";
+import { validateListingStatus } from "@/lib/listing-status";
+import { actionFailed, actionOk, type ActionFailure, type ActionResult } from "@/lib/action-result";
 
 /**
- * Returns an {@link ActionFailure} for anything the user can fix, and only
- * redirects on success — it never returns a success value. Failures are
- * returned rather than thrown because Next.js masks thrown errors in
- * production builds, which turned every validation message into an opaque
- * digest. See `src/lib/action-result.ts`.
+ * Listing creation and seller management.
  *
- * A server action is a public POST endpoint — rendering the form behind an
- * auth check is not a security boundary, because the request can be sent
- * without going through the UI. So the input type is `unknown`, and every
- * field is validated before use rather than trusted because the form produced
- * it.
+ * Each is a public POST endpoint, so each independently authenticates,
+ * authorizes, rate limits, and validates. Rendering a form behind an auth
+ * check is not a security boundary — the request can be sent without going
+ * through the UI at all.
+ *
+ * Failures are returned rather than thrown: Next.js masks thrown errors in
+ * production builds, which turns every validation message into an opaque
+ * digest. See `src/lib/action-result.ts` and Known Gotchas #35.
  */
+
+/** Only ever returns on failure; a successful create redirects. */
 export async function createListing(input: unknown): Promise<ActionFailure> {
   const session = await auth();
   if (!session?.user?.id) {
@@ -43,64 +39,128 @@ export async function createListing(input: unknown): Promise<ActionFailure> {
     );
   }
 
-  if (typeof input !== "object" || input === null) {
-    return actionFailed("Invalid request.");
-  }
-  const raw = input as Record<string, unknown>;
-
-  const title = validateTitle(raw.title);
-  if (!title.ok) return actionFailed(title.error);
-
-  const description = validateDescription(raw.description);
-  if (!description.ok) return actionFailed(description.error);
-
-  const price = validatePrice(raw.price);
-  if (!price.ok) return actionFailed(price.error);
-
-  const condition = validateCondition(raw.condition);
-  if (!condition.ok) return actionFailed(condition.error);
-
-  const categoryId = validateId(raw.categoryId, "Category");
-  if (!categoryId.ok) return actionFailed(categoryId.error);
-
-  const type = validateListingType(raw.type);
-  if (!type.ok) return actionFailed(type.error);
-
-  // Contextual on the type: required for a rental, discarded for a sale, so a
-  // crafted payload can't leave a sale rendering as "RM 20.00 / week".
-  const rentalPeriod = validateRentalPeriod(raw.rentalPeriod, type.value);
-  if (!rentalPeriod.ok) return actionFailed(rentalPeriod.error);
+  const fields = validateListingInput(input);
+  if (!fields.ok) return actionFailed(fields.error);
 
   // The browser reports this key back to us after uploading straight to R2, so
   // it's user input like everything else here — without this check a user could
   // attach any path they like, including another user's uploaded image.
-  const imageKey = raw.imageKey ?? null;
+  const imageKey = (input as Record<string, unknown>).imageKey ?? null;
   if (imageKey !== null && !isValidListingImageKey(imageKey, userId)) {
     return actionFailed("Invalid image reference.");
   }
 
   const category = await db.category.findUnique({
-    where: { id: categoryId.value },
+    where: { id: fields.value.categoryId },
     select: { id: true },
   });
-  if (!category) {
-    return actionFailed("Invalid category.");
-  }
+  if (!category) return actionFailed("Invalid category.");
 
   const listing = await db.listing.create({
     data: {
-      title: title.value,
-      description: description.value,
-      price: price.value,
-      condition: condition.value,
-      type: type.value,
-      rentalPeriod: rentalPeriod.value,
-      categoryId: category.id,
+      ...fields.value,
       sellerId: userId,
-      imageUrl: imageKey,
+      imageUrl: imageKey as string | null,
     },
     select: { id: true },
   });
 
   redirect(`/?created=${listing.id}`);
+}
+
+/**
+ * Edits a listing the caller owns.
+ *
+ * Ownership is enforced by scoping the update itself to `sellerId`, not by a
+ * separate read-then-write check — a check that passes and an update that
+ * follows are two statements another request can interleave with. `updateMany`
+ * with both conditions makes "is it theirs" and "change it" one statement.
+ */
+export async function updateListing(
+  rawListingId: unknown,
+  input: unknown,
+): Promise<ActionFailure> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionFailed("You need to be signed in to edit a listing.");
+  }
+  const userId = session.user.id;
+
+  const listingId = validateId(rawListingId, "Listing");
+  if (!listingId.ok) return actionFailed(listingId.error);
+
+  const limit = await consumeRateLimit("listing", userId);
+  if (!limit.allowed) {
+    return actionFailed(
+      `Too many changes. Try again in ${limit.retryAfter} seconds.`,
+    );
+  }
+
+  const fields = validateListingInput(input);
+  if (!fields.ok) return actionFailed(fields.error);
+
+  const raw = input as Record<string, unknown>;
+  // `undefined` means "leave the existing photo alone"; null means remove it.
+  // Distinguishing them matters: an edit that doesn't touch the photo must not
+  // silently clear it.
+  const hasNewImage = Object.hasOwn(raw, "imageKey");
+  const imageKey = hasNewImage ? (raw.imageKey ?? null) : undefined;
+  if (imageKey != null && !isValidListingImageKey(imageKey, userId)) {
+    return actionFailed("Invalid image reference.");
+  }
+
+  const category = await db.category.findUnique({
+    where: { id: fields.value.categoryId },
+    select: { id: true },
+  });
+  if (!category) return actionFailed("Invalid category.");
+
+  const updated = await db.listing.updateMany({
+    where: { id: listingId.value, sellerId: userId },
+    data: {
+      ...fields.value,
+      ...(imageKey === undefined ? {} : { imageUrl: imageKey as string | null }),
+    },
+  });
+
+  // Zero rows means it doesn't exist or isn't theirs. Deliberately one message
+  // for both, so this can't be used to discover other people's listing ids.
+  if (updated.count === 0) return actionFailed("Listing not found.");
+
+  revalidatePath("/");
+  revalidatePath("/listings/mine");
+  revalidatePath(`/listings/${listingId.value}`);
+
+  redirect(`/listings/${listingId.value}?updated=1`);
+}
+
+/** Marks a listing available, reserved, sold, or archived. */
+export async function setListingStatus(
+  rawListingId: unknown,
+  rawStatus: unknown,
+): Promise<ActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return actionFailed("You need to be signed in.");
+  }
+  const userId = session.user.id;
+
+  const listingId = validateId(rawListingId, "Listing");
+  if (!listingId.ok) return actionFailed(listingId.error);
+
+  const status = validateListingStatus(rawStatus);
+  if (!status.ok) return actionFailed(status.error);
+
+  // Same single-statement ownership scoping as updateListing.
+  const updated = await db.listing.updateMany({
+    where: { id: listingId.value, sellerId: userId },
+    data: { status: status.value },
+  });
+  if (updated.count === 0) return actionFailed("Listing not found.");
+
+  revalidatePath("/");
+  revalidatePath("/listings/mine");
+  revalidatePath(`/listings/${listingId.value}`);
+
+  return actionOk();
 }

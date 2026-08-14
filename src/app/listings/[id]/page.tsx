@@ -10,6 +10,7 @@ import {
 } from "@/lib/listing-labels";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { statusLabel } from "@/lib/listing-status";
 
 export default async function ListingDetailPage({
   params,
@@ -63,15 +64,22 @@ export default async function ListingDetailPage({
         </div>
 
         <div className="flex flex-col gap-3">
-          <span
-            className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${
-              listing.type === "RENT"
-                ? "bg-foreground text-background"
-                : "border border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
-            }`}
-          >
-            {LISTING_TYPE_LABELS[listing.type]}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${
+                listing.type === "RENT"
+                  ? "bg-foreground text-background"
+                  : "border border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
+              }`}
+            >
+              {LISTING_TYPE_LABELS[listing.type]}
+            </span>
+            {listing.status !== "AVAILABLE" && (
+              <span className="w-fit rounded-full border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+                {statusLabel(listing.status, listing.type)}
+              </span>
+            )}
+          </div>
           <h1 className="text-2xl font-semibold">{listing.title}</h1>
           <p className="text-xl">
             {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
@@ -83,17 +91,38 @@ export default async function ListingDetailPage({
           <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">
             Listed by {listing.seller.name}
           </p>
+          {/* The badge above already names the state; this explains what it
+              means for the reader. Previously this printed the raw enum. */}
           {listing.status !== "AVAILABLE" && (
-            <p className="text-sm font-medium text-red-600">{listing.status}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              {listing.status === "RESERVED"
+                ? "This item is reserved for someone else, but the deal may still fall through."
+                : `This item is no longer available. It has been marked ${statusLabel(
+                    listing.status,
+                    listing.type,
+                  ).toLowerCase()}.`}
+            </p>
           )}
 
-          {/* Sellers can't open a thread against themselves, and signed-out
-              visitors are sent to sign in first rather than shown a button
-              that throws. */}
-          {session?.user?.id ? (
-            session.user.id !== listing.sellerId && (
-              <ContactSellerButton listingId={listing.id} />
-            )
+          {/* The seller gets management controls instead of a message button —
+              they can't open a thread against themselves. */}
+          {session?.user?.id === listing.sellerId ? (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                href={`/listings/${listing.id}/edit`}
+                className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
+              >
+                Edit listing
+              </Link>
+              <Link
+                href="/listings/mine"
+                className="rounded border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
+              >
+                My listings
+              </Link>
+            </div>
+          ) : session?.user?.id ? (
+            <ContactSellerButton listingId={listing.id} />
           ) : (
             <Link
               href={`/signin?callbackUrl=/listings/${listing.id}`}

@@ -23,6 +23,14 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {user && (
+            <Link
+              href="/listings/mine"
+              className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium sm:px-4 dark:border-zinc-700"
+            >
+              My listings
+            </Link>
+          )}
           <Link
             href="/messages"
             className="rounded border border-zinc-300 px-3 py-2 text-sm font-medium sm:px-4 dark:border-zinc-700"
