@@ -214,6 +214,19 @@ small, .text-fine {
   letter-spacing: 0.004em; /* small text wants slightly *positive* tracking */
 }
 
+/* The most-scanned element on a listing card. It was `text-fine
+   text-secondary` — smaller and greyer than the title — which is backwards
+   for a marketplace. Display face (set in the heading rule above),
+   full-strength text, tabular so a column of prices does not jitter. */
+.text-price {
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  letter-spacing: -0.006em;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Numbers that sit in columns or change in place shouldn't jitter. */
 .tabular { font-variant-numeric: tabular-nums; }
 
@@ -270,6 +283,25 @@ small, .text-fine {
 }
 .rail::-webkit-scrollbar { display: none; }
 .rail > * { scroll-snap-align: start; }
+
+/* On touch the hidden scrollbar is right: you swipe, and a bar is noise.
+   With a mouse it is the opposite — a wheel scrolls the page rather than the
+   row, so hiding the bar leaves no way to reach the far end at all. The bar
+   comes back wherever there is a fine pointer. Keyboard users are already
+   fine: the chips are links, so Tab scrolls them into view. */
+@media (hover: hover) and (pointer: fine) {
+  .rail {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+    padding-bottom: 0.25rem;
+  }
+  .rail::-webkit-scrollbar { display: block; height: 0.5rem; }
+  .rail::-webkit-scrollbar-track { background: transparent; }
+  .rail::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: var(--radius-full);
+  }
+}
 
 /* ==========================================================================
    Accessibility signals

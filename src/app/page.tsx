@@ -9,6 +9,13 @@ import { LISTING_TYPE_LABELS, formatPrice } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
 import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
+import {
+  EMPTY_NO_MATCHES,
+  EMPTY_NOTHING_POSTED,
+  HOME_HEADLINE,
+  HOME_TAGLINE,
+  SEARCH_PLACEHOLDER,
+} from "@/lib/home-copy";
 import { auth } from "@/auth";
 
 export default async function Home({
@@ -78,26 +85,23 @@ export default async function Home({
 
       <Breadcrumbs items={[]} />
 
-      <section className="mb-8">
-        <h1>Buy, sell, and rent within GMI</h1>
-        <p className="mt-2 max-w-prose text-secondary">
-          A marketplace for the German-Malaysian Institute community.{" "}
-          {session?.user ? (
-            <>Browse freely, and post whenever you&rsquo;re ready.</>
-          ) : (
-            <>
-              Anyone can browse. To post a listing or message a seller you&rsquo;ll
-              need to{" "}
-              <Link
-                href="/signin"
-                className="font-medium text-accent underline underline-offset-4"
-              >
-                sign in with your {ALLOWED_DOMAIN_LABEL} account
-              </Link>
-              .
-            </>
-          )}
-        </p>
+      {/* Spacing carries the grouping: mt-1 because the headline and tagline
+          are one thought, mt-3 because the sign-in line is a separate one. */}
+      <section className="mb-6 sm:mb-10">
+        <h1>{HOME_HEADLINE}</h1>
+        <p className="mt-1 text-secondary">{HOME_TAGLINE}</p>
+        {!session?.user && (
+          <p className="mt-3 text-fine text-tertiary">
+            Anyone can browse.{" "}
+            <Link
+              href="/signin"
+              className="font-medium text-accent underline underline-offset-4"
+            >
+              Sign in with your {ALLOWED_DOMAIN_LABEL} account
+            </Link>{" "}
+            to post or message a seller.
+          </p>
+        )}
       </section>
 
       <form className="mb-5 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
@@ -109,7 +113,7 @@ export default async function Home({
           type="search"
           name="q"
           defaultValue={query}
-          placeholder="Search listings…"
+          placeholder={SEARCH_PLACEHOLDER}
           className="field min-w-0 flex-1"
         />
         {categorySlug && <input type="hidden" name="category" value={categorySlug} />}
@@ -138,8 +142,13 @@ export default async function Home({
 
       {/* Seventeen categories wrap to five rows on a phone, so this is a
           scrolling rail there and wraps only where there is room. */}
-      <div className="rail -mx-4 mb-8 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap">
+      {/* One scrolling row at every width. Wrapping seventeen chips put three
+          rows of controls above the fold on desktop, which is most of why a
+          page with four listings read as empty — chrome outweighing content.
+          A mask-image fade was considered as a scroll affordance and dropped:
+          it would dim the focus ring of a chip near the edge. */}
+      <div className="rail -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:mb-10 sm:px-0">
+        <div className="flex w-max gap-2">
           <FilterChip
             href={browseHref(active, { category: undefined })}
             selected={!categorySlug}
@@ -159,12 +168,12 @@ export default async function Home({
       </div>
 
       {listings.length === 0 ? (
-        <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
-          <p className="font-medium">No listings found</p>
+        <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center sm:py-20">
+          <p className="text-display">
+            {filtered ? EMPTY_NO_MATCHES.title : EMPTY_NOTHING_POSTED.title}
+          </p>
           <p className="max-w-sm text-fine text-secondary">
-            {filtered
-              ? "Nothing matches those filters yet. Try a broader category, or clear the search."
-              : "Nothing has been posted yet. Be the first."}
+            {filtered ? EMPTY_NO_MATCHES.body : EMPTY_NOTHING_POSTED.body}
           </p>
           {filtered ? (
             <Link href="/" className="btn btn-secondary btn-sm mt-1">
@@ -222,7 +231,7 @@ export default async function Home({
                   <p className="truncate text-[0.9375rem] leading-snug font-medium">
                     {listing.title}
                   </p>
-                  <p className="tabular text-fine text-secondary">
+                  <p className="text-price">
                     {formatPrice(
                       listing.price,
                       listing.type,
