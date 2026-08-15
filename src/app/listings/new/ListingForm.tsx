@@ -9,6 +9,7 @@ import {
   LISTING_TYPE_LABELS,
   RENTAL_PERIOD_LABELS,
 } from "@/lib/listing-labels";
+import { PhotoPicker } from "@/components/PhotoPicker";
 import { uploadToStorage } from "@/lib/upload-to-storage";
 import {
   isOtherCategorySlug,
@@ -90,6 +91,7 @@ export function ListingForm({
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
+  function handleFileSelected(selected: File | null) {
     setFile(selected);
     setPreviewUrl(selected ? URL.createObjectURL(selected) : null);
   }
@@ -367,6 +369,16 @@ export function ListingForm({
           </>
         )}
       </div>
+      <PhotoPicker
+        id="image"
+        label={editing ? "Replace photo (optional)" : "Photo (optional)"}
+        file={file}
+        previewUrl={previewUrl}
+        existingImageUrl={existingImageUrl ?? null}
+        editing={editing}
+        disabled={submitting}
+        onFileChange={handleFileSelected}
+      />
 
       {stage.kind === "uploading" && (
         <div className="flex flex-col gap-1.5" aria-live="polite">

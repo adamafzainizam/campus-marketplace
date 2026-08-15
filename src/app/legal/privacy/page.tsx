@@ -116,6 +116,17 @@ export default function PrivacyPage() {
         administrator, and why. So is a decision to do nothing.
       </p>
       <p>
+        <strong>
+          If your account is suspended, people you are already in a conversation
+          with are told
+        </strong>{" "}
+        &mdash; they see that your account is suspended and that you cannot
+        reply. This is so nobody is left waiting on an answer that cannot come.
+        The reason for the suspension is <strong>not</strong> shared with them,
+        and nobody who is not already in a conversation with you sees anything
+        at all.
+      </p>
+      <p>
         These records are kept even after the thing they refer to is gone, and
         they are <strong>not deleted when an action is reversed</strong>. That
         is deliberate: a log that can be edited by the people it records is not

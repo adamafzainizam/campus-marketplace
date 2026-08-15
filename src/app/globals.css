@@ -453,6 +453,45 @@ small, .text-fine {
   .notice-success { background: var(--success-subtle); color: var(--success); }
   .notice-danger { background: var(--danger-subtle); color: var(--danger); }
 
+  /* File drop zone.
+     A dashed border is the near-universal signal for "you can drop something
+     here", which is most of why this reads as a target at all — the control it
+     replaces was an unstyled file input that looked like underlined text and
+     did not appear pressable. It is a <label> wrapping a real file input, so
+     pointer, keyboard and drag all arrive at the same place. */
+  .dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--surface-sunken);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  /* Focus lands on the visually-hidden input, so the ring is drawn on the
+     zone instead — otherwise a keyboard user sees no focus at all. */
+  .dropzone:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  @media (hover: hover) {
+    .dropzone:hover { border-color: var(--accent); }
+  }
+  .dropzone-active {
+    border-color: var(--accent);
+    border-style: solid;
+    background: var(--accent-subtle, var(--surface));
+  }
+  .dropzone-disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
   /* Long-form documents — currently the legal pages.
      Nobody reads terms of service front to back; they skim for the one clause
      that answers their question. So the hierarchy has to survive skimming,
