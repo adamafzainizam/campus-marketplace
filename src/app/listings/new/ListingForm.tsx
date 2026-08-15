@@ -15,6 +15,15 @@ import {
   isOtherCategorySlug,
   MAX_OTHER_CATEGORY_LENGTH,
 } from "@/lib/category-order";
+import {
+  HALAL_NOT_VERIFIED,
+  HALAL_STATUSES,
+  halalOptionHint,
+  halalOptionLabel,
+  isFoodCategorySlug,
+} from "@/lib/halal";
+import { MAX_QUANTITY, MIN_QUANTITY } from "@/lib/listing-quantity";
+import { HalalStatus } from "@/generated/prisma/enums";
 
 type Category = {
   id: string;
@@ -38,6 +47,8 @@ export type EditableListing = {
   rentalPeriod: RentalPeriod | null;
   categoryId: string;
   otherCategory: string | null;
+  quantity: number;
+  halalStatus: HalalStatus | null;
   imageUrl: string | null;
 };
 
@@ -76,6 +87,11 @@ export function ListingForm({
   const [otherCategory, setOtherCategory] = useState(
     listing?.otherCategory ?? "",
   );
+  const [quantity, setQuantity] = useState(String(listing?.quantity ?? MIN_QUANTITY));
+  const [hasMany, setHasMany] = useState((listing?.quantity ?? 1) > 1);
+  const [halalStatus, setHalalStatus] = useState<string>(
+    listing?.halalStatus ?? "",
+  );
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>({ kind: "idle" });
@@ -85,9 +101,11 @@ export function ListingForm({
 
   // Derived from the selected category rather than tracked separately, so the
   // field cannot be left showing after the seller moves off "Other".
-  const otherSelected = isOtherCategorySlug(
-    categories.find((category) => category.id === categoryId)?.slug,
-  );
+  const selectedSlug = categories.find(
+    (category) => category.id === categoryId,
+  )?.slug;
+  const otherSelected = isOtherCategorySlug(selectedSlug);
+  const foodSelected = isFoodCategorySlug(selectedSlug);
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -149,6 +167,10 @@ export function ListingForm({
         // Sent unconditionally for the same reason as rentalPeriod: the server
         // decides whether it applies, and discards it when it does not.
         otherCategory,
+        // Both sent unconditionally, for the same reason as rentalPeriod: the
+        // server decides whether each applies and discards it when it does not.
+        quantity: hasMany ? quantity : String(MIN_QUANTITY),
+        halalStatus,
       };
 
       const result = editing
@@ -340,6 +362,83 @@ export function ListingForm({
           </p>
         </div>
       )}
+
+      {/* Food only. Silence about a dietary restriction is the harmful state,
+          so a choice is required — and "I'd rather not say" exists so that
+          requiring one never forces a false claim. */}
+      {foodSelected && (
+        <fieldset className="flex flex-col gap-1.5">
+          <legend className="label mb-1">Is this halal?</legend>
+          <div className="space-y-2">
+            {HALAL_STATUSES.map((value) => (
+              <label
+                key={value}
+                htmlFor={`halal-${value}`}
+                className="flex cursor-pointer gap-2"
+              >
+                <input
+                  type="radio"
+                  id={`halal-${value}`}
+                  name="halalStatus"
+                  value={value}
+                  checked={halalStatus === value}
+                  onChange={() => setHalalStatus(value)}
+                  className="mt-1"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">
+                    {halalOptionLabel(value)}
+                  </span>
+                  <span className="block text-fine text-secondary">
+                    {halalOptionHint(value)}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="hint">{HALAL_NOT_VERIFIED}</p>
+        </fieldset>
+      )}
+
+      {/* Not food-specific: textbooks, lab coats and calculators are all sold
+          in numbers greater than one. */}
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="hasMany" className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            id="hasMany"
+            checked={hasMany}
+            onChange={(e) => {
+              setHasMany(e.target.checked);
+              if (!e.target.checked) setQuantity(String(MIN_QUANTITY));
+            }}
+          />
+          <span className="text-sm">I have more than one of these</span>
+        </label>
+
+        {hasMany && (
+          <>
+            <label htmlFor="quantity" className="label mt-1">
+              How many?
+            </label>
+            <input
+              id="quantity"
+              type="number"
+              inputMode="numeric"
+              min={MIN_QUANTITY}
+              max={MAX_QUANTITY}
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              className="field"
+            />
+            <p className="hint">
+              Buyers see &ldquo;{quantity || "0"} available&rdquo;. Nothing is
+              counted automatically &mdash; no money goes through this site, so
+              you&rsquo;ll need to update this yourself as they go.
+            </p>
+          </>
+        )}
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="image" className="label">
