@@ -295,6 +295,14 @@ Note that `R2_PUBLIC_URL` is read at **build** time as well as at runtime — `n
 
 38. **A hydration error naming an attribute you have never heard of is a browser extension, not your code.** `/admin/log` threw *"A tree hydrated but some attributes of the server rendered HTML didn't match"*, pointing at `<html>` in `layout.tsx`, immediately after a batch of new pages landed — so it read exactly like a bug in the new work. The diff named the culprit: `katalonextensionid`, written onto `<html>` by the Katalon Recorder extension before React hydrates. Password managers, recorders and accessibility tools all do this. **The diagnostic is the element, not the page:** anything on `<html>` or `<body>` comes from the root layout and therefore appears on *every* route, so if the same error shows on `/`, the page you were working on is innocent. An incognito window settles it in seconds. Fixed with `suppressHydrationWarning` on `<html>`, which is the pattern Next's own guide prescribes (`node_modules/next/dist/docs/01-app/02-guides/preventing-flash-before-hydration.md`). It applies to that element's own attributes only and does **not** cascade to children, so it cannot mask a real mismatch inside a page — but reconsider it if a script is ever added that sets an attribute on `<html>`, since that is the one case where a genuine mismatch there becomes possible.
 
+39. **Any standalone script run "against production" silently targets development unless you override `DATABASE_URL` on the command line.** Every script here starts with `import "dotenv/config"` (Gotcha #1), which loads `.env` — and since 2026-08-14 `.env` describes **development**. So `npm run make-admin -- someone@gmi.edu.my` grants the role on the dev branch, reports success, and leaves production untouched; you find out only when the person still gets a 404 on `/admin`. The fix is that **dotenv does not overwrite a variable that is already set** (verified empirically, not assumed), so an inline value wins. The production connection string is quoted inside `.env.prod-db.local`, which means `cut`/`grep` extraction leaves the quotes in and produces an invalid URL — source the file in a **subshell** instead, so the variable cannot leak into the rest of your terminal session and catch a later dev command:
+
+    ```bash
+    ( set -a; . ./.env.prod-db.local; set +a; npm run make-admin -- someone@student.gmi.edu.my )
+    ```
+
+    `scripts/make-admin.ts` now prints the database host before it does anything, because the two connection strings differ only by a hostname nobody reads carefully. Worth copying into any future script that writes to a database.
+
 ## Decision Log
 
 - **2026-08-03** — Chose Neon over Supabase for the database: no credit card required, branching model mirrors the git workflow, avoids adopting Supabase's bundled platform features when the project deliberately uses separate best-of-breed tools elsewhere (Auth.js, not Supabase Auth).

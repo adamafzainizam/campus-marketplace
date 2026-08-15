@@ -30,6 +30,35 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
+/**
+ * Which database this is about to write to.
+ *
+ * Printed before anything happens, because this script is run against
+ * *production* roughly once and against development the rest of the time, and
+ * the two connection strings differ by a hostname nobody reads carefully. A
+ * grant applied to the wrong branch fails silently in the most annoying
+ * possible way: it reports success, and the role simply isn't there when you
+ * go looking for it.
+ *
+ * Only the host is shown. The connection string contains a password.
+ */
+function targetDescription(): string {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) {
+    throw new Error(
+      "DATABASE_URL is not set. Standalone scripts don't inherit Next's env " +
+        "loading, and without it Postgres silently falls back to localhost.",
+    );
+  }
+
+  try {
+    return new URL(raw).host;
+  } catch {
+    // Never echo the string itself — it carries credentials.
+    throw new Error("DATABASE_URL is set but is not a valid connection URL.");
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const revoke = args.includes("--revoke");
@@ -40,6 +69,8 @@ async function main() {
       "Usage: npm run make-admin -- <email> [--revoke]",
     );
   }
+
+  console.log(`Database: ${targetDescription()}`);
 
   const user = await db.user.findUnique({
     where: { email },
