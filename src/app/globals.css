@@ -452,6 +452,14 @@ small, .text-fine {
   }
   .notice-success { background: var(--success-subtle); color: var(--success); }
   .notice-danger { background: var(--danger-subtle); color: var(--danger); }
+  /* For statements that are neither good news nor a warning — a seller's
+     halal declaration, for instance, which must read as information rather
+     than as the site endorsing or cautioning about it. */
+  .notice-neutral {
+    background: var(--surface-sunken);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
 
   /* File drop zone.
      A dashed border is the near-universal signal for "you can drop something

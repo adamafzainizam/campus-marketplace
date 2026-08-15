@@ -32,6 +32,10 @@ const categories = [
   { name: "Stationery & Supplies", slug: "stationery-supplies" },
   { name: "Lab & Workshop Gear", slug: "lab-workshop-gear" },
   { name: "Hobbies & Games", slug: "hobbies-games" },
+  // Added 2026-08-15 after a live testing session: people were going to sell
+  // food regardless, and an unlabelled "Other" is worse than a category with
+  // rules attached. Selecting it requires a halal statement — see src/lib/halal.ts.
+  { name: "Food & Drink", slug: "food-drink" },
   { name: "Other", slug: "other" },
 ];
 
