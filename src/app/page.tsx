@@ -168,7 +168,7 @@ export default async function Home({
       </div>
 
       {listings.length === 0 ? (
-        <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center sm:py-20">
+        <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center sm:py-16">
           <p className="text-display">
             {filtered ? EMPTY_NO_MATCHES.title : EMPTY_NOTHING_POSTED.title}
           </p>

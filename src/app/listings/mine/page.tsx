@@ -51,7 +51,7 @@ export default async function MyListingsPage() {
       </div>
 
       {listings.length === 0 ? (
-        <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center sm:py-20">
+        <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center sm:py-16">
           <p className="text-display">{MINE_EMPTY.title}</p>
           <p className="max-w-sm text-fine text-secondary">{MINE_EMPTY.body}</p>
           <Link href="/listings/new" className="btn btn-primary btn-sm mt-1">

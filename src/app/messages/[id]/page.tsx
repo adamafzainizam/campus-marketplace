@@ -33,6 +33,14 @@ export default async function ConversationPage({
             { label: thread.listingTitle },
           ]}
         />
+        {/*
+          Deliberately off the h1 type scale. That scale tops out at 2.25rem,
+          which is right for a page title and wrong here: this is a compact bar
+          above a conversation that sizes itself to the remaining viewport, and
+          every pixel it takes comes out of the messages. The display face
+          still applies — it comes from the shared h1/h2/h3 font rule, which
+          this only overrides for size and weight.
+        */}
         <h1 className="text-lg font-semibold">
           <Link href={`/listings/${thread.listingId}`} className="hover:underline">
             {thread.listingTitle}

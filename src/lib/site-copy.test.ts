@@ -6,6 +6,7 @@ import {
   EMPTY_NOTHING_POSTED,
   HOME_HEADLINE,
   HOME_TAGLINE,
+  INBOX_EMPTY,
   MINE_EMPTY,
   SEARCH_PLACEHOLDER,
   SIGNIN_HEADLINE,
@@ -22,6 +23,8 @@ const everything = [
   EMPTY_NO_MATCHES.body,
   MINE_EMPTY.title,
   MINE_EMPTY.body,
+  INBOX_EMPTY.title,
+  INBOX_EMPTY.body,
   SIGNIN_HEADLINE,
   SIGNIN_INTRO,
 ];
@@ -107,5 +110,11 @@ describe("sign-in copy", () => {
     // ALLOWED_DOMAIN_LABEL is the single source of truth and the signIn
     // callback enforces it. A copy of it here would drift silently.
     assert.ok(!/gmi\.edu\.my/i.test(SIGNIN_INTRO));
+  });
+});
+
+describe("inbox copy", () => {
+  test("makes the product's argument rather than just stating a fact", () => {
+    assert.match(INBOX_EMPTY.body, /buried|group chat|forty/i);
   });
 });
