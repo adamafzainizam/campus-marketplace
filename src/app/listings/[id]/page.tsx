@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
+import { ListingGallery } from "./ListingGallery";
 import {
   CONDITION_LABELS,
   LISTING_TYPE_LABELS,
@@ -71,16 +72,14 @@ export default async function ListingDetailPage({
       <Breadcrumbs items={[{ label: listing.title }]} />
 
       <div className="grid gap-6 sm:grid-cols-2 sm:gap-10">
-        <div className="aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
-          {listing.imageKeys[0] && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={getImageUrl(listing.imageKeys[0])}
-              alt={listing.title}
-              className="h-full w-full object-cover"
-            />
-          )}
-        </div>
+        {listing.imageKeys.length > 0 ? (
+          <ListingGallery
+            urls={listing.imageKeys.map((key) => getImageUrl(key))}
+            title={listing.title}
+          />
+        ) : (
+          <div className="aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm" />
+        )}
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
