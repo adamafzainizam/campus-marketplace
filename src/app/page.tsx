@@ -142,8 +142,13 @@ export default async function Home({
 
       {/* Seventeen categories wrap to five rows on a phone, so this is a
           scrolling rail there and wraps only where there is room. */}
-      <div className="rail -mx-4 mb-8 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="flex w-max gap-2 sm:w-auto sm:flex-wrap">
+      {/* One scrolling row at every width. Wrapping seventeen chips put three
+          rows of controls above the fold on desktop, which is most of why a
+          page with four listings read as empty — chrome outweighing content.
+          A mask-image fade was considered as a scroll affordance and dropped:
+          it would dim the focus ring of a chip near the edge. */}
+      <div className="rail -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:mb-10 sm:px-0">
+        <div className="flex w-max gap-2">
           <FilterChip
             href={browseHref(active, { category: undefined })}
             selected={!categorySlug}
@@ -226,7 +231,7 @@ export default async function Home({
                   <p className="truncate text-[0.9375rem] leading-snug font-medium">
                     {listing.title}
                   </p>
-                  <p className="tabular text-fine text-secondary">
+                  <p className="text-price">
                     {formatPrice(
                       listing.price,
                       listing.type,

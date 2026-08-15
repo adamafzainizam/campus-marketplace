@@ -214,6 +214,19 @@ small, .text-fine {
   letter-spacing: 0.004em; /* small text wants slightly *positive* tracking */
 }
 
+/* The most-scanned element on a listing card. It was `text-fine
+   text-secondary` — smaller and greyer than the title — which is backwards
+   for a marketplace. Display face (set in the heading rule above),
+   full-strength text, tabular so a column of prices does not jitter. */
+.text-price {
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  letter-spacing: -0.006em;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Numbers that sit in columns or change in place shouldn't jitter. */
 .tabular { font-variant-numeric: tabular-nums; }
 
