@@ -225,7 +225,7 @@ export function ListingForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="field-group">
         <label htmlFor="title" className="label">
           Title
@@ -438,7 +438,7 @@ export function ListingForm({
                   className="mt-1"
                 />
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium">
+                  <span className="label">
                     {halalOptionLabel(value)}
                   </span>
                   <span className="block text-fine text-secondary">
@@ -511,7 +511,7 @@ export function ListingForm({
               style={{ width: `${stage.percent ?? 0}%` }}
             />
           </div>
-          <p className="text-xs text-secondary">
+          <p className="text-fine text-secondary">
             {stage.percent === null
               ? "Uploading photo..."
               : `Uploading photo... ${stage.percent}%`}
