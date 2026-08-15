@@ -80,3 +80,45 @@ export function formatPrice(
 
   return amount;
 }
+
+/**
+ * Past this many days, a relative age stops being useful — "9w ago" makes a
+ * reader do arithmetic — so an absolute date is shown instead.
+ */
+export const ABSOLUTE_DATE_AFTER_DAYS = 56;
+
+const MONTH_ABBREVIATIONS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/**
+ * How long ago a listing was posted, in the coarsest unit that still says
+ * something: "just now", "5h ago", "2d ago", "3w ago", then a date.
+ *
+ * `now` is a parameter rather than a call to `Date.now()` so this is testable
+ * without freezing the clock — the same reason `formatPrice` takes its type
+ * rather than reading it back off a listing.
+ *
+ * The absolute branch reads UTC fields so the output is deterministic wherever
+ * the tests run. That is a few hours' difference from Malaysian local time on
+ * a date at least eight weeks old, which nobody is reading that closely.
+ */
+export function postedAgo(date: Date, now: Date): string {
+  const elapsedMs = now.getTime() - date.getTime();
+
+  // A future date means a clock is wrong somewhere; counting backwards from it
+  // would render "-3h ago". Treat it as brand new instead.
+  const minutes = Math.floor(Math.max(elapsedMs, 0) / 60_000);
+  if (minutes < 60) return "just now";
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  if (days < ABSOLUTE_DATE_AFTER_DAYS) return `${Math.floor(days / 7)}w ago`;
+
+  const month = MONTH_ABBREVIATIONS[date.getUTCMonth()];
+  return `${date.getUTCDate()} ${month} ${date.getUTCFullYear()}`;
+}
