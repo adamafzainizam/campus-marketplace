@@ -104,7 +104,7 @@ All already stored; no schema change.
 
 1. **`condition` is nullable** — services have none (Decision Log 2026-08-15). The meta line omits it rather than printing "null" or an em-dash.
 2. **The invite tile is not a listing.** It is rendered outside the `listings.map`, so nothing counts it, keys it, or links it as one.
-3. **Shared vocabulary everywhere; layout stays appropriate to each page.** See "One vocabulary, three layouts" below — the original draft of this spec kept the other pages on their own card designs, which would have left three unrelated treatments coexisting. That is the inconsistency the previous revamp existed to remove.
+3. **Shared vocabulary everywhere; layout stays appropriate to each page.** See "One vocabulary, three layouts" above — the original draft of this spec kept the other pages on their own card designs, which would have left three unrelated treatments coexisting. That is the inconsistency the previous revamp existed to remove.
 4. **The perceived-performance work survives.** `loading.tsx` skeletons must be updated to the new card shape — a 4:3 image inside a bordered card is a different silhouette, and a Neon cold start is 7.3s so the skeleton is seen often.
 5. **Spacing stays on the seven-step scale**, with sub-step optical values only inside a component.
 6. **Reviewed at 375px and 1280px, light and dark**, and specifically with two listings, with eight, and with a filter that matches nothing.
