@@ -37,7 +37,7 @@ export default async function EditListingPage({
         otherCategory: true,
         quantity: true,
         halalStatus: true,
-        imageUrl: true,
+        imageKeys: true,
         sellerId: true,
       },
     }),
@@ -78,9 +78,12 @@ export default async function EditListingPage({
           rentalPeriod: listing.rentalPeriod,
           serviceRate: listing.serviceRate,
           categoryId: listing.categoryId,
-          imageUrl: listing.imageUrl,
+          imageKeys: listing.imageKeys,
         }}
-        existingImageUrl={listing.imageUrl ? getImageUrl(listing.imageUrl) : null}
+        existingPhotos={listing.imageKeys.map((key) => ({
+          key,
+          url: getImageUrl(key),
+        }))}
       />
     </div>
   );

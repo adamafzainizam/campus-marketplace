@@ -91,7 +91,7 @@ export async function listInboxFor(viewerId: string): Promise<InboxEntry[]> {
       listing: {
         select: {
           title: true,
-          imageUrl: true,
+          imageKeys: true,
           sellerId: true,
           seller: { select: { name: true, suspendedAt: true } },
         },
@@ -118,7 +118,7 @@ export async function listInboxFor(viewerId: string): Promise<InboxEntry[]> {
       id: conversation.id,
       listingId: conversation.listingId,
       listingTitle: conversation.listing.title,
-      listingImageKey: conversation.listing.imageUrl,
+      listingImageKey: conversation.listing.imageKeys[0] ?? null,
       counterpartyName: viewerIsBuyer
         ? conversation.listing.seller.name
         : conversation.buyer.name,

@@ -24,7 +24,7 @@ export default async function MyListingsPage() {
       id: true,
       title: true,
       price: true,
-      imageUrl: true,
+      imageKeys: true,
       type: true,
       rentalPeriod: true,
         serviceRate: true,
@@ -66,10 +66,10 @@ export default async function MyListingsPage() {
               className="card flex flex-col gap-4 p-4 sm:flex-row"
             >
               <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
-                {listing.imageUrl && (
+                {listing.imageKeys[0] && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={getImageUrl(listing.imageUrl)}
+                    src={getImageUrl(listing.imageKeys[0])}
                     alt=""
                     className="h-full w-full object-cover"
                   />

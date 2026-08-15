@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { isValidListingImageKey } from "@/lib/upload-constraints";
+import { validateImageKeys } from "@/lib/upload-constraints";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { suspensionBlock } from "@/lib/moderation";
 import { validateListingInput } from "@/lib/listing-input";
@@ -54,13 +54,14 @@ export async function createListing(input: unknown): Promise<ActionFailure> {
   const fields = validateListingInput(input);
   if (!fields.ok) return actionFailed(fields.error);
 
-  // The browser reports this key back to us after uploading straight to R2, so
-  // it's user input like everything else here — without this check a user could
-  // attach any path they like, including another user's uploaded image.
-  const imageKey = (input as Record<string, unknown>).imageKey ?? null;
-  if (imageKey !== null && !isValidListingImageKey(imageKey, userId)) {
-    return actionFailed("Invalid image reference.");
-  }
+  // The browser reports these keys back to us after uploading straight to R2,
+  // so they're user input like everything else here — without this check a
+  // user could attach any path they like, including another user's images.
+  const imageKeys = validateImageKeys(
+    (input as Record<string, unknown>).imageKeys ?? [],
+    userId,
+  );
+  if (!imageKeys.ok) return actionFailed(imageKeys.error);
 
   // The slug decides whether the free-text field applies, and only the server
   // may resolve it — the client could claim any category is the catch-all.
@@ -94,7 +95,7 @@ export async function createListing(input: unknown): Promise<ActionFailure> {
       halalStatus: halalStatus.value,
       quantity: quantity.value,
       sellerId: userId,
-      imageUrl: imageKey as string | null,
+      imageKeys: imageKeys.value,
     },
     select: { id: true },
   });
@@ -137,14 +138,15 @@ export async function updateListing(
   if (!fields.ok) return actionFailed(fields.error);
 
   const raw = input as Record<string, unknown>;
-  // `undefined` means "leave the existing photo alone"; null means remove it.
-  // Distinguishing them matters: an edit that doesn't touch the photo must not
-  // silently clear it.
-  const hasNewImage = Object.hasOwn(raw, "imageKey");
-  const imageKey = hasNewImage ? (raw.imageKey ?? null) : undefined;
-  if (imageKey != null && !isValidListingImageKey(imageKey, userId)) {
-    return actionFailed("Invalid image reference.");
-  }
+  // Absent means "leave the existing photos alone"; present means replace the
+  // whole set, including with an empty list to remove them all. Distinguishing
+  // the two matters: an edit that doesn't touch photos must not silently clear
+  // them.
+  const hasNewImages = Object.hasOwn(raw, "imageKeys");
+  const imageKeys = hasNewImages
+    ? validateImageKeys(raw.imageKeys ?? [], userId)
+    : null;
+  if (imageKeys !== null && !imageKeys.ok) return actionFailed(imageKeys.error);
 
   const category = await db.category.findUnique({
     where: { id: fields.value.categoryId },
@@ -178,7 +180,7 @@ export async function updateListing(
       // Always written, so moving a listing off "Other" clears the note
       // rather than leaving a stale one attached to a real category.
       otherCategory: otherCategory.value,
-      ...(imageKey === undefined ? {} : { imageUrl: imageKey as string | null }),
+      ...(imageKeys === null ? {} : { imageKeys: imageKeys.value }),
     },
   });
 

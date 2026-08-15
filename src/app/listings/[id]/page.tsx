@@ -46,7 +46,7 @@ export default async function ListingDetailPage({
       type: true,
       rentalPeriod: true,
         serviceRate: true,
-      imageUrl: true,
+      imageKeys: true,
       sellerId: true,
       category: { select: { name: true, slug: true } },
       otherCategory: true,
@@ -72,10 +72,10 @@ export default async function ListingDetailPage({
 
       <div className="grid gap-6 sm:grid-cols-2 sm:gap-10">
         <div className="aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
-          {listing.imageUrl && (
+          {listing.imageKeys[0] && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={getImageUrl(listing.imageUrl)}
+              src={getImageUrl(listing.imageKeys[0])}
               alt={listing.title}
               className="h-full w-full object-cover"
             />

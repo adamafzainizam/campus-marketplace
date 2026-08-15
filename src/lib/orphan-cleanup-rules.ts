@@ -47,7 +47,7 @@ export type StoredObject = {
 /**
  * Decides whether a stored object can be deleted.
  *
- * `referencedKeys` is the set of every `Listing.imageUrl` currently in the
+ * `referencedKeys` is every key of every `Listing.imageKeys` currently in the
  * database — the caller must read it *before* listing the bucket, so that a
  * listing created during the run is treated as referenced rather than missed.
  */
