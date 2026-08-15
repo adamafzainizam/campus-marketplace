@@ -246,7 +246,14 @@ model Listing {
 
   /// What a service's price is quoted per. Set only when type is SERVICE.
   serviceRate ServiceRate?
-  imageUrl    String?
+  /// R2 object keys, in display order. `imageKeys[0]` is the cover shown on
+  /// the browse grid, in the inbox and on /listings/mine.
+  ///
+  /// An array rather than a join table because there is no per-photo data to
+  /// hold, and rather than a cover column plus a rest column because two
+  /// sources of truth for "the photos" is how the cleanup job ends up
+  /// deleting live images.
+  imageKeys   String[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 

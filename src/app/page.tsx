@@ -57,7 +57,7 @@ export default async function Home({
         id: true,
         title: true,
         price: true,
-        imageUrl: true,
+        imageKeys: true,
         type: true,
         rentalPeriod: true,
         serviceRate: true,
@@ -196,10 +196,10 @@ export default async function Home({
                 pendingClassName="card-pending"
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
-                  {listing.imageUrl ? (
+                  {listing.imageKeys[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={getImageUrl(listing.imageUrl)}
+                      src={getImageUrl(listing.imageKeys[0])}
                       alt=""
                       loading="lazy"
                       className="h-full w-full object-cover"

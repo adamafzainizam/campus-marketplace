@@ -17,10 +17,12 @@ import assert from "node:assert/strict";
 
 import {
   MAX_FILE_SIZE,
+  MAX_LISTING_PHOTOS,
   buildListingImageKey,
   imageExtensionFor,
   isValidFileSize,
   isValidListingImageKey,
+  validateImageKeys,
 } from "./upload-constraints.ts";
 
 describe("imageExtensionFor", () => {
@@ -245,5 +247,60 @@ describe("buildListingImageKey and isValidListingImageKey agree", () => {
       Array.from({ length: 100 }, () => buildListingImageKey(userId, "jpg")),
     );
     assert.equal(keys.size, 100);
+  });
+});
+
+describe("validateImageKeys", () => {
+  const userId = "user123";
+  const key = (n: number) =>
+    `listings/${userId}/0000000${n}-0000-4000-8000-000000000000.jpg`;
+
+  it("accepts an empty array — a listing may have no photos", () => {
+    assert.deepEqual(validateImageKeys([], userId), { ok: true, value: [] });
+  });
+
+  it("accepts up to the cap, preserving order", () => {
+    const keys = [key(1), key(2), key(3)];
+    assert.deepEqual(validateImageKeys(keys, userId), { ok: true, value: keys });
+  });
+
+  it("rejects more than the cap", () => {
+    const keys = [key(1), key(2), key(3), key(4)];
+    const result = validateImageKeys(keys, userId);
+
+    assert.equal(result.ok, false);
+    assert.match(
+      result.ok === false ? result.error : "",
+      new RegExp(String(MAX_LISTING_PHOTOS)),
+    );
+  });
+
+  it("rejects anything that is not an array", () => {
+    for (const value of [null, undefined, "a", {}, 5]) {
+      assert.equal(validateImageKeys(value, userId).ok, false);
+    }
+  });
+
+  it("rejects a key belonging to another user", () => {
+    // Gotcha #17: the browser uploads straight to R2 and then reports the key,
+    // so the server never observes the upload and must re-check ownership.
+    const theirs =
+      "listings/someone-else/00000001-0000-4000-8000-000000000000.jpg";
+
+    assert.equal(validateImageKeys([key(1), theirs], userId).ok, false);
+  });
+
+  it("de-duplicates rather than storing the same photo twice", () => {
+    const result = validateImageKeys([key(1), key(1), key(2)], userId);
+
+    assert.deepEqual(result.ok === true ? result.value : null, [key(1), key(2)]);
+  });
+
+  it("counts duplicates after de-duplication, not before", () => {
+    // Four entries, three distinct — this is legal.
+    assert.equal(
+      validateImageKeys([key(1), key(1), key(2), key(3)], userId).ok,
+      true,
+    );
   });
 });

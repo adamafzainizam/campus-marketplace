@@ -69,3 +69,55 @@ export function isValidListingImageKey(key: unknown, userId: string): key is str
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+/**
+ * How many photos one listing may carry.
+ *
+ * Tied to the upload rate limit, not chosen independently: the listing limit
+ * is 10/hour, so three photos each implies exactly 30 uploads/hour, which is
+ * what `RATE_LIMITS.upload` is set to. **Raising this without raising that
+ * silently rebuilds a wall sellers hit** — see
+ * `docs/superpowers/specs/2026-08-16-multiple-listing-photos-design.md`.
+ */
+export const MAX_LISTING_PHOTOS = 3;
+
+export type ImageKeysResult =
+  | { ok: true; value: string[] }
+  | { ok: false; error: string };
+
+/**
+ * Validates the list of object keys the browser reports after uploading.
+ *
+ * `unknown` because this arrives from a server action, which is a public POST
+ * endpoint (audit finding S3). Every key is re-checked against the session
+ * user: the browser uploads directly to R2, so the server never sees the
+ * upload and must not trust the key that comes back (Gotcha #17).
+ *
+ * Duplicates are dropped rather than rejected — the same photo listed twice is
+ * a client slip, not an attack, and the cap applies to what would be stored.
+ */
+export function validateImageKeys(
+  value: unknown,
+  userId: string,
+): ImageKeysResult {
+  if (!Array.isArray(value)) {
+    return { ok: false, error: "Photos must be a list." };
+  }
+
+  const unique: string[] = [];
+  for (const key of value) {
+    if (!isValidListingImageKey(key, userId)) {
+      return { ok: false, error: "One of those photos isn't yours to attach." };
+    }
+    if (!unique.includes(key)) unique.push(key);
+  }
+
+  if (unique.length > MAX_LISTING_PHOTOS) {
+    return {
+      ok: false,
+      error: `A listing can have at most ${MAX_LISTING_PHOTOS} photos.`,
+    };
+  }
+
+  return { ok: true, value: unique };
+}

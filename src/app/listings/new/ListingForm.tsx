@@ -16,7 +16,7 @@ import {
   RENTAL_PERIOD_LABELS,
   SERVICE_RATE_LABELS,
 } from "@/lib/listing-labels";
-import { PhotoPicker } from "@/components/PhotoPicker";
+import { PhotoPicker, type Photo } from "@/components/PhotoPicker";
 import { uploadToStorage } from "@/lib/upload-to-storage";
 import {
   isOtherCategorySlug,
@@ -58,7 +58,7 @@ export type EditableListing = {
   otherCategory: string | null;
   quantity: number;
   halalStatus: HalalStatus | null;
-  imageUrl: string | null;
+  imageKeys: string[];
 };
 
 /** What the form is currently doing, so the button can say something useful. */
@@ -71,12 +71,12 @@ type Stage =
 export function ListingForm({
   categories,
   listing,
-  existingImageUrl,
+  existingPhotos = [],
 }: {
   categories: Category[];
   listing?: EditableListing;
-  /** Displayable URL for the current photo, when editing. */
-  existingImageUrl?: string | null;
+  /** Photos already saved on this listing, when editing: key plus a URL. */
+  existingPhotos?: { key: string; url: string }[];
 }) {
   const editing = listing !== undefined;
 
@@ -104,8 +104,9 @@ export function ListingForm({
   const [halalStatus, setHalalStatus] = useState<string>(
     listing?.halalStatus ?? "",
   );
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<Photo[]>(() =>
+    existingPhotos.map((photo) => ({ kind: "existing", ...photo })),
+  );
   const [stage, setStage] = useState<Stage>({ kind: "idle" });
   const [error, setError] = useState<string | null>(null);
 
@@ -119,11 +120,6 @@ export function ListingForm({
   const otherSelected = isOtherCategorySlug(selectedSlug);
   const foodSelected = isFoodCategorySlug(selectedSlug);
   const isService = type === ListingType.SERVICE;
-
-  function handleFileSelected(selected: File | null) {
-    setFile(selected);
-    setPreviewUrl(selected ? URL.createObjectURL(selected) : null);
-  }
 
   async function uploadImage(selectedFile: File): Promise<string> {
     setStage({ kind: "preparing" });
@@ -162,7 +158,14 @@ export function ListingForm({
     setError(null);
 
     try {
-      const imageKey = file ? await uploadImage(file) : null;
+      // Uploaded in order so the array the server receives is the order the
+      // seller arranged, and the cover stays the cover.
+      const imageKeys: string[] = [];
+      for (const photo of photos) {
+        imageKeys.push(
+          photo.kind === "existing" ? photo.key : await uploadImage(photo.file),
+        );
+      }
       setStage({ kind: "saving" });
 
       const fields = {
@@ -187,12 +190,11 @@ export function ListingForm({
       const result = editing
         ? await updateListing(listing.id, {
             ...fields,
-            // Omitted entirely when no new photo was chosen, so an edit that
-            // doesn't touch the image doesn't clear it. Sending null would
-            // mean "remove the photo".
-            ...(imageKey === null ? {} : { imageKey }),
+            // Always sent when editing: the picker holds the full intended
+            // set, so an edit that removed every photo must be able to say so.
+            imageKeys,
           })
-        : await createListing({ ...fields, imageKey });
+        : await createListing({ ...fields, imageKeys });
 
       // Both only return when something went wrong; on success they redirect.
       // Returned failures carry a real message, unlike thrown ones which Next
@@ -494,13 +496,10 @@ export function ListingForm({
 
       <PhotoPicker
         id="image"
-        label={editing ? "Replace photo (optional)" : "Photo (optional)"}
-        file={file}
-        previewUrl={previewUrl}
-        existingImageUrl={existingImageUrl ?? null}
-        editing={editing}
+        label="Photos (optional)"
+        photos={photos}
         disabled={submitting}
-        onFileChange={handleFileSelected}
+        onChange={setPhotos}
       />
 
       {stage.kind === "uploading" && (
