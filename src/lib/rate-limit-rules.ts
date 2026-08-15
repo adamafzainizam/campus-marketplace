@@ -17,11 +17,18 @@ const HOUR = 60 * MINUTE;
  *
  * The upload limit is the load-bearing one. R2's free tier is 10GB and
  * Cloudflare has no hard spending cap (Known Gotchas #8), so an unbounded mint
- * endpoint is a direct path to a bill. At 20/hour and a 5MB cap, one account
- * can move at most ~100MB/hour instead of being limited only by bandwidth.
+ * endpoint is a direct path to a bill. At 30/hour and a 5MB cap, one account
+ * can move at most ~150MB/hour instead of being limited only by bandwidth.
+ *
+ * That 30 is **derived, not chosen**: the listing limit is 10/hour and
+ * `MAX_LISTING_PHOTOS` is 3, so 30 is exactly what posting at full rate
+ * requires. **The two must move together.** Raising the photo cap alone
+ * rebuilds a wall sellers hit, and this comment is the only thing that says
+ * so — it was 20 when one listing meant one upload, and the meaning of the
+ * number changed underneath it when photos became a list.
  */
 export const RATE_LIMITS = {
-  upload: { limit: 20, windowMs: HOUR },
+  upload: { limit: 30, windowMs: HOUR },
   listing: { limit: 10, windowMs: HOUR },
   message: { limit: 60, windowMs: MINUTE },
   conversation: { limit: 20, windowMs: HOUR },
