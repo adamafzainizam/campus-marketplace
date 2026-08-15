@@ -45,12 +45,13 @@ export async function GET(request: Request) {
   // a window where an object exists but its listing row does not yet, and the
   // job would delete a live image.
   const listings = await db.listing.findMany({
-    where: { imageUrl: { not: null } },
-    select: { imageUrl: true },
+    where: { imageKeys: { isEmpty: false } },
+    select: { imageKeys: true },
   });
-  const referencedKeys = new Set(
-    listings.map((listing) => listing.imageUrl).filter((key): key is string => key !== null),
-  );
+  // Every key of every listing, not just the cover. Taking only the first
+  // would delete photos two and three a day after they were uploaded, leaving
+  // the listing showing a broken image with nothing to point at the cause.
+  const referencedKeys = new Set(listings.flatMap((listing) => listing.imageKeys));
 
   const now = new Date();
   const objects: StoredObject[] = [];
