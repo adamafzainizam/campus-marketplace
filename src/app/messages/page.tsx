@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { listInboxFor } from "@/lib/conversations";
+import { INBOX_EMPTY } from "@/lib/site-copy";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
@@ -19,9 +20,15 @@ export default async function MessagesPage() {
       <h1 className="mb-6 sm:mb-10">Messages</h1>
 
       {conversations.length === 0 ? (
-        <p className="text-secondary">
-          No conversations yet. Message a seller from a listing to start one.
-        </p>
+        <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center sm:py-16">
+          <p className="text-display">{INBOX_EMPTY.title}</p>
+          <p className="max-w-sm text-fine text-secondary">{INBOX_EMPTY.body}</p>
+          {/* Browse rather than a listing: there is nothing to message about
+              until you have found something. */}
+          <Link href="/" className="btn btn-primary btn-sm mt-1">
+            Browse listings
+          </Link>
+        </div>
       ) : (
         <ul className="card flex flex-col divide-y divide-[var(--border)] overflow-hidden">
           {conversations.map((conversation) => (
@@ -48,7 +55,7 @@ export default async function MessagesPage() {
                     </p>
                     {conversation.unread && (
                       <span
-                        className="shrink-0 rounded-full bg-blue-600 px-2 py-0.5 text-xs text-white"
+                        className="badge badge-accent shrink-0"
                         aria-label="Unread messages"
                       >
                         New
