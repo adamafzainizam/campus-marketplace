@@ -15,7 +15,7 @@ import {
   HOME_HEADLINE,
   HOME_TAGLINE,
   SEARCH_PLACEHOLDER,
-} from "@/lib/home-copy";
+} from "@/lib/site-copy";
 import { auth } from "@/auth";
 
 export default async function Home({
