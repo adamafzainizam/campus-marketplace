@@ -25,7 +25,7 @@ https://campus-marketplace-adamafzainizam.vercel.app
 
 I am writing for two reasons.
 
-**First, to be transparent about it.** Sign-in is restricted to `@gmi.edu.my` addresses and their subdomains, so only members of the GMI community can post listings or send messages. Every page carries a notice stating that the project is independent and is not affiliated with, endorsed by, or operated by the German-Malaysian Institute, and the site publishes a full set of terms, a privacy policy, and an acceptable use policy. The acceptable use policy specifically prohibits trading in examination materials, completed assignments, or assignment-writing services.
+**First, to be transparent about it.** Sign-in is restricted to `@gmi.edu.my` addresses and their subdomains, so only members of the GMI community can post listings or send messages. The site states throughout — in its footer, on the sign-in screen, and in a dedicated disclaimer page — that the project is independent and is not affiliated with, endorsed by, or operated by the German-Malaysian Institute, and it publishes a full set of terms, a privacy policy, and an acceptable use policy. The acceptable use policy specifically prohibits trading in examination materials, completed assignments, or assignment-writing services.
 
 **Second, to ask permission to keep using the GMI name.** The name is intended to describe who the service is for rather than to imply any official standing, but I recognise that "GMI" is the Institute's to control. I would like to ask whether the Institute is willing to allow its continued use, including in a possible domain name.
 
