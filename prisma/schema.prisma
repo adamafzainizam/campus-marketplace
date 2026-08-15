@@ -250,6 +250,36 @@ model Listing {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
+  /// How many of this item the seller has.
+  ///
+  /// Seller-maintained and nothing more. No money passes through this site, so
+  /// it never learns that a sale happened and cannot decrement anything —
+  /// presenting this as stock tracking would be a lie to buyers. Defaults to 1
+  /// so every existing listing keeps its meaning.
+  quantity Int @default(1)
+
+  /// Whether the seller says the food is halal.
+  ///
+  /// Set only for the food category, enforced in application code — the same
+  /// arrangement as `rentalPeriod` and `otherCategory`.
+  ///
+  /// It is a **claim by the seller**, never a certification. Halal
+  /// certification in Malaysia is JAKIM's to give and this site verifies
+  /// nothing, so everything that renders this must attribute it to the seller
+  /// rather than stating it as fact.
+  halalStatus HalalStatus?
+
+  /// What the seller typed when they picked "Other".
+  ///
+  /// Set only when the chosen category is the catch-all, and enforced in
+  /// application code rather than by a database CHECK constraint Prisma would
+  /// not manage — the same arrangement as `rentalPeriod`.
+  ///
+  /// Worth keeping beyond display: a list of what people file under "Other" is
+  /// the evidence for which categories to add next, and the only way to gather
+  /// it is to ask at the moment they need one.
+  otherCategory String?
+
   conversations Conversation[]
 
   @@index([sellerId])
@@ -354,6 +384,20 @@ enum ListingStatus {
   /// onDelete: Restrict), so this is how a seller retires a listing without
   /// destroying message history the other party may still want.
   ARCHIVED
+}
+
+/// What a seller says about the halal status of food they are listing.
+///
+/// Three values rather than a boolean, because "did not say" is a real and
+/// materially different answer from "no" — and because silence on a dietary
+/// restriction is the harmful state, the seller has to pick one of these
+/// rather than being allowed to skip the question.
+enum HalalStatus {
+  HALAL
+  NON_HALAL
+  /// The seller does not know, or would rather not claim either way. Honest,
+  /// and better than a careless tick in one of the boxes above.
+  UNSPECIFIED
 }
 
 /// Whether the seller is selling the item outright or renting it out.

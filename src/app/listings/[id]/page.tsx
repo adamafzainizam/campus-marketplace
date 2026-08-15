@@ -14,6 +14,9 @@ import { ReportButton } from "@/components/ReportButton";
 import { currentAdmin } from "@/lib/moderation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { statusLabel } from "@/lib/listing-status";
+import { categoryDisplayName } from "@/lib/category-order";
+import { halalDisplayLabel, HALAL_NOT_VERIFIED } from "@/lib/halal";
+import { quantityLabel } from "@/lib/listing-quantity";
 
 export default async function ListingDetailPage({
   params,
@@ -44,7 +47,10 @@ export default async function ListingDetailPage({
       rentalPeriod: true,
       imageUrl: true,
       sellerId: true,
-      category: { select: { name: true } },
+      category: { select: { name: true, slug: true } },
+      otherCategory: true,
+      quantity: true,
+      halalStatus: true,
       seller: { select: { id: true, name: true } },
     },
   });
@@ -95,8 +101,28 @@ export default async function ListingDetailPage({
             {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
           </p>
           <p className="text-fine text-secondary">
-            {listing.category.name} &middot; {CONDITION_LABELS[listing.condition]}
+            {categoryDisplayName(
+              listing.category.name,
+              listing.category.slug,
+              listing.otherCategory,
+            )}{" "}
+            &middot; {CONDITION_LABELS[listing.condition]}
+            {quantityLabel(listing.quantity) && (
+              <> &middot; {quantityLabel(listing.quantity)}</>
+            )}
           </p>
+          {/* Attributed to the seller, always. This site certifies nothing,
+              and a bare "Halal" badge would present a stranger's unverified
+              claim about a religious dietary restriction as established fact. */}
+          {halalDisplayLabel(listing.halalStatus) && (
+            <div className="notice notice-neutral my-3 flex-col items-start">
+              <p className="font-medium">
+                {halalDisplayLabel(listing.halalStatus)}
+              </p>
+              <p className="mt-1 text-fine">{HALAL_NOT_VERIFIED}</p>
+            </div>
+          )}
+
           <p className="whitespace-pre-wrap leading-relaxed">{listing.description}</p>
           <p className="mt-2 text-fine text-secondary">
             Listed by {listing.seller.name}

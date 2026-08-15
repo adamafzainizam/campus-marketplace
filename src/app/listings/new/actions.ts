@@ -10,6 +10,12 @@ import { suspensionBlock } from "@/lib/moderation";
 import { validateListingInput } from "@/lib/listing-input";
 import { validateId } from "@/lib/listing-constraints";
 import { validateListingStatus } from "@/lib/listing-status";
+import {
+  isOtherCategorySlug,
+  validateOtherCategory,
+} from "@/lib/category-order";
+import { isFoodCategorySlug, validateHalalStatus } from "@/lib/halal";
+import { validateQuantity } from "@/lib/listing-quantity";
 import { actionFailed, actionOk, type ActionFailure, type ActionResult } from "@/lib/action-result";
 
 /**
@@ -56,15 +62,37 @@ export async function createListing(input: unknown): Promise<ActionFailure> {
     return actionFailed("Invalid image reference.");
   }
 
+  // The slug decides whether the free-text field applies, and only the server
+  // may resolve it — the client could claim any category is the catch-all.
   const category = await db.category.findUnique({
     where: { id: fields.value.categoryId },
-    select: { id: true },
+    select: { id: true, slug: true },
   });
   if (!category) return actionFailed("Invalid category.");
+
+  const rawInput = input as Record<string, unknown>;
+
+  const otherCategory = validateOtherCategory(
+    rawInput.otherCategory,
+    isOtherCategorySlug(category.slug),
+  );
+  if (!otherCategory.ok) return actionFailed(otherCategory.error);
+
+  const halalStatus = validateHalalStatus(
+    rawInput.halalStatus,
+    isFoodCategorySlug(category.slug),
+  );
+  if (!halalStatus.ok) return actionFailed(halalStatus.error);
+
+  const quantity = validateQuantity(rawInput.quantity);
+  if (!quantity.ok) return actionFailed(quantity.error);
 
   const listing = await db.listing.create({
     data: {
       ...fields.value,
+      otherCategory: otherCategory.value,
+      halalStatus: halalStatus.value,
+      quantity: quantity.value,
       sellerId: userId,
       imageUrl: imageKey as string | null,
     },
@@ -120,14 +148,36 @@ export async function updateListing(
 
   const category = await db.category.findUnique({
     where: { id: fields.value.categoryId },
-    select: { id: true },
+    select: { id: true, slug: true },
   });
   if (!category) return actionFailed("Invalid category.");
+
+  const otherCategory = validateOtherCategory(
+    raw.otherCategory,
+    isOtherCategorySlug(category.slug),
+  );
+  if (!otherCategory.ok) return actionFailed(otherCategory.error);
+
+  const halalStatus = validateHalalStatus(
+    raw.halalStatus,
+    isFoodCategorySlug(category.slug),
+  );
+  if (!halalStatus.ok) return actionFailed(halalStatus.error);
+
+  const quantity = validateQuantity(raw.quantity);
+  if (!quantity.ok) return actionFailed(quantity.error);
 
   const updated = await db.listing.updateMany({
     where: { id: listingId.value, sellerId: userId },
     data: {
       ...fields.value,
+      // Always written, so moving a listing out of Food clears a stale halal
+      // claim rather than leaving it attached to a bicycle.
+      halalStatus: halalStatus.value,
+      quantity: quantity.value,
+      // Always written, so moving a listing off "Other" clears the note
+      // rather than leaving a stale one attached to a real category.
+      otherCategory: otherCategory.value,
       ...(imageKey === undefined ? {} : { imageUrl: imageKey as string | null }),
     },
   });
