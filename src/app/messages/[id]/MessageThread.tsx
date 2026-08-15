@@ -235,6 +235,16 @@ export function MessageThread({
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Write a message..."
           className="field flex-1"
+          /*
+            Without this the browser keeps a dropdown of everything you have
+            ever said to anyone and offers it back while you type to someone
+            else. Fine for a search box, which is why the one on the home page
+            keeps its history; not fine for private correspondence, and worse
+            on a shared or lab machine. Textareas are unaffected — browsers
+            keep this history for inputs only — so the report and moderation
+            fields need no equivalent.
+          */
+          autoComplete="off"
         />
         <button
           type="submit"
