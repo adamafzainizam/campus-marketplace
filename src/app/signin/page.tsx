@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
-import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
+import { ALLOWED_DOMAIN_LABEL, subdomainLabel } from "@/lib/auth-domain";
 import { legalPath } from "@/lib/legal";
 import { safeInternalPath } from "@/lib/safe-redirect";
 import { SIGNIN_HEADLINE, SIGNIN_INTRO } from "@/lib/site-copy";
@@ -42,13 +42,13 @@ export default async function SignInPage({
       <h1 className="mb-3">{SIGNIN_HEADLINE}</h1>
 
       <p className="mb-6 text-sm text-secondary">
-        {SIGNIN_INTRO} You&rsquo;ll need to sign in
-        with your{" "}
+        {SIGNIN_INTRO}{" "}
+        You&rsquo;ll need to sign in with your{" "}
         <strong className="font-medium text-content">
           {ALLOWED_DOMAIN_LABEL}
         </strong>{" "}
         Google account &mdash; including student addresses like{" "}
-        <span className="whitespace-nowrap">@student{ALLOWED_DOMAIN_LABEL}</span>.
+        <span className="whitespace-nowrap">{subdomainLabel("student")}</span>.
         Personal Gmail accounts can&rsquo;t be used.
       </p>
 
