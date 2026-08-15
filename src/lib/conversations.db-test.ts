@@ -1,12 +1,17 @@
 import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
 
-import { getParticipantsIfMember, listInboxFor } from "@/lib/conversations";
+import {
+  getParticipantsIfMember,
+  getThreadFor,
+  listInboxFor,
+} from "@/lib/conversations";
 import {
   addMessage,
   addSecondConversation,
   createConversationWorld,
   markRead,
+  suspend,
   type ConversationWorld,
 } from "@/lib/db-test-support";
 
@@ -149,5 +154,69 @@ describe("listInboxFor", () => {
 
     assert.equal(ids[0], newerId);
     assert.ok(ids.indexOf(newerId) < ids.indexOf(world.conversationId));
+  });
+});
+
+describe("getThreadFor", () => {
+  test("returns null to a stranger", async () => {
+    const thread = await getThreadFor(world.conversationId, world.strangerId);
+
+    assert.equal(thread, null);
+  });
+
+  test("returns null for a conversation that does not exist", async () => {
+    const thread = await getThreadFor(
+      "clnonexistentconversation01",
+      world.buyerId,
+    );
+
+    assert.equal(thread, null);
+  });
+
+  test("selects the counterparty from the viewer's perspective", async () => {
+    const forBuyer = await getThreadFor(world.conversationId, world.buyerId);
+    const forSeller = await getThreadFor(world.conversationId, world.sellerId);
+
+    assert.equal(forBuyer?.counterpartyId, world.sellerId);
+    assert.equal(forBuyer?.counterpartyName, "Test Seller");
+    assert.equal(forSeller?.counterpartyId, world.buyerId);
+    assert.equal(forSeller?.counterpartyName, "Test Buyer");
+  });
+
+  test("returns messages oldest first", async () => {
+    const base = Date.now();
+    await addMessage(
+      world.conversationId,
+      world.buyerId,
+      "second",
+      new Date(base + 2_000),
+    );
+    await addMessage(
+      world.conversationId,
+      world.sellerId,
+      "third",
+      new Date(base + 3_000),
+    );
+
+    const thread = await getThreadFor(world.conversationId, world.buyerId);
+    const bodies = thread?.messages.map((message) => message.body) ?? [];
+
+    assert.ok(bodies.indexOf("second") < bodies.indexOf("third"));
+
+    const times = (thread?.messages ?? []).map((message) =>
+      message.createdAt.getTime(),
+    );
+    assert.deepEqual(times, [...times].sort((a, b) => a - b));
+  });
+
+  test("reports a suspended counterparty as a boolean, never a timestamp", async () => {
+    await suspend(world.sellerId);
+
+    const thread = await getThreadFor(world.conversationId, world.buyerId);
+
+    assert.equal(thread?.counterpartySuspended, true);
+    // A timestamp reaching a Client Component is the thing the DTO mapping
+    // exists to prevent.
+    assert.equal(typeof thread?.counterpartySuspended, "boolean");
   });
 });
