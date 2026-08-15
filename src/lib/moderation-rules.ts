@@ -155,6 +155,8 @@ export function moderationActionLabel(action: ModerationAction): string {
       return "User reinstated";
     case ModerationAction.MESSAGE_VIEWED:
       return "Reported message viewed";
+    case ModerationAction.REPORT_DISMISSED:
+      return "Report dismissed";
   }
 }
 

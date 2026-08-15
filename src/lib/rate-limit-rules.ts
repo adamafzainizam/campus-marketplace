@@ -25,6 +25,14 @@ export const RATE_LIMITS = {
   listing: { limit: 10, windowMs: HOUR },
   message: { limit: 60, windowMs: MINUTE },
   conversation: { limit: 20, windowMs: HOUR },
+  /**
+   * Reporting is rate limited too, though the harm it bounds is different.
+   * There is no cost in storage or money — the scarce resource is the
+   * moderator's queue, and one person filing continuously would bury genuine
+   * reports under noise. Set well above any honest use: nobody encounters ten
+   * rule-breaking listings in an hour.
+   */
+  report: { limit: 10, windowMs: HOUR },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitAction = keyof typeof RATE_LIMITS;
