@@ -43,7 +43,7 @@ export default async function SignInPage({
       <p className="mb-6 text-sm text-secondary">
         GMI Campus Marketplace is for the German-Malaysian Institute community. You&rsquo;ll need to sign in
         with your{" "}
-        <strong className="font-medium text-foreground">
+        <strong className="font-medium text-content">
           {ALLOWED_DOMAIN_LABEL}
         </strong>{" "}
         Google account &mdash; including student addresses like{" "}

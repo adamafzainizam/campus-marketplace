@@ -34,14 +34,14 @@ export function SiteFooter() {
             <Link
               key={doc.slug}
               href={legalPath(doc.slug)}
-              className="text-fine text-secondary underline-offset-2 hover:text-foreground hover:underline"
+              className="text-fine text-secondary underline-offset-2 hover:text-content hover:underline"
             >
               {doc.title}
             </Link>
           ))}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-            className="text-fine text-secondary underline-offset-2 hover:text-foreground hover:underline"
+            className="text-fine text-secondary underline-offset-2 hover:text-content hover:underline"
           >
             Contact
           </a>
