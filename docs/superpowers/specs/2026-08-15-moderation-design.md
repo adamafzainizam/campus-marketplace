@@ -62,7 +62,44 @@ Listing takedown lives on the listing detail page rather than behind a search bo
 
 **Not verified:** anything in a browser. The admin pages have never been rendered by a signed-in administrator, and `npm run make-admin` has not been run against any database.
 
-## Follow-up: PR B
+---
+
+# PR B — reporting (implemented)
+
+Report buttons, a triage queue, and the one privileged read in the application.
+
+## What was built
+
+- `Report` model, keyed `@@unique([reporterId, targetType, targetId])` — one report per person per thing, because the scarce resource with one moderator is the queue, and a single aggrieved user filing fifty times buries everything else.
+- `ReportReason` **mirrors the sections of the Acceptable Use Policy**, so the categories people choose from and the rules they are measured against cannot drift apart. `ACADEMIC_INTEGRITY` leads, as it does in the policy.
+- Only **listings and messages** are reportable — things someone did, not people in the abstract. Every user-to-user interaction here goes through one or the other, so nothing is unreportable, and a report attached to a specific thing is something a moderator can evaluate.
+- `/admin/reports` queue, **oldest first** — the opposite of the audit log, and deliberate. Newest-first quietly abandons the bottom of the queue, and the longest-unanswered report is the one most likely to have been real.
+- Reporting is rate limited (10/hour) against the queue rather than against storage.
+
+## The privacy design, which is the whole point
+
+A moderator can read **the reported message and three either side**, and nothing else.
+
+- The windowing is done by **two bounded database queries**, not by fetching the thread and slicing it. Messages outside the window are never read out of the database at all — slicing in memory would mean the private messages had already been read, which is exactly what the limit exists to prevent.
+- Reading is **behind a button, not rendered with the page**. Reading somebody's message should be an act a moderator chooses, and since the reveal writes a log row, rendering it automatically would fill the log with views nobody meant to make and devalue every real entry.
+- The log row is written **before** the content is fetched, and deliberately **not** in a transaction: a rollback would erase the record of an attempt that may well have returned data. Over-logging costs a row; under-logging costs the property the feature rests on.
+- **Dismissing a report is logged too.** Deciding to do nothing is the decision an unaccountable moderator is most likely to make badly, precisely because it leaves no trace anywhere else.
+- A suspended user may still file reports. Suspension exists to stop someone harming others; reporting harms nobody, and silencing it would punish everyone else for their behaviour.
+
+## Verified
+
+- **253 tests** (up from 222). Six new controls mutation-tested: the context-window clamp, the self-report refusal, the signed-out reporter check, the reason allowlist's prototype-chain guard, the reportable-target restriction, and the detail length cap.
+- **Sixteen database-level checks** against the live dev database, the important one being the window: a 21-message thread, a report on message 10, and the query returning **exactly 7 messages spanning 07–13**, with the first and last messages of the thread confirmed *not* read. Also: duplicate reports refused while a different reporter is still allowed; the window clamping at the start of a conversation; the view logged against the message's sender; dismissal transactional; and re-closing a closed report changing nothing and writing no second log entry. All test data removed, confirmed by count.
+- Migration additive — two new enums, `ADD VALUE` on two existing ones, one new table.
+
+## The legal pages, corrected in the same PR
+
+Both statements this PR falsified were fixed here rather than left as follow-ups:
+
+- The Acceptable Use Policy no longer says there is no in-app reporting button; it describes the button, that you cannot report your own content, that the same thing can only be reported once by you, and that a report is a request to look rather than a verdict.
+- The Privacy Policy no longer claims the moderation tools never show message content. It now states the real scope — the reported message and three either side, messages outside that window never fetched, and the read itself logged before the content is shown.
+
+## Superseded: the original follow-up note
 
 Report buttons, a triage queue, and scoped message viewing (`MESSAGE_VIEWED` is already in the enum and logged as a non-mutating action).
 

@@ -43,7 +43,69 @@ model User {
   moderationActions ModerationLog[] @relation("ModerationActor")
   moderationRecord  ModerationLog[] @relation("ModerationSubject")
 
+  reportsMade     Report[] @relation("Reporter")
+  reportsResolved Report[] @relation("ReportResolver")
+
   @@map("users")
+}
+
+/// Something a user has flagged for an administrator to look at.
+///
+/// The target is a type plus a free string id rather than real foreign keys,
+/// matching `ModerationLog` and for the same reason: a report has to survive
+/// its target. A report about a listing that has since been archived is still
+/// the record of somebody raising a concern.
+model Report {
+  id String @id @default(cuid())
+
+  reporterId String
+  reporter   User   @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  targetType ModerationTargetType
+  targetId   String
+
+  reason ReportReason
+  /// Optional free text. The reason enum carries the category; this is for the
+  /// detail a category cannot express ("they asked me to pay before meeting").
+  detail String?
+
+  status ReportStatus @default(OPEN)
+
+  createdAt DateTime @default(now())
+
+  resolvedAt     DateTime?
+  resolvedById   String?
+  resolvedBy     User?     @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  /// What the administrator decided and why, readable by nobody but them.
+  resolutionNote String?
+
+  /// One report per person per thing. Without this, one aggrieved user can
+  /// file the same complaint fifty times and bury everything else in the
+  /// queue — the queue being the scarce resource when there is one moderator.
+  @@unique([reporterId, targetType, targetId])
+  @@index([status, createdAt])
+  @@map("reports")
+}
+
+/// Why something was reported. Mirrors the sections of the Acceptable Use
+/// Policy deliberately, so the categories people choose from and the rules
+/// they are being measured against cannot drift apart.
+enum ReportReason {
+  PROHIBITED_ITEM
+  ACADEMIC_INTEGRITY
+  SCAM
+  HARASSMENT
+  SPAM
+  IMPERSONATION
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  /// Looked at, and something was done — the action itself is in ModerationLog.
+  ACTIONED
+  /// Looked at, and nothing needed doing.
+  DISMISSED
 }
 
 /// Append-only record of every moderation action taken.
@@ -95,6 +157,7 @@ enum ModerationTargetType {
   LISTING
   USER
   MESSAGE
+  REPORT
 }
 
 enum ModerationAction {
@@ -106,6 +169,10 @@ enum ModerationAction {
   /// reported messages" a bounded power whose use is on the record, rather
   /// than a standing licence to read private conversations.
   MESSAGE_VIEWED
+  /// Closing a report without acting on it. Logged so that deciding to do
+  /// nothing is as reviewable as deciding to act — the decision an unaccountable
+  /// moderator is most likely to make badly is the one nobody records.
+  REPORT_DISMISSED
 }
 
 model Account {

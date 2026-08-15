@@ -10,6 +10,7 @@ import {
 } from "@/lib/listing-labels";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { ModeratorAction } from "@/app/admin/ModeratorAction";
+import { ReportButton } from "@/components/ReportButton";
 import { currentAdmin } from "@/lib/moderation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { statusLabel } from "@/lib/listing-status";
@@ -139,6 +140,18 @@ export default async function ListingDetailPage({
             >
               Sign in to message seller
             </Link>
+          )}
+
+          {/* Reporting is for everyone except the seller, who has no reason to
+              report their own listing and is refused server-side anyway. */}
+          {session?.user?.id && session.user.id !== listing.sellerId && (
+            <div className="mt-6">
+              <ReportButton
+                targetType="LISTING"
+                targetId={listing.id}
+                label="Report this listing"
+              />
+            </div>
           )}
 
           {/* Moderation lives on the listing itself rather than behind a

@@ -183,9 +183,20 @@ export default function AcceptableUsePage() {
 
       <h2>6. Reporting something</h2>
       <p>
-        There is <strong>no in-app reporting button yet</strong> &mdash; being
-        straight about that is better than pretending otherwise. To report a
-        listing, a message, a user, or a security problem, email{" "}
+        Every listing has a <strong>Report</strong> button, and so does every
+        message somebody else sent you. Choose the reason that fits and add
+        anything else worth knowing. The report goes to a moderator; you
+        won&rsquo;t normally hear back, and no action is guaranteed &mdash; a
+        report is a request to look, not a verdict.
+      </p>
+      <p>
+        You can&rsquo;t report your own listing or your own message, and the
+        same thing can only be reported by you once.
+      </p>
+      <p>
+        For anything the button doesn&rsquo;t cover &mdash; a security problem,
+        something about an account rather than a specific listing or message, or
+        anything urgent &mdash; email{" "}
         <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a> with
         a link or a screenshot and a short description.
       </p>

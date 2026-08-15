@@ -7,9 +7,11 @@ import {
   removeListing,
   suspendUser,
 } from "@/lib/moderation";
+import { resolveReport, revealReportedMessage } from "@/lib/reports";
 import { validateModerationReason } from "@/lib/moderation-rules";
 import { validateId } from "@/lib/listing-constraints";
-import { actionFailed, type ActionResult } from "@/lib/action-result";
+import { ReportStatus } from "@/generated/prisma/enums";
+import { actionFailed, actionOk, type ActionResult } from "@/lib/action-result";
 
 /**
  * Moderation actions.
@@ -73,6 +75,80 @@ export async function reinstateUserAction(
   revalidatePath("/admin");
   return result;
 }
+
+/**
+ * Closes a report as actioned or dismissed.
+ *
+ * A note is required either way, and validated with the same rule as any other
+ * moderation reason — a dismissal with no stated basis is exactly as
+ * unreviewable as a suspension with none.
+ */
+export async function resolveReportAction(
+  rawReportId: unknown,
+  rawStatus: unknown,
+  rawNote: unknown,
+): Promise<ActionResult> {
+  const admin = await currentAdmin();
+  if (!admin) return actionFailed(NOT_ALLOWED);
+
+  const reportId = validateId(rawReportId, "Report");
+  if (!reportId.ok) return actionFailed(reportId.error);
+
+  if (rawStatus !== ReportStatus.ACTIONED && rawStatus !== ReportStatus.DISMISSED) {
+    return actionFailed("That isn't a valid outcome for a report.");
+  }
+
+  const note = validateModerationReason(rawNote);
+  if (!note.ok) return actionFailed(note.error);
+
+  const result = await resolveReport(admin, reportId.value, rawStatus, note.value);
+  if (!result.ok) return result;
+
+  revalidatePath("/admin/reports");
+  revalidatePath(`/admin/reports/${reportId.value}`);
+  return result;
+}
+
+/**
+ * Reveals a reported message and a little of what surrounds it.
+ *
+ * This is the only privileged read in the application, and calling it writes
+ * an audit-log entry before any content comes back. It is an action rather
+ * than page data on purpose: reading somebody's message should be something a
+ * moderator chooses to do, not something that happens by opening a page.
+ */
+export async function revealReportedMessageAction(
+  rawMessageId: unknown,
+): Promise<ActionResult<RevealedMessages>> {
+  const admin = await currentAdmin();
+  if (!admin) return actionFailed(NOT_ALLOWED);
+
+  const messageId = validateId(rawMessageId, "Message");
+  if (!messageId.ok) return actionFailed(messageId.error);
+
+  const revealed = await revealReportedMessage(admin, messageId.value);
+  if (!revealed) return actionFailed("That message no longer exists.");
+
+  return actionOk({
+    reportedId: revealed.reportedId,
+    messages: revealed.messages.map((message) => ({
+      id: message.id,
+      body: message.body,
+      senderName: message.sender.name,
+      createdAt: message.createdAt.toISOString(),
+    })),
+  });
+}
+
+export type RevealedMessages = {
+  reportedId: string;
+  messages: Array<{
+    id: string;
+    body: string;
+    senderName: string;
+    createdAt: string;
+  }>;
+};
 
 export async function removeListingAction(
   rawListingId: unknown,

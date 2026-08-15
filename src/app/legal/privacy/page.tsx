@@ -102,13 +102,18 @@ export default function PrivacyPage() {
         third-party tracking of any kind on this site.
       </p>
 
-      <h3>Moderation records</h3>
+      <h3>Reports and moderation records</h3>
+      <p>
+        If you <strong>report</strong> something, a record is kept of what you
+        reported, the reason you chose, anything you wrote, and that it was you.
+        The person reported is not told who reported them.
+      </p>
       <p>
         If action is taken on your account or a listing &mdash; a suspension, or
         a listing removed for breaking the{" "}
         <Link href={legalPath("acceptable-use")}>Acceptable Use Policy</Link>{" "}
         &mdash; a record is kept of what was done, when, by which
-        administrator, and why.
+        administrator, and why. So is a decision to do nothing.
       </p>
       <p>
         These records are kept even after the thing they refer to is gone, and
@@ -156,10 +161,36 @@ export default function PrivacyPage() {
       </p>
       <p>
         That access exists so an account can be identified when a rule is
-        broken, since two people may share a display name.{" "}
-        <strong>The moderation tools do not show message content</strong>
-        &mdash; there is no screen anywhere in the site that lets an
-        administrator read a conversation they are not part of.
+        broken, since two people may share a display name.
+      </p>
+
+      <h3>When a message is reported</h3>
+      <p>
+        If somebody reports one of your messages, an administrator can read{" "}
+        <strong>that message and the three either side of it</strong>, so that
+        it can be judged in context &mdash; a single line is often innocent or
+        serious depending on what came before it.
+      </p>
+      <p>They cannot read the rest of the conversation. Specifically:</p>
+      <ul>
+        <li>
+          no screen anywhere shows a whole thread to somebody who isn&rsquo;t
+          part of it;
+        </li>
+        <li>
+          the messages outside that window are never fetched from the database
+          at all, rather than fetched and hidden;
+        </li>
+        <li>
+          reading a reported message is <strong>itself recorded</strong> in the
+          moderation log, against the administrator&rsquo;s name, before the
+          content is shown to them. Looking is an action on the record, not a
+          standing privilege.
+        </li>
+      </ul>
+      <p>
+        Nothing is read unless somebody reports it. There is no routine
+        monitoring of messages.
       </p>
       <p>
         Being straight about the limit of that: the person who runs the service
