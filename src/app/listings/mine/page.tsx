@@ -40,7 +40,7 @@ export default async function MyListingsPage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <Breadcrumbs items={[{ label: "My listings" }]} />
 
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 sm:mb-10 flex flex-wrap items-center justify-between gap-3">
         <h1>My listings</h1>
         <Link
           href="/listings/new"

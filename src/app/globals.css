@@ -161,7 +161,12 @@ html {
 
    These are Tailwind's own numeric steps. A parallel set of named tokens
    was considered and rejected: two vocabularies for one idea is how the
-   inconsistency this is meant to fix gets started. */
+   inconsistency this is meant to fix gets started.
+
+   The scale governs the space *between* groups. Sub-step optical values
+   (0.5, 1.5, 2.5) are permitted *inside* a component, where the gap belongs
+   to a relationship rather than to a layout — `.field-group` is the named
+   example. If such a value appears between two groups, it is a bug. */
 
 body {
   background: var(--surface);

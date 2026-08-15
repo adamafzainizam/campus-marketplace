@@ -30,7 +30,7 @@ export default function LegalIndexPage() {
 
       <p className="notice notice-danger mt-6">{AFFILIATION_DISCLAIMER}</p>
 
-      <ul className="mt-8 space-y-3">
+      <ul className="mt-10 space-y-3">
         {LEGAL_DOCUMENTS.map((doc) => (
           <li key={doc.slug}>
             <Link
@@ -46,7 +46,7 @@ export default function LegalIndexPage() {
         ))}
       </ul>
 
-      <p className="mt-8 text-sm text-secondary">
+      <p className="mt-10 text-sm text-secondary">
         Questions, corrections, or takedown requests:{" "}
         <a
           href={`mailto:${LEGAL_CONTACT_EMAIL}`}

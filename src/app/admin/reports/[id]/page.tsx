@@ -64,7 +64,7 @@ export default async function ReportDetailPage({
         <p className="hint mt-4">No further description was given.</p>
       )}
 
-      <h3 className="mt-8 text-sm font-semibold">What was reported</h3>
+      <h3 className="mt-10 text-sm font-semibold">What was reported</h3>
 
       {report.targetType === ModerationTargetType.LISTING &&
         (listing ? (
@@ -119,7 +119,7 @@ export default async function ReportDetailPage({
 
       {subject && (
         <>
-          <h3 className="mt-8 text-sm font-semibold">The account</h3>
+          <h3 className="mt-10 text-sm font-semibold">The account</h3>
           <div className="card mt-2 flex flex-wrap items-center gap-3 p-4">
             <span className="mr-auto text-sm">
               {subject.name}

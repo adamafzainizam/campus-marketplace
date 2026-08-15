@@ -35,7 +35,7 @@ export function ContactSellerButton({ listingId }: { listingId: string }) {
   }
 
   return (
-    <div className="mt-5 flex flex-col gap-2">
+    <div className="mt-6 flex flex-col gap-2">
       <button
         type="button"
         onClick={handleClick}

@@ -5,7 +5,7 @@ export default function Loading() {
     <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <LoadingRegion label="Loading messages">
         <Skeleton className="mb-6 h-4 w-32 rounded" />
-        <Skeleton className="mb-8 h-8 w-40 rounded" />
+        <Skeleton className="mb-6 sm:mb-10 h-8 w-40 rounded" />
         <div className="card flex flex-col divide-y divide-[var(--border)] overflow-hidden">
           {Array.from({ length: 4 }, (_, i) => (
             <div key={i} className="flex items-center gap-3 p-4">
