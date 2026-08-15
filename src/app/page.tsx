@@ -104,7 +104,7 @@ export default async function Home({
         )}
       </section>
 
-      <form className="mb-5 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
+      <form className="mb-6 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
         <label htmlFor="q" className="sr-only">
           Search listings
         </label>

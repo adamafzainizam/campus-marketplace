@@ -6,7 +6,7 @@ export default function Loading() {
       <LoadingRegion label="Loading form">
         <Skeleton className="mb-6 h-4 w-40 rounded" />
         <Skeleton className="mb-6 h-8 w-48 rounded" />
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
           {Array.from({ length: 6 }, (_, i) => (
             <div key={i} className="flex flex-col gap-1.5">
               <Skeleton className="h-4 w-24 rounded" />

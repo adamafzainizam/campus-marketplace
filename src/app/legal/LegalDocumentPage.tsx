@@ -37,9 +37,9 @@ export function LegalDocumentPage({
         Last updated {formatEffectiveDate()}
       </p>
 
-      <div className="prose mt-8">{children}</div>
+      <div className="prose mt-10">{children}</div>
 
-      <hr className="mt-12 border-0 border-t border-[var(--border)]" />
+      <hr className="mt-16 border-0 border-t border-[var(--border)]" />
 
       <section className="mt-6">
         <h2 className="text-sm font-semibold">Questions about this document</h2>
@@ -56,7 +56,7 @@ export function LegalDocumentPage({
         </p>
       </section>
 
-      <nav className="mt-8 flex flex-wrap gap-2" aria-label="Other legal documents">
+      <nav className="mt-10 flex flex-wrap gap-2" aria-label="Other legal documents">
         {siblings.map((other) => (
           <Link key={other.slug} href={legalPath(other.slug)} className="chip">
             {other.title}
