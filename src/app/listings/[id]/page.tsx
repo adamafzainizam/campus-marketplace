@@ -98,7 +98,7 @@ export default async function ListingDetailPage({
             )}
           </div>
           <h1>{listing.title}</h1>
-          <p className="tabular text-xl font-medium">
+          <p className="text-price-lg">
             {formatPrice(
                       listing.price,
                       listing.type,

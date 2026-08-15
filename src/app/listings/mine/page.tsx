@@ -40,7 +40,7 @@ export default async function MyListingsPage() {
       <Breadcrumbs items={[{ label: "My listings" }]} />
 
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">My listings</h1>
+        <h1>My listings</h1>
         <Link
           href="/listings/new"
           className="btn btn-primary"

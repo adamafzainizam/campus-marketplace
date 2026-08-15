@@ -5,6 +5,7 @@ import { auth, signIn } from "@/auth";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
 import { legalPath } from "@/lib/legal";
 import { safeInternalPath } from "@/lib/safe-redirect";
+import { SIGNIN_HEADLINE } from "@/lib/site-copy";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default async function SignInPage({
     <div className="mx-auto w-full max-w-lg px-4 py-8 sm:px-6 sm:py-12">
       <Breadcrumbs items={[{ label: "Sign in" }]} />
 
-      <h1 className="mb-3 text-2xl font-semibold">Sign in</h1>
+      <h1 className="mb-3">{SIGNIN_HEADLINE}</h1>
 
       <p className="mb-6 text-sm text-secondary">
         GMI Campus Marketplace is for the German-Malaysian Institute community. You&rsquo;ll need to sign in

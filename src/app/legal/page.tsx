@@ -20,7 +20,7 @@ export default function LegalIndexPage() {
     <div>
       <Breadcrumbs items={[{ label: "Legal" }]} />
 
-      <h1 className="text-2xl font-semibold tracking-[-0.014em]">Legal</h1>
+      <h1>Legal</h1>
 
       <p className="mt-3 text-sm text-secondary">
         All four documents, last updated {formatEffectiveDate()}. They are
