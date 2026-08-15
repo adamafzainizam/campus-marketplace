@@ -1,9 +1,12 @@
 import { after, before, describe, test } from "node:test";
 import assert from "node:assert/strict";
 
-import { getParticipantsIfMember } from "@/lib/conversations";
+import { getParticipantsIfMember, listInboxFor } from "@/lib/conversations";
 import {
+  addMessage,
+  addSecondConversation,
   createConversationWorld,
+  markRead,
   type ConversationWorld,
 } from "@/lib/db-test-support";
 
@@ -78,5 +81,73 @@ describe("getParticipantsIfMember", () => {
     );
 
     assert.deepEqual(notMine, missing);
+  });
+});
+
+describe("listInboxFor", () => {
+  test("returns the conversation to both participants and not to a stranger", async () => {
+    const forBuyer = await listInboxFor(world.buyerId);
+    const forSeller = await listInboxFor(world.sellerId);
+    const forStranger = await listInboxFor(world.strangerId);
+
+    assert.equal(
+      forBuyer.some((entry) => entry.id === world.conversationId),
+      true,
+    );
+    assert.equal(
+      forSeller.some((entry) => entry.id === world.conversationId),
+      true,
+    );
+    assert.deepEqual(forStranger, []);
+  });
+
+  test("names the counterparty from each viewer's perspective", async () => {
+    const forBuyer = (await listInboxFor(world.buyerId)).find(
+      (entry) => entry.id === world.conversationId,
+    );
+    const forSeller = (await listInboxFor(world.sellerId)).find(
+      (entry) => entry.id === world.conversationId,
+    );
+
+    assert.equal(forBuyer?.counterpartyName, "Test Seller");
+    assert.equal(forSeller?.counterpartyName, "Test Buyer");
+  });
+
+  test("marks a conversation unread when the viewer has never read it", async () => {
+    await addMessage(world.conversationId, world.sellerId, "Still available?");
+
+    const entry = (await listInboxFor(world.buyerId)).find(
+      (candidate) => candidate.id === world.conversationId,
+    );
+
+    assert.equal(entry?.unread, true);
+    assert.equal(entry?.lastMessage, "Still available?");
+  });
+
+  test("marks it read once lastReadAt is newer than the last message", async () => {
+    await markRead(
+      world.conversationId,
+      world.buyerId,
+      new Date(Date.now() + 60_000),
+    );
+
+    const entry = (await listInboxFor(world.buyerId)).find(
+      (candidate) => candidate.id === world.conversationId,
+    );
+
+    assert.equal(entry?.unread, false);
+  });
+
+  test("orders conversations by most recent activity first", async () => {
+    const newerId = await addSecondConversation(
+      world,
+      new Date(Date.now() + 120_000),
+    );
+
+    const inbox = await listInboxFor(world.buyerId);
+    const ids = inbox.map((entry) => entry.id);
+
+    assert.equal(ids[0], newerId);
+    assert.ok(ids.indexOf(newerId) < ids.indexOf(world.conversationId));
   });
 });
