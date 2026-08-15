@@ -28,10 +28,14 @@
 
   /* One accent. A marketplace's colour should come from the photographs, not
      from the chrome competing with them. */
-  --accent: oklch(54% 0.17 258);
-  --accent-hover: oklch(48% 0.17 258);
+  /* Violet, chosen partly because it is the furthest hue from everything
+     already spoken for: --success owns 155 and --danger owns 25, and an
+     accent near either makes "saved" and "this is a link" the same signal.
+     Contrast against the surfaces is asserted in color-contrast.test.ts. */
+  --accent: oklch(52% 0.20 295);
+  --accent-hover: oklch(46% 0.19 295);
   --accent-contrast: oklch(99% 0 0);
-  --accent-subtle: oklch(96% 0.03 258);
+  --accent-subtle: oklch(95% 0.04 295);
 
   --success: oklch(52% 0.13 155);
   --success-subtle: oklch(96% 0.04 155);
@@ -81,10 +85,10 @@
     --border: oklch(28% 0.008 265);
     --border-strong: oklch(36% 0.010 265);
 
-    --accent: oklch(70% 0.15 258);
-    --accent-hover: oklch(76% 0.15 258);
-    --accent-contrast: oklch(17% 0.01 265);
-    --accent-subtle: oklch(28% 0.06 258);
+    --accent: oklch(72% 0.17 295);
+    --accent-hover: oklch(78% 0.15 295);
+    --accent-contrast: oklch(16% 0.01 295);
+    --accent-subtle: oklch(30% 0.08 295);
 
     --success: oklch(72% 0.14 155);
     --success-subtle: oklch(26% 0.05 155);
@@ -127,8 +131,8 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
 }
 
 /* ==========================================================================
@@ -142,15 +146,42 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Spacing vocabulary — seven steps, no others.
+   Uniform spacing is what actually reads as amateur, so the rule that
+   matters more than the numbers: the gap *between* two related things must
+   be smaller than the gap to the next group.
+
+     1  (0.25rem)  icon-to-text
+     2  (0.5rem)   inside chips and badges
+     3  (0.75rem)  card padding and grid gaps on a phone
+     4  (1rem)     card padding and grid gaps on desktop
+     6  (1.5rem)   between page sections on a phone
+     10 (2.5rem)   between page sections on desktop
+     16 (4rem)     above and below major page bands
+
+   These are Tailwind's own numeric steps. A parallel set of named tokens
+   was considered and rejected: two vocabularies for one idea is how the
+   inconsistency this is meant to fix gets started. */
+
 body {
   background: var(--surface);
   color: var(--text);
-  /* The previous rule here hard-coded Arial, which silently overrode the
-     Geist font the layout goes to the trouble of loading. */
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  /* Gotcha #36: the rule that lived here once hard-coded Arial and silently
+     beat the loaded webfont for the project's entire life. Verify the
+     *computed* font in a browser after changing this, not that the build
+     passed. */
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Headings and prices carry the display face; body, labels, hints and form
+   controls stay on Inter. A distinctive face on small UI text gets tiring
+   fast, which is the whole reason the pairing is split. Grouped in one rule
+   so the three sizes cannot drift onto different families. */
+h1, h2, h3, .text-display, .text-price {
+  font-family: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
 }
 
 /* Type scale. Tracking is size-specific — a single letter-spacing value is
