@@ -20,6 +20,18 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
 
+  /// Defaults to USER, so every existing row keeps exactly the privileges it
+  /// had. There is no route that grants ADMIN — see `scripts/make-admin.ts`,
+  /// which is deliberately not reachable from the internet.
+  role UserRole @default(USER)
+
+  /// Non-null means suspended. A timestamp rather than a boolean because
+  /// "when" is the first thing anyone asks when reviewing a suspension, and
+  /// it costs nothing to keep.
+  suspendedAt     DateTime?
+  /// Shown to the suspended user. They are entitled to know why.
+  suspendedReason String?
+
   accounts Account[]
   sessions Session[]
   listings Listing[]
@@ -28,7 +40,72 @@ model User {
   messages             Message[]
   conversationReads    ConversationRead[]
 
+  moderationActions ModerationLog[] @relation("ModerationActor")
+  moderationRecord  ModerationLog[] @relation("ModerationSubject")
+
   @@map("users")
+}
+
+/// Append-only record of every moderation action taken.
+///
+/// This table is written and read, never updated or deleted — there is no code
+/// path that does either, which is what makes it evidence rather than notes.
+/// Every write happens in the same transaction as the action it describes, so
+/// an unlogged moderation action is not merely discouraged but impossible.
+model ModerationLog {
+  id     String           @id @default(cuid())
+  action ModerationAction
+
+  /// Who acted. Restrict rather than Cascade: deleting an administrator must
+  /// not quietly erase the record of what they did.
+  adminId String
+  admin   User   @relation("ModerationActor", fields: [adminId], references: [id], onDelete: Restrict)
+
+  /// What was acted on. Stored as a type plus a free string id rather than as
+  /// real foreign keys, because the log has to outlive its target — a record
+  /// that vanishes when the listing does is not an audit trail.
+  targetType ModerationTargetType
+  targetId   String
+
+  /// The affected user, where there is one, so a person's history can be
+  /// pulled up in a single query. Nullable: a listing takedown targets a
+  /// listing, and the seller is recorded here as the subject.
+  subjectId String?
+  subject   User?   @relation("ModerationSubject", fields: [subjectId], references: [id], onDelete: Restrict)
+
+  /// Why. Required, including for reversals — an action without a stated
+  /// reason is not reviewable later, which is most of the point of logging it.
+  reason String
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([subjectId, createdAt])
+  @@map("moderation_logs")
+}
+
+/// Ordinary users and administrators. Deliberately only two levels: a
+/// permission hierarchy nobody needs is a source of bugs, not of safety.
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ModerationTargetType {
+  LISTING
+  USER
+  MESSAGE
+}
+
+enum ModerationAction {
+  LISTING_REMOVED
+  USER_SUSPENDED
+  USER_REINSTATED
+  /// Viewing reported message content is itself a logged action, written
+  /// before the content is returned. That is what keeps "moderators may read
+  /// reported messages" a bounded power whose use is on the record, rather
+  /// than a standing licence to read private conversations.
+  MESSAGE_VIEWED
 }
 
 model Account {

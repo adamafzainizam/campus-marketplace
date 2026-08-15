@@ -38,6 +38,10 @@ export default async function Home({
     db.listing.findMany({
       where: {
         status: { in: PUBLIC_STATUSES },
+        // A suspended seller's listings come off the board without touching
+        // their status, so nothing has to be undone when a suspension is
+        // lifted — reinstating the person restores their listings by itself.
+        seller: { suspendedAt: null },
         ...(categorySlug ? { category: { slug: categorySlug } } : {}),
         ...(query ? { title: { contains: query, mode: "insensitive" } } : {}),
         ...(typeFilter ? { type: typeFilter } : {}),

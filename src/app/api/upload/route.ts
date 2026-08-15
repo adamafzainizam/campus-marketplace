@@ -9,6 +9,7 @@ import {
   isValidFileSize,
 } from "@/lib/upload-constraints";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { suspensionBlock } from "@/lib/moderation";
 
 // Long enough that a 5MB photo on a slow mobile connection can finish before
 // the link expires — a mid-upload expiry surfaces as an opaque 403. The window
@@ -20,6 +21,14 @@ export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // A suspended user must not be able to push objects into the bucket. Storage
+  // is the one resource here that costs real money, so this route is exactly
+  // where an account being punished for abuse should stop working.
+  const blocked = await suspensionBlock(session.user.id);
+  if (blocked) {
+    return NextResponse.json({ error: blocked.error }, { status: 403 });
   }
 
   // Rate limited before any work is done. R2's free tier is 10GB and

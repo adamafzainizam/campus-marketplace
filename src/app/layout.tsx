@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SuspensionBanner } from "@/components/SuspensionBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -47,6 +48,9 @@ export default function RootLayout({
     >
       <body className="flex min-h-dvh flex-col">
         <SiteHeader />
+        {/* Renders nothing for everyone except a suspended user — see the
+            component for why it is site-wide rather than only on write pages. */}
+        <SuspensionBanner />
         <main className="flex min-h-0 flex-1 flex-col">{children}</main>
         {/*
           The footer carries the affiliation disclaimer, so it belongs on every

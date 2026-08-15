@@ -9,6 +9,8 @@ import {
   formatPrice,
 } from "@/lib/listing-labels";
 import { ContactSellerButton } from "./ContactSellerButton";
+import { ModeratorAction } from "@/app/admin/ModeratorAction";
+import { currentAdmin } from "@/lib/moderation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { statusLabel } from "@/lib/listing-status";
 
@@ -21,7 +23,7 @@ export default async function ListingDetailPage({
 }) {
   const { id } = await params;
   const { updated } = await searchParams;
-  const session = await auth();
+  const [session, admin] = await Promise.all([auth(), currentAdmin()]);
 
   // `select`, not `include`. `include: { seller: true }` pulls every User
   // column, including email and emailVerified. Nothing leaks today because
@@ -137,6 +139,18 @@ export default async function ListingDetailPage({
             >
               Sign in to message seller
             </Link>
+          )}
+
+          {/* Moderation lives on the listing itself rather than behind a
+              search box in /admin: you should be looking at the thing you are
+              taking down. Renders for administrators only, and the action
+              re-checks the role server-side regardless — this is a control,
+              not a permission. */}
+          {admin && listing.status !== "ARCHIVED" && (
+            <div className="mt-6 border-t border-[var(--border)] pt-4">
+              <p className="hint mb-1">Moderation</p>
+              <ModeratorAction kind="remove-listing" targetId={listing.id} />
+            </div>
           )}
         </div>
       </div>
