@@ -36,7 +36,7 @@ export default async function SignInPage({
   if ((await auth())?.user) redirect(safeInternalPath(callbackUrl));
 
   return (
-    <div className="mx-auto w-full max-w-lg px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-lg px-4 py-6 sm:px-6 sm:py-10">
       <Breadcrumbs items={[{ label: "Sign in" }]} />
 
       <h1 className="mb-3">{SIGNIN_HEADLINE}</h1>

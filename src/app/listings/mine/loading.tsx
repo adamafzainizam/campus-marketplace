@@ -2,7 +2,7 @@ import { LoadingRegion, RowSkeleton, Skeleton } from "@/components/Skeleton";
 
 export default function Loading() {
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <LoadingRegion label="Loading your listings">
         <Skeleton className="mb-6 h-4 w-40 rounded" />
         <Skeleton className="mb-8 h-8 w-48 rounded" />

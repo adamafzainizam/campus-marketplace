@@ -9,7 +9,7 @@ export default function LegalLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
       {children}
     </div>
   );
