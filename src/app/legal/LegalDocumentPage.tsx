@@ -31,7 +31,7 @@ export function LegalDocumentPage({
         items={[{ label: "Legal", href: "/legal" }, { label: doc.title }]}
       />
 
-      <h1 className="text-2xl font-semibold tracking-[-0.014em]">{doc.title}</h1>
+      <h1>{doc.title}</h1>
 
       <p className="mt-2 text-fine text-secondary">
         Last updated {formatEffectiveDate()}

@@ -59,7 +59,7 @@ export default async function EditListingPage({
           { label: listing.title },
         ]}
       />
-      <h1 className="mb-6 text-2xl font-semibold">Edit listing</h1>
+      <h1 className="mb-6">Edit listing</h1>
 
       <ListingForm
         categories={categories}

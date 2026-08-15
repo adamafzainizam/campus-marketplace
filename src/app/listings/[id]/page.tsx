@@ -61,7 +61,7 @@ export default async function ListingDetailPage({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       {updated && (
         <p className="notice notice-success mb-6" role="status">
           Changes saved.
@@ -70,7 +70,7 @@ export default async function ListingDetailPage({
 
       <Breadcrumbs items={[{ label: listing.title }]} />
 
-      <div className="grid gap-6 sm:grid-cols-2 sm:gap-8">
+      <div className="grid gap-6 sm:grid-cols-2 sm:gap-10">
         <div className="aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
           {listing.imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -98,7 +98,7 @@ export default async function ListingDetailPage({
             )}
           </div>
           <h1>{listing.title}</h1>
-          <p className="tabular text-xl font-medium">
+          <p className="text-price-lg">
             {formatPrice(
                       listing.price,
                       listing.type,
@@ -170,7 +170,7 @@ export default async function ListingDetailPage({
           ) : (
             <Link
               href={`/signin?callbackUrl=/listings/${listing.id}`}
-              className="btn btn-primary mt-5"
+              className="btn btn-primary mt-6"
             >
               Sign in to message seller
             </Link>

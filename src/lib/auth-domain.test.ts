@@ -5,6 +5,7 @@ import {
   ALLOWED_DOMAIN,
   ALLOWED_DOMAIN_LABEL,
   isAllowedEmail,
+  subdomainLabel,
 } from "./auth-domain.ts";
 
 describe("isAllowedEmail", () => {
@@ -65,5 +66,26 @@ describe("ALLOWED_DOMAIN_LABEL", () => {
 
   it("describes an address the checker actually accepts", () => {
     assert.equal(isAllowedEmail(`student${ALLOWED_DOMAIN_LABEL}`), true);
+  });
+});
+
+describe("subdomainLabel", () => {
+  it("produces a single @, not two", () => {
+    // The bug it exists to prevent: `"@student" + ALLOWED_DOMAIN_LABEL`
+    // rendered "@student@gmi.edu.my" on the sign-in page.
+    const label = subdomainLabel("student");
+
+    assert.equal(label, "@student.gmi.edu.my");
+    assert.equal(label.split("@").length - 1, 1);
+  });
+
+  it("produces an address the signIn callback would actually accept", () => {
+    // The real point: the example shown to users must not be a shape the
+    // enforcement rejects.
+    assert.ok(isAllowedEmail(`someone${subdomainLabel("student")}`));
+  });
+
+  it("stays derived from ALLOWED_DOMAIN", () => {
+    assert.ok(subdomainLabel("staff").endsWith(ALLOWED_DOMAIN));
   });
 });

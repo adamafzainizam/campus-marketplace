@@ -13,6 +13,23 @@ export const ALLOWED_DOMAIN = "gmi.edu.my";
 export const ALLOWED_DOMAIN_LABEL = `@${ALLOWED_DOMAIN}` as const;
 
 /**
+ * A subdomained address suffix, for showing what a real account looks like:
+ * `subdomainLabel("student")` is `@student.gmi.edu.my`.
+ *
+ * This exists because the sign-in page used to build that example by
+ * concatenating the literal `@student` with `ALLOWED_DOMAIN_LABEL`, which
+ * already carries its own `@` — so it advertised `@student@gmi.edu.my` and
+ * told people the wrong address format on the one page where they act on it.
+ *
+ * Derived from `ALLOWED_DOMAIN` rather than written out, for the same reason
+ * the label is: the UI must not be able to promise a shape the `signIn`
+ * callback would reject.
+ */
+export function subdomainLabel(prefix: string): string {
+  return `@${prefix}.${ALLOWED_DOMAIN}`;
+}
+
+/**
  * True when an email belongs to the institution.
  *
  * Deliberately an exact match on the domain OR a `.`-prefixed suffix match,

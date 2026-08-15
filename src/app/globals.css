@@ -180,7 +180,7 @@ body {
    controls stay on Inter. A distinctive face on small UI text gets tiring
    fast, which is the whole reason the pairing is split. Grouped in one rule
    so the three sizes cannot drift onto different families. */
-h1, h2, h3, .text-display, .text-price {
+h1, h2, h3, .text-display, .text-price, .text-price-lg {
   font-family: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
 }
 
@@ -222,6 +222,18 @@ small, .text-fine {
   font-size: 0.9375rem;
   line-height: 1.3;
   letter-spacing: -0.006em;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The detail page's price. Same role as .text-price, one step up, because it
+   is the single most important number on the page rather than one of a grid
+   of them. */
+.text-price-lg {
+  font-size: 1.375rem;
+  line-height: 1.2;
+  letter-spacing: -0.014em;
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;

@@ -30,7 +30,7 @@ export default async function AdminLayout({
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="mb-6 flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto text-2xl font-semibold tracking-[-0.014em]">
+        <h1 className="mr-auto">
           Moderation
         </h1>
         <Link href="/admin/reports" className="btn btn-ghost btn-sm">

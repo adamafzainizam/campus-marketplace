@@ -6,8 +6,11 @@ import {
   EMPTY_NOTHING_POSTED,
   HOME_HEADLINE,
   HOME_TAGLINE,
+  MINE_EMPTY,
   SEARCH_PLACEHOLDER,
-} from "./home-copy.ts";
+  SIGNIN_HEADLINE,
+  SIGNIN_INTRO,
+} from "./site-copy.ts";
 
 const everything = [
   HOME_HEADLINE,
@@ -17,6 +20,10 @@ const everything = [
   EMPTY_NOTHING_POSTED.body,
   EMPTY_NO_MATCHES.title,
   EMPTY_NO_MATCHES.body,
+  MINE_EMPTY.title,
+  MINE_EMPTY.body,
+  SIGNIN_HEADLINE,
+  SIGNIN_INTRO,
 ];
 
 describe("voice rules", () => {
@@ -86,5 +93,19 @@ describe("empty states", () => {
     // Somebody whose search just failed is not the audience for a joke.
     assert.ok(!/group chat/i.test(EMPTY_NO_MATCHES.body));
     assert.match(EMPTY_NO_MATCHES.body, /broader|clear/i);
+  });
+});
+
+describe("sign-in copy", () => {
+  test("names the audience before an account is chosen", () => {
+    // A rejection after picking a Google account is a bad surprise; saying
+    // who the site is for first is the whole point of this string.
+    assert.match(SIGNIN_INTRO, /GMI community/i);
+  });
+
+  test("does not hard-code the domain", () => {
+    // ALLOWED_DOMAIN_LABEL is the single source of truth and the signIn
+    // callback enforces it. A copy of it here would drift silently.
+    assert.ok(!/gmi\.edu\.my/i.test(SIGNIN_INTRO));
   });
 });

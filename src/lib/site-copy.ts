@@ -35,3 +35,24 @@ export const EMPTY_NO_MATCHES = {
   title: "No matches",
   body: "Nothing matches those filters yet. Try a broader category, or clear the search.",
 };
+
+/* ---------------------------------------------------------------- /listings/mine */
+
+/** A state of possibility: you have not posted yet, and posting is easy. */
+export const MINE_EMPTY = {
+  title: "Nothing posted yet",
+  body: "Takes about a minute, and photos do most of the work.",
+};
+
+/* ------------------------------------------------------------------------ sign-in */
+
+export const SIGNIN_HEADLINE = "Sign in";
+
+/**
+ * Says who the site is for before an account is picked, so a rejection is
+ * never a surprise. The domain requirement itself is rendered separately,
+ * from ALLOWED_DOMAIN_LABEL, so it cannot drift from the value the callback
+ * actually enforces.
+ */
+export const SIGNIN_INTRO =
+  "This is a marketplace for the GMI community, so sign-in is limited to institutional Google accounts.";

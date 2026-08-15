@@ -33,7 +33,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
                 // current location for screen readers.
                 <span
                   aria-current={isLast ? "page" : undefined}
-                  className="font-medium text-foreground"
+                  className="font-medium text-content"
                 >
                   {crumb.label}
                 </span>
