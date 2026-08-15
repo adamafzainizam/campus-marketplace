@@ -14,7 +14,7 @@ export default async function MessagesPage() {
   const conversations = await listInboxFor(session.user.id);
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 sm:py-10">
       <Breadcrumbs items={[{ label: "Messages" }]} />
       <h1 className="mb-6 sm:mb-10">Messages</h1>
 
