@@ -45,6 +45,7 @@ export default async function ListingDetailPage({
       status: true,
       type: true,
       rentalPeriod: true,
+        serviceRate: true,
       imageUrl: true,
       sellerId: true,
       category: { select: { name: true, slug: true } },
@@ -98,7 +99,12 @@ export default async function ListingDetailPage({
           </div>
           <h1>{listing.title}</h1>
           <p className="tabular text-xl font-medium">
-            {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
+            {formatPrice(
+                      listing.price,
+                      listing.type,
+                      listing.rentalPeriod,
+                      listing.serviceRate,
+                    )}
           </p>
           <p className="text-fine text-secondary">
             {categoryDisplayName(
@@ -106,7 +112,9 @@ export default async function ListingDetailPage({
               listing.category.slug,
               listing.otherCategory,
             )}{" "}
-            &middot; {CONDITION_LABELS[listing.condition]}
+            {listing.condition && (
+              <> &middot; {CONDITION_LABELS[listing.condition]}</>
+            )}
             {quantityLabel(listing.quantity) && (
               <> &middot; {quantityLabel(listing.quantity)}</>
             )}

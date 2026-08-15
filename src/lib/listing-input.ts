@@ -17,6 +17,7 @@ import {
   validateListingType,
   validatePrice,
   validateRentalPeriod,
+  validateServiceRate,
   validateTitle,
   type Result,
 } from "./listing-constraints.ts";
@@ -24,16 +25,18 @@ import type {
   ListingCondition,
   ListingType,
   RentalPeriod,
+  ServiceRate,
 } from "../generated/prisma/enums.ts";
 
 export type ValidatedListingInput = {
   title: string;
   description: string;
   price: string;
-  condition: ListingCondition;
+  condition: ListingCondition | null;
   categoryId: string;
   type: ListingType;
   rentalPeriod: RentalPeriod | null;
+  serviceRate: ServiceRate | null;
 };
 
 /**
@@ -57,14 +60,20 @@ export function validateListingInput(input: unknown): Result<ValidatedListingInp
   const price = validatePrice(raw.price);
   if (!price.ok) return price;
 
-  const condition = validateCondition(raw.condition);
-  if (!condition.ok) return condition;
-
   const categoryId = validateId(raw.categoryId, "Category");
   if (!categoryId.ok) return categoryId;
 
+  // Type first: three other fields are contextual on it.
   const type = validateListingType(raw.type);
   if (!type.ok) return type;
+
+  const condition = validateCondition(raw.condition, type.value);
+  if (!condition.ok) return condition;
+
+  // Required for a service, discarded otherwise, so a crafted payload can't
+  // leave a sale rendering as "RM 30 / hour".
+  const serviceRate = validateServiceRate(raw.serviceRate, type.value);
+  if (!serviceRate.ok) return serviceRate;
 
   // Contextual on the type: required for a rental, discarded for a sale, so a
   // crafted payload can't leave a sale rendering as "RM 20.00 / week".
@@ -81,6 +90,7 @@ export function validateListingInput(input: unknown): Result<ValidatedListingInp
       categoryId: categoryId.value,
       type: type.value,
       rentalPeriod: rentalPeriod.value,
+      serviceRate: serviceRate.value,
     },
   };
 }

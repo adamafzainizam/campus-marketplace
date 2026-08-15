@@ -1,13 +1,20 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { unstable_rethrow } from "next/navigation";
 import { createListing, updateListing } from "./actions";
-import { ListingCondition, ListingType, RentalPeriod } from "@/generated/prisma/enums";
+import {
+  ListingCondition,
+  ListingType,
+  RentalPeriod,
+  ServiceRate,
+} from "@/generated/prisma/enums";
 import {
   CONDITION_LABELS,
   LISTING_TYPE_LABELS,
   RENTAL_PERIOD_LABELS,
+  SERVICE_RATE_LABELS,
 } from "@/lib/listing-labels";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { uploadToStorage } from "@/lib/upload-to-storage";
@@ -23,6 +30,7 @@ import {
   isFoodCategorySlug,
 } from "@/lib/halal";
 import { MAX_QUANTITY, MIN_QUANTITY } from "@/lib/listing-quantity";
+import { legalPath } from "@/lib/legal";
 import { HalalStatus } from "@/generated/prisma/enums";
 
 type Category = {
@@ -42,9 +50,10 @@ export type EditableListing = {
   title: string;
   description: string;
   price: string;
-  condition: ListingCondition;
+  condition: ListingCondition | null;
   type: ListingType;
   rentalPeriod: RentalPeriod | null;
+  serviceRate: ServiceRate | null;
   categoryId: string;
   otherCategory: string | null;
   quantity: number;
@@ -87,6 +96,9 @@ export function ListingForm({
   const [otherCategory, setOtherCategory] = useState(
     listing?.otherCategory ?? "",
   );
+  const [serviceRate, setServiceRate] = useState<ServiceRate>(
+    listing?.serviceRate ?? ServiceRate.HOUR,
+  );
   const [quantity, setQuantity] = useState(String(listing?.quantity ?? MIN_QUANTITY));
   const [hasMany, setHasMany] = useState((listing?.quantity ?? 1) > 1);
   const [halalStatus, setHalalStatus] = useState<string>(
@@ -106,6 +118,7 @@ export function ListingForm({
   )?.slug;
   const otherSelected = isOtherCategorySlug(selectedSlug);
   const foodSelected = isFoodCategorySlug(selectedSlug);
+  const isService = type === ListingType.SERVICE;
 
   function handleFileSelected(selected: File | null) {
     setFile(selected);
@@ -302,6 +315,46 @@ export function ListingForm({
         </div>
       )}
 
+      {isService && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="serviceRate" className="label">
+            Price is per
+          </label>
+          <select
+            id="serviceRate"
+            value={serviceRate}
+            onChange={(e) => setServiceRate(e.target.value as ServiceRate)}
+            className="field"
+          >
+            {Object.values(ServiceRate).map((value) => (
+              <option key={value} value={value}>
+                {value === ServiceRate.FIXED
+                  ? "the whole job (fixed price)"
+                  : SERVICE_RATE_LABELS[value]}
+              </option>
+            ))}
+          </select>
+
+          {/* The rule put where the decision is made, rather than behind a
+              link. Services is precisely where assignment-writing gets
+              advertised, and the Acceptable Use Policy already bans it. */}
+          <p className="notice notice-neutral mt-1">
+            Tutoring, printing, repairs and skills are all welcome. Writing or
+            completing someone else&rsquo;s assignment is not &mdash; see the{" "}
+            <Link
+              href={legalPath("acceptable-use")}
+              className="underline underline-offset-2"
+            >
+              Acceptable Use Policy
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
+      {/* An hour of somebody's time has no condition. Hidden here and
+          discarded server-side, so the two cannot disagree. */}
+      {!isService && (
       <div className="flex flex-col gap-1.5">
         <label htmlFor="condition" className="label">
           Condition
@@ -319,6 +372,7 @@ export function ListingForm({
           ))}
         </select>
       </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="category" className="label">

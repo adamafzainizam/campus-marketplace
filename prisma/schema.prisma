@@ -226,12 +226,15 @@ model Category {
 }
 
 model Listing {
-  id          String           @id @default(cuid())
+  id          String            @id @default(cuid())
   title       String
   description String
-  price       Decimal          @db.Decimal(10, 2)
-  condition   ListingCondition
-  status      ListingStatus    @default(AVAILABLE)
+  price       Decimal           @db.Decimal(10, 2)
+  /// Nullable since services were added: an hour of tutoring has no condition.
+  /// Required in application code for SALE and RENT, and discarded for
+  /// SERVICE — the same contextual arrangement as `rentalPeriod`.
+  condition   ListingCondition?
+  status      ListingStatus     @default(AVAILABLE)
 
   /// Defaults to SALE so every pre-existing listing keeps its meaning: they
   /// were all created when selling was the only thing the app could express.
@@ -240,9 +243,12 @@ model Listing {
   /// the database, since Postgres cannot express a conditional NOT NULL here
   /// without a CHECK constraint Prisma would not manage.
   rentalPeriod RentalPeriod?
-  imageUrl     String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+
+  /// What a service's price is quoted per. Set only when type is SERVICE.
+  serviceRate ServiceRate?
+  imageUrl    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   sellerId String
   seller   User   @relation(fields: [sellerId], references: [id])
@@ -406,6 +412,24 @@ enum HalalStatus {
 enum ListingType {
   SALE
   RENT
+  /// Somebody's time or skill rather than an object — tutoring, printing,
+  /// repairs, photography. Has no condition, and prices per hour or session
+  /// rather than per week.
+  SERVICE
+}
+
+/// The unit a service's price is quoted in, so "RM 30" is unambiguous.
+///
+/// Separate from RentalPeriod rather than reusing it: a rental is priced by
+/// how long you keep the thing, a service by how much of it you buy, and
+/// "RM 30 / semester" means something quite different from "RM 30 / session".
+enum ServiceRate {
+  HOUR
+  SESSION
+  /// Per item handled — printing, binding, a poster.
+  ITEM
+  /// One agreed price for the whole job.
+  FIXED
 }
 
 /// The unit a rental price is quoted in, so "RM20" is unambiguous.

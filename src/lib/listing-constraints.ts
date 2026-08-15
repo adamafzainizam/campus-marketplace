@@ -18,6 +18,7 @@ import {
   ListingCondition,
   ListingType,
   RentalPeriod,
+  ServiceRate,
 } from "../generated/prisma/enums.ts";
 
 export const TITLE_MIN_LENGTH = 3;
@@ -81,12 +82,48 @@ export function validatePrice(value: unknown): Result<string> {
  * `imageExtensionFor` is — see Known Gotchas #15. An allowlist keyed by user
  * input is bypassable through the prototype chain otherwise.
  */
-export function validateCondition(value: unknown): Result<ListingCondition> {
+/**
+ * Condition is contextual on the listing type.
+ *
+ * An object has a condition; an hour of somebody's time does not. Required for
+ * SALE and RENT, and **discarded** for SERVICE rather than merely ignored —
+ * without that, a crafted payload leaves a tutoring listing advertised as
+ * "Like new".
+ *
+ * This is the third field to work this way, after `rentalPeriod` on type and
+ * `otherCategory`/`halalStatus` on category.
+ */
+export function validateCondition(
+  value: unknown,
+  type: ListingType,
+): Result<ListingCondition | null> {
+  if (type === "SERVICE") return { ok: true, value: null };
+
   if (typeof value !== "string") return invalid("Condition is required.");
   if (!Object.hasOwn(ListingCondition, value)) {
     return invalid("Invalid condition.");
   }
   return { ok: true, value: value as ListingCondition };
+}
+
+/**
+ * The service rate is contextual in the same way the rental period is: a
+ * price with no unit says nothing. "RM 30" could be an hour of tutoring or a
+ * whole job, so SERVICE must carry one, and everything else discards it.
+ */
+export function validateServiceRate(
+  value: unknown,
+  type: ListingType,
+): Result<ServiceRate | null> {
+  if (type !== "SERVICE") return { ok: true, value: null };
+
+  if (typeof value !== "string" || value.length === 0) {
+    return invalid("Choose what the price is per.");
+  }
+  if (!Object.hasOwn(ServiceRate, value)) {
+    return invalid("Invalid service rate.");
+  }
+  return { ok: true, value: value as ServiceRate };
 }
 
 /** Same prototype-chain guard as `validateCondition` — Known Gotchas #15. */

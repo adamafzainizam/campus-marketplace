@@ -30,6 +30,7 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Search listings by title
 - [x] View a single listing in detail
 - [x] Live upload progress while a photo is sending
+- [x] Offer a service — tutoring, printing, repairs — priced per hour, session, item, or job
 - [x] Rent as well as sell — prices read as "RM 20 / week", not just a bare number
 - [x] Real-time messaging between buyer and seller, with unread badges and presence
 - [x] Manage your own listings — edit anything, mark reserved, sold, or archived
@@ -115,7 +116,7 @@ Then open http://localhost:3000.
 npm test
 ```
 
-307 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
+330 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
 
 ### One thing that will trip you up
 

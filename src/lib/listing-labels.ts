@@ -10,6 +10,7 @@ import type {
   ListingCondition,
   ListingType,
   RentalPeriod,
+  ServiceRate,
 } from "../generated/prisma/enums.ts";
 
 export const CONDITION_LABELS: Record<ListingCondition, string> = {
@@ -23,6 +24,7 @@ export const CONDITION_LABELS: Record<ListingCondition, string> = {
 export const LISTING_TYPE_LABELS: Record<ListingType, string> = {
   SALE: "For sale",
   RENT: "For rent",
+  SERVICE: "Service",
 };
 
 /** Lowercase: these read as the tail of a price, e.g. "RM 20.00 / week". */
@@ -31,6 +33,18 @@ export const RENTAL_PERIOD_LABELS: Record<RentalPeriod, string> = {
   WEEK: "week",
   MONTH: "month",
   SEMESTER: "semester",
+};
+
+/**
+ * Lowercase, like the rental periods, so they read as the tail of a price.
+ * FIXED is empty on purpose: "RM 80" is the whole statement for a fixed job,
+ * and "RM 80 / fixed" would be worse than saying nothing.
+ */
+export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
+  HOUR: "hour",
+  SESSION: "session",
+  ITEM: "item",
+  FIXED: "",
 };
 
 /**
@@ -47,10 +61,22 @@ export function formatPrice(
   price: { toString(): string },
   type: ListingType,
   rentalPeriod: RentalPeriod | null,
+  serviceRate: ServiceRate | null = null,
 ): string {
   const amount = `RM ${price.toString()}`;
-  if (type !== "RENT" || rentalPeriod === null) return amount;
 
-  const period = RENTAL_PERIOD_LABELS[rentalPeriod];
-  return period ? `${amount} / ${period}` : amount;
+  if (type === "RENT") {
+    if (rentalPeriod === null) return amount;
+    const period = RENTAL_PERIOD_LABELS[rentalPeriod];
+    return period ? `${amount} / ${period}` : amount;
+  }
+
+  if (type === "SERVICE") {
+    if (serviceRate === null) return amount;
+    // FIXED maps to an empty label, so this also covers "no unit wanted".
+    const rate = SERVICE_RATE_LABELS[serviceRate];
+    return rate ? `${amount} / ${rate}` : amount;
+  }
+
+  return amount;
 }
