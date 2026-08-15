@@ -102,6 +102,23 @@ export default function PrivacyPage() {
         third-party tracking of any kind on this site.
       </p>
 
+      <h3>Moderation records</h3>
+      <p>
+        If action is taken on your account or a listing &mdash; a suspension, or
+        a listing removed for breaking the{" "}
+        <Link href={legalPath("acceptable-use")}>Acceptable Use Policy</Link>{" "}
+        &mdash; a record is kept of what was done, when, by which
+        administrator, and why.
+      </p>
+      <p>
+        These records are kept even after the thing they refer to is gone, and
+        they are <strong>not deleted when an action is reversed</strong>. That
+        is deliberate: a log that can be edited by the people it records is not
+        a log, and the ability to show that a suspension was lifted protects
+        you as much as it does anyone. If your account is suspended you will be
+        told the reason.
+      </p>
+
       <h2>3. Why it is collected</h2>
       <ul>
         <li>To let you sign in and to keep your account yours.</li>
@@ -204,6 +221,11 @@ export default function PrivacyPage() {
           <strong>Rate-limit counters</strong> &mdash; a short window, then
           overwritten.
         </li>
+        <li>
+          <strong>Moderation records</strong> &mdash; kept indefinitely, and
+          not removed when an account is deleted or a suspension lifted, for
+          the reason given above.
+        </li>
       </ul>
 
       <h2>8. Your rights</h2>
@@ -232,10 +254,12 @@ export default function PrivacyPage() {
         person reasonably can &mdash; expect days, not minutes.
       </p>
       <p>
-        One honest limit: deleting your account removes your listings and your
+        Two honest limits. Deleting your account removes your listings and your
         side of conversations, but messages you sent may remain visible to the
         person you sent them to, because they form part of their record of a
-        conversation too.
+        conversation too. And moderation records are kept, for the reason set
+        out above &mdash; they are the record of an action taken, not a record
+        of you.
       </p>
 
       <h2>9. Security</h2>

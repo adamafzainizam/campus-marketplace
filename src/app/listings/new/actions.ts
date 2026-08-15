@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { isValidListingImageKey } from "@/lib/upload-constraints";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { suspensionBlock } from "@/lib/moderation";
 import { validateListingInput } from "@/lib/listing-input";
 import { validateId } from "@/lib/listing-constraints";
 import { validateListingStatus } from "@/lib/listing-status";
@@ -31,6 +32,11 @@ export async function createListing(input: unknown): Promise<ActionFailure> {
     return actionFailed("You need to be signed in to post a listing.");
   }
   const userId = session.user.id;
+
+  // Checked on the server, not by hiding the form: this action is a public
+  // POST endpoint and can be called without ever loading the page.
+  const blocked = await suspensionBlock(userId);
+  if (blocked) return blocked;
 
   const limit = await consumeRateLimit("listing", userId);
   if (!limit.allowed) {
@@ -88,6 +94,9 @@ export async function updateListing(
 
   const listingId = validateId(rawListingId, "Listing");
   if (!listingId.ok) return actionFailed(listingId.error);
+
+  const blocked = await suspensionBlock(userId);
+  if (blocked) return blocked;
 
   const limit = await consumeRateLimit("listing", userId);
   if (!limit.allowed) {
@@ -150,6 +159,9 @@ export async function setListingStatus(
 
   const status = validateListingStatus(rawStatus);
   if (!status.ok) return actionFailed(status.error);
+
+  const blocked = await suspensionBlock(userId);
+  if (blocked) return blocked;
 
   // Same single-statement ownership scoping as updateListing.
   const updated = await db.listing.updateMany({

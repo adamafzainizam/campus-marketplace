@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { publish } from "@/lib/ably";
 import { getParticipantsIfMember } from "@/lib/conversations";
 import { consumeRateLimit } from "@/lib/rate-limit";
+import { suspensionBlock } from "@/lib/moderation";
 import {
   actionFailed,
   actionOk,
@@ -52,6 +53,10 @@ export async function startConversation(
   const listingId = validateId(rawListingId, "Listing");
   if (!listingId.ok) return actionFailed(listingId.error);
 
+  // Server-side, because a suspended user can POST to this action directly.
+  const blocked = await suspensionBlock(userId);
+  if (blocked) return blocked;
+
   const limit = await consumeRateLimit("conversation", userId);
   if (!limit.allowed) {
     return actionFailed(
@@ -94,6 +99,12 @@ export async function sendMessage(
 
   const body = validateMessageBody(rawBody);
   if (!body.ok) return actionFailed(body.error);
+
+  // Suspension has to stop messaging specifically — harassment is the case
+  // that most often prompts one, and blocking only listings would leave the
+  // conduct that caused it untouched.
+  const blocked = await suspensionBlock(userId);
+  if (blocked) return blocked;
 
   const limit = await consumeRateLimit("message", userId);
   if (!limit.allowed) {

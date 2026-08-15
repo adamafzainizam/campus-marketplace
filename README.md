@@ -36,7 +36,9 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Deployed and publicly reachable
 - [x] Works on a phone as well as a desktop, in light and dark
 
-Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no blocking or reporting, which a real marketplace would need.
+- [x] Moderation — suspend an account, take a listing down, with every action recorded in an audit log
+
+Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no in-app *reporting* button yet — the enforcement half of moderation is built, the reporting half isn't, so problems are reported by email for now.
 
 ---
 
@@ -112,7 +114,7 @@ Then open http://localhost:3000.
 npm test
 ```
 
-191 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
+222 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
 
 ### One thing that will trip you up
 
@@ -162,6 +164,7 @@ src/
     listings/mine/    manage your own listings
     messages/         inbox and conversation threads
     legal/            terms, privacy, acceptable use, disclaimer
+    admin/            moderation: people, and the audit log
     api/upload/       issues upload permissions
     api/ably/token/   issues capability-scoped realtime tokens
     api/cron/         nightly cleanup of unreferenced photos
