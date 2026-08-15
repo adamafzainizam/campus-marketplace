@@ -9,6 +9,7 @@ import { LISTING_TYPE_LABELS, formatPrice } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
 import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
+import { HOME_HEADLINE, HOME_TAGLINE } from "@/lib/home-copy";
 import { auth } from "@/auth";
 
 export default async function Home({
@@ -78,26 +79,23 @@ export default async function Home({
 
       <Breadcrumbs items={[]} />
 
-      <section className="mb-8">
-        <h1>Buy, sell, and rent within GMI</h1>
-        <p className="mt-2 max-w-prose text-secondary">
-          A marketplace for the German-Malaysian Institute community.{" "}
-          {session?.user ? (
-            <>Browse freely, and post whenever you&rsquo;re ready.</>
-          ) : (
-            <>
-              Anyone can browse. To post a listing or message a seller you&rsquo;ll
-              need to{" "}
-              <Link
-                href="/signin"
-                className="font-medium text-accent underline underline-offset-4"
-              >
-                sign in with your {ALLOWED_DOMAIN_LABEL} account
-              </Link>
-              .
-            </>
-          )}
-        </p>
+      {/* Spacing carries the grouping: mt-1 because the headline and tagline
+          are one thought, mt-3 because the sign-in line is a separate one. */}
+      <section className="mb-6 sm:mb-10">
+        <h1>{HOME_HEADLINE}</h1>
+        <p className="mt-1 text-secondary">{HOME_TAGLINE}</p>
+        {!session?.user && (
+          <p className="mt-3 text-fine text-tertiary">
+            Anyone can browse.{" "}
+            <Link
+              href="/signin"
+              className="font-medium text-accent underline underline-offset-4"
+            >
+              Sign in with your {ALLOWED_DOMAIN_LABEL} account
+            </Link>{" "}
+            to post or message a seller.
+          </p>
+        )}
       </section>
 
       <form className="mb-5 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
