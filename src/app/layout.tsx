@@ -45,6 +45,24 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      /*
+        Browser extensions write their own attributes onto <html> before React
+        hydrates — a password manager, a recorder, an accessibility tool — and
+        each one produces a hydration error that looks like an application bug
+        and is not. The one that prompted this was Katalon Recorder adding
+        `katalonextensionid`.
+
+        This suppresses the warning for *this element's own attributes only*.
+        It does not cascade to children, so it cannot hide a real mismatch
+        inside a page. What it could hide is a genuine <html> attribute
+        mismatch — and there is nothing here to produce one: `lang` is a
+        literal and the class names come from `next/font` at build time. Dark
+        mode is pure CSS with no theme script, which is the usual reason this
+        element's attributes change at runtime.
+
+        Reconsider if a script is ever added that sets an attribute on <html>.
+      */
+      suppressHydrationWarning
     >
       <body className="flex min-h-dvh flex-col">
         <SiteHeader />
