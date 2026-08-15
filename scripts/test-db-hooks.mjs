@@ -75,6 +75,15 @@ const SRC = `${process.cwd()}/src/`;
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    // Next ships no `exports` field at all, so `next/server` relies on the
+    // CommonJS extension resolution that ESM does not do — it fails with
+    // ERR_MODULE_NOT_FOUND and a "did you mean next/server.js?" hint. This is
+    // why no route handler in this project was testable before. Nothing to do
+    // with the react-server condition.
+    if (specifier === "next/server") {
+      return nextResolve("next/server.js", context);
+    }
+
     if (!specifier.startsWith("@/")) {
       return nextResolve(specifier, context);
     }
