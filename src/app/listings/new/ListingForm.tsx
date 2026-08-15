@@ -9,6 +9,7 @@ import {
   LISTING_TYPE_LABELS,
   RENTAL_PERIOD_LABELS,
 } from "@/lib/listing-labels";
+import { PhotoPicker } from "@/components/PhotoPicker";
 import { uploadToStorage } from "@/lib/upload-to-storage";
 
 type Category = {
@@ -72,8 +73,7 @@ export function ListingForm({
 
   const submitting = stage.kind !== "idle";
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0] ?? null;
+  function handleFileSelected(selected: File | null) {
     setFile(selected);
     setPreviewUrl(selected ? URL.createObjectURL(selected) : null);
   }
@@ -297,34 +297,16 @@ export function ListingForm({
         </select>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="image" className="label">
-          {editing ? "Replace photo (optional)" : "Photo (optional)"}
-        </label>
-        <input
-          id="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleFileChange}
-        />
-        {/* The chosen file wins over the stored one, so the preview always
-            shows what will actually be saved. */}
-        {(previewUrl ?? existingImageUrl) && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewUrl ?? existingImageUrl ?? ""}
-              alt={previewUrl ? "Selected preview" : "Current photo"}
-              className="mt-2 h-40 w-40 rounded-lg border border-line object-cover shadow-sm"
-            />
-            {editing && !previewUrl && (
-              <p className="hint">
-                Leave this empty to keep the current photo.
-              </p>
-            )}
-          </>
-        )}
-      </div>
+      <PhotoPicker
+        id="image"
+        label={editing ? "Replace photo (optional)" : "Photo (optional)"}
+        file={file}
+        previewUrl={previewUrl}
+        existingImageUrl={existingImageUrl ?? null}
+        editing={editing}
+        disabled={submitting}
+        onFileChange={handleFileSelected}
+      />
 
       {stage.kind === "uploading" && (
         <div className="flex flex-col gap-1.5" aria-live="polite">

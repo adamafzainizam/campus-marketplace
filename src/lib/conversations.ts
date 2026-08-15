@@ -13,9 +13,10 @@ import { isParticipant } from "@/lib/message-constraints";
  * "constrain return values" is enforced in one place rather than at every call
  * site.
  *
- * User rows in particular are never returned whole — only `id` and `name` are
- * ever selected, so an email address cannot reach a Client Component even by
- * accident.
+ * User rows in particular are never returned whole. Only `id`, `name` and
+ * `suspendedAt` are selected, and `suspendedAt` is mapped to a boolean before
+ * it leaves — so neither an email address nor a suspension timestamp can reach
+ * a Client Component even by accident.
  */
 
 export type ConversationParticipants = {
@@ -63,6 +64,8 @@ export type InboxEntry = {
   listingId: string;
   listingImageKey: string | null;
   counterpartyName: string;
+  /** Same disclosure as `Thread.counterpartySuspended` — see there. */
+  counterpartySuspended: boolean;
   lastMessage: string | null;
   lastMessageAt: Date | null;
   unread: boolean;
@@ -90,10 +93,10 @@ export async function listInboxFor(viewerId: string): Promise<InboxEntry[]> {
           title: true,
           imageUrl: true,
           sellerId: true,
-          seller: { select: { name: true } },
+          seller: { select: { name: true, suspendedAt: true } },
         },
       },
-      buyer: { select: { name: true } },
+      buyer: { select: { name: true, suspendedAt: true } },
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -119,6 +122,11 @@ export async function listInboxFor(viewerId: string): Promise<InboxEntry[]> {
       counterpartyName: viewerIsBuyer
         ? conversation.listing.seller.name
         : conversation.buyer.name,
+      counterpartySuspended: Boolean(
+        viewerIsBuyer
+          ? conversation.listing.seller.suspendedAt
+          : conversation.buyer.suspendedAt,
+      ),
       lastMessage: latest?.body ?? null,
       lastMessageAt: latest?.createdAt ?? null,
       unread:
@@ -141,6 +149,16 @@ export type Thread = {
   listingTitle: string;
   counterpartyId: string;
   counterpartyName: string;
+  /**
+   * Whether the other person is currently suspended.
+   *
+   * Shown to the person they are talking to, so that somebody is not left
+   * waiting on a reply that cannot come. This does disclose a moderation
+   * outcome to a third party — a deliberate product decision, recorded in the
+   * Decision Log and disclosed in the Privacy Policy rather than left implicit.
+   * It is visible only inside a conversation the viewer is already part of.
+   */
+  counterpartySuspended: boolean;
   messages: ThreadMessage[];
 };
 
@@ -159,9 +177,12 @@ export async function getThreadFor(
       listingId: true,
       buyerId: true,
       listing: {
-        select: { title: true, seller: { select: { id: true, name: true } } },
+        select: {
+          title: true,
+          seller: { select: { id: true, name: true, suspendedAt: true } },
+        },
       },
-      buyer: { select: { id: true, name: true } },
+      buyer: { select: { id: true, name: true, suspendedAt: true } },
       messages: {
         orderBy: { createdAt: "asc" },
         take: 200,
@@ -183,6 +204,7 @@ export async function getThreadFor(
     listingTitle: conversation.listing.title,
     counterpartyId: counterparty.id,
     counterpartyName: counterparty.name,
+    counterpartySuspended: Boolean(counterparty.suspendedAt),
     messages: conversation.messages,
   };
 }
