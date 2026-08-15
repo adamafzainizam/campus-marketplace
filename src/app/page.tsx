@@ -9,7 +9,13 @@ import { LISTING_TYPE_LABELS, formatPrice } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
 import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
-import { HOME_HEADLINE, HOME_TAGLINE } from "@/lib/home-copy";
+import {
+  EMPTY_NO_MATCHES,
+  EMPTY_NOTHING_POSTED,
+  HOME_HEADLINE,
+  HOME_TAGLINE,
+  SEARCH_PLACEHOLDER,
+} from "@/lib/home-copy";
 import { auth } from "@/auth";
 
 export default async function Home({
@@ -107,7 +113,7 @@ export default async function Home({
           type="search"
           name="q"
           defaultValue={query}
-          placeholder="Search listings…"
+          placeholder={SEARCH_PLACEHOLDER}
           className="field min-w-0 flex-1"
         />
         {categorySlug && <input type="hidden" name="category" value={categorySlug} />}
@@ -157,12 +163,12 @@ export default async function Home({
       </div>
 
       {listings.length === 0 ? (
-        <div className="card flex flex-col items-center gap-3 px-6 py-14 text-center">
-          <p className="font-medium">No listings found</p>
+        <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center sm:py-20">
+          <p className="text-display">
+            {filtered ? EMPTY_NO_MATCHES.title : EMPTY_NOTHING_POSTED.title}
+          </p>
           <p className="max-w-sm text-fine text-secondary">
-            {filtered
-              ? "Nothing matches those filters yet. Try a broader category, or clear the search."
-              : "Nothing has been posted yet. Be the first."}
+            {filtered ? EMPTY_NO_MATCHES.body : EMPTY_NOTHING_POSTED.body}
           </p>
           {filtered ? (
             <Link href="/" className="btn btn-secondary btn-sm mt-1">
