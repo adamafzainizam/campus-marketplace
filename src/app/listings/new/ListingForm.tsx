@@ -226,7 +226,7 @@ export function ListingForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1.5">
+      <div className="field-group">
         <label htmlFor="title" className="label">
           Title
         </label>
@@ -240,7 +240,7 @@ export function ListingForm({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-group">
         <label htmlFor="description" className="label">
           Description
         </label>
@@ -280,7 +280,7 @@ export function ListingForm({
         </div>
       </fieldset>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-group">
         <label htmlFor="price" className="label">
           {type === ListingType.RENT ? "Rental price (RM)" : "Price (RM)"}
         </label>
@@ -296,7 +296,7 @@ export function ListingForm({
       </div>
 
       {type === ListingType.RENT && (
-        <div className="flex flex-col gap-1.5">
+        <div className="field-group">
           <label htmlFor="rentalPeriod" className="label">
             Price is per
           </label>
@@ -316,7 +316,7 @@ export function ListingForm({
       )}
 
       {isService && (
-        <div className="flex flex-col gap-1.5">
+        <div className="field-group">
           <label htmlFor="serviceRate" className="label">
             Price is per
           </label>
@@ -355,7 +355,7 @@ export function ListingForm({
       {/* An hour of somebody's time has no condition. Hidden here and
           discarded server-side, so the two cannot disagree. */}
       {!isService && (
-      <div className="flex flex-col gap-1.5">
+      <div className="field-group">
         <label htmlFor="condition" className="label">
           Condition
         </label>
@@ -374,7 +374,7 @@ export function ListingForm({
       </div>
       )}
 
-      <div className="flex flex-col gap-1.5">
+      <div className="field-group">
         <label htmlFor="category" className="label">
           Category
         </label>
@@ -396,7 +396,7 @@ export function ListingForm({
           nothing and tells us nothing about which category is missing, which
           is the more useful of the two. */}
       {otherSelected && (
-        <div className="flex flex-col gap-1.5">
+        <div className="field-group">
           <label htmlFor="otherCategory" className="label">
             What kind of item is it?
           </label>
@@ -419,7 +419,7 @@ export function ListingForm({
           so a choice is required — and "I'd rather not say" exists so that
           requiring one never forces a false claim. */}
       {foodSelected && (
-        <fieldset className="flex flex-col gap-1.5">
+        <fieldset className="field-group">
           <legend className="label mb-1">Is this halal?</legend>
           <div className="space-y-2">
             {HALAL_STATUSES.map((value) => (
@@ -454,7 +454,7 @@ export function ListingForm({
 
       {/* Not food-specific: textbooks, lab coats and calculators are all sold
           in numbers greater than one. */}
-      <div className="flex flex-col gap-1.5">
+      <div className="field-group">
         <label htmlFor="hasMany" className="flex cursor-pointer items-center gap-2">
           <input
             type="checkbox"
@@ -504,7 +504,7 @@ export function ListingForm({
       />
 
       {stage.kind === "uploading" && (
-        <div className="flex flex-col gap-1.5" aria-live="polite">
+        <div className="field-group" aria-live="polite">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-sunken">
             <div
               className="h-full bg-accent transition-[width] duration-200"
