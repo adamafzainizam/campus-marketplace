@@ -146,17 +146,39 @@ export default function AcceptableUsePage() {
       <h2>5. What happens if this policy is broken</h2>
       <p>Depending on how serious it is, any of the following may happen:</p>
       <ul>
-        <li>the listing is removed;</li>
         <li>you are asked to change something;</li>
-        <li>your account is suspended or removed;</li>
+        <li>
+          <strong>the listing is taken down</strong> &mdash; archived rather
+          than deleted, so any conversation about it survives for both people;
+        </li>
+        <li>
+          <strong>your account is suspended</strong> &mdash; you keep read
+          access to the site and to conversations you are already part of, but
+          you cannot post, message, or upload a photograph until it is lifted.
+          You are shown the reason;
+        </li>
+        <li>
+          in the most serious cases, the account is removed entirely;
+        </li>
         <li>
           the matter is reported to GMI or to the police, where there is a
           genuine safety concern or the law requires it.
         </li>
       </ul>
       <p>
-        Serious cases are acted on immediately. Otherwise you will normally be
-        told what the problem is first.
+        Every action is recorded with its reason in an internal log, including
+        actions that are later reversed. If your account is suspended you can
+        appeal by emailing{" "}
+        <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a> from
+        the address on your account.
+      </p>
+      <p>
+        <strong>Nothing here is monitored automatically.</strong> There is no
+        content filtering, no automated scanning, and nobody watching the site.
+        Action follows a report from someone who saw the problem &mdash; which
+        is why the section below matters more than it looks. Serious cases are
+        acted on as soon as they are seen; otherwise you will normally be told
+        what the problem is first.
       </p>
 
       <h2>6. Reporting something</h2>
