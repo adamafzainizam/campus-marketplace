@@ -92,7 +92,54 @@ export default function AcceptableUsePage() {
         </li>
       </ul>
 
-      <h2>3. How you must behave</h2>
+      <h2>3. Food and drink</h2>
+      <p>
+        Food may be sold here, including food you cooked yourself. That is a
+        deliberate choice &mdash; people were going to do it anyway, and an
+        unlabelled listing is worse than one with rules attached. It comes with
+        conditions.
+      </p>
+      <p>
+        <strong>If you are selling food, you are responsible for it.</strong>{" "}
+        You must:
+      </p>
+      <ul>
+        <li>
+          say what is in it if somebody asks, and answer honestly about
+          allergens &mdash; nuts, eggs, dairy, shellfish, gluten;
+        </li>
+        <li>
+          not sell anything you know to be spoiled, out of date, or that has
+          been left unrefrigerated when it should not have been;
+        </li>
+        <li>
+          answer the <strong>halal question</strong> honestly. Claiming
+          something is halal when you do not know is a serious
+          misrepresentation on this campus, and one of the clearest reasons to
+          suspend an account. If you are not certain, choose &ldquo;I&rsquo;d
+          rather not say&rdquo; &mdash; that option exists so nobody has to
+          guess;
+        </li>
+        <li>
+          remember that alcohol remains prohibited, as set out above.
+        </li>
+      </ul>
+      <p>
+        <strong>Nothing here is halal-certified, inspected, or checked by
+        anyone.</strong> Halal certification in Malaysia is JAKIM&rsquo;s to
+        give; this is a student noticeboard and verifies nothing. Anything a
+        listing says about food is the seller&rsquo;s own statement, which is
+        why it is shown as such. If it matters to you &mdash; and for a
+        dietary or religious restriction it should &mdash; ask the seller
+        directly before you buy, and use your judgement.
+      </p>
+      <p>
+        A false halal claim, an undisclosed allergen, or food sold in a state
+        that could make someone ill can all be reported using the button on
+        the listing.
+      </p>
+
+      <h2>4. How you must behave</h2>
       <p>You may not:</p>
       <ul>
         <li>
@@ -133,7 +180,7 @@ export default function AcceptableUsePage() {
         </li>
       </ul>
 
-      <h2>4. Meeting and paying safely</h2>
+      <h2>5. Meeting and paying safely</h2>
       <p>
         No payment passes through the service, so nobody can reverse a
         transaction for you. Meet in a public place on campus, in daylight,
@@ -143,7 +190,7 @@ export default function AcceptableUsePage() {
         immediately.
       </p>
 
-      <h2>5. What happens if this policy is broken</h2>
+      <h2>6. What happens if this policy is broken</h2>
       <p>Depending on how serious it is, any of the following may happen:</p>
       <ul>
         <li>you are asked to change something;</li>
@@ -181,7 +228,7 @@ export default function AcceptableUsePage() {
         what the problem is first.
       </p>
 
-      <h2>6. Reporting something</h2>
+      <h2>7. Reporting something</h2>
       <p>
         Every listing has a <strong>Report</strong> button, and so does every
         message somebody else sent you. Choose the reason that fits and add
