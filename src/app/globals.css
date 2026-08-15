@@ -146,6 +146,23 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Spacing vocabulary — seven steps, no others.
+   Uniform spacing is what actually reads as amateur, so the rule that
+   matters more than the numbers: the gap *between* two related things must
+   be smaller than the gap to the next group.
+
+     1  (0.25rem)  icon-to-text
+     2  (0.5rem)   inside chips and badges
+     3  (0.75rem)  card padding and grid gaps on a phone
+     4  (1rem)     card padding and grid gaps on desktop
+     6  (1.5rem)   between page sections on a phone
+     10 (2.5rem)   between page sections on desktop
+     16 (4rem)     above and below major page bands
+
+   These are Tailwind's own numeric steps. A parallel set of named tokens
+   was considered and rejected: two vocabularies for one idea is how the
+   inconsistency this is meant to fix gets started. */
+
 body {
   background: var(--surface);
   color: var(--text);
