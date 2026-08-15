@@ -35,10 +35,10 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Real-time messaging between buyer and seller, with unread badges and presence
 - [x] Manage your own listings — edit anything, mark reserved, sold, or archived
 - [x] Deployed and publicly reachable
-- [x] Works on a phone as well as a desktop, in light and dark
-
+- [x] Sell food, with an explicit halal statement from the seller and a quantity when there's more than one
 - [x] Report a listing or a message, with a moderation queue behind it
 - [x] Moderation — suspend an account, take a listing down, with every action recorded in an audit log
+- [x] Works on a phone as well as a desktop, in light and dark
 
 Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no way to block another user — reporting exists, blocking doesn't.
 
@@ -189,6 +189,8 @@ An 8-week plan, worked on roughly 10–15 hours a week.
 | 5–6 | Buyer–seller messaging | Done — `v0.3` |
 | 7 | Deployment and polish | Done — `v0.4`, live |
 | 8 | Documentation and write-up | Case study done; screenshots outstanding |
+
+Since then, outside the plan: moderation (reporting, suspension, an audit log), legal pages and an MIT licence, and five changes that came out of watching somebody else use the site.
 
 ---
 
