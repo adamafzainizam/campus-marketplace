@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { formatPrice } from "@/lib/listing-labels";
+import { MINE_EMPTY } from "@/lib/site-copy";
 import { statusLabel } from "@/lib/listing-status";
 import { ListingStatusControl } from "./ListingStatusControl";
 
@@ -50,13 +51,13 @@ export default async function MyListingsPage() {
       </div>
 
       {listings.length === 0 ? (
-        <p className="text-secondary">
-          You haven&rsquo;t posted anything yet.{" "}
-          <Link href="/listings/new" className="underline underline-offset-2">
-            Post your first listing
+        <div className="card flex flex-col items-center gap-3 px-6 py-16 text-center sm:py-20">
+          <p className="text-display">{MINE_EMPTY.title}</p>
+          <p className="max-w-sm text-fine text-secondary">{MINE_EMPTY.body}</p>
+          <Link href="/listings/new" className="btn btn-primary btn-sm mt-1">
+            Post a listing
           </Link>
-          .
-        </p>
+        </div>
       ) : (
         <ul className="flex flex-col gap-4">
           {listings.map((listing) => (
