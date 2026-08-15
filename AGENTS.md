@@ -75,7 +75,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 > **Start here.** The single most useful orientation: the app is **live, working, and verified end to end in a browser**. Weeks 1–7 of the 8-week plan are done, and Week 8's writing is done too — the README is current and `docs/case-study.md` exists. **Only two things are left in the entire plan, and both need the builder's hands rather than an agent's:** screenshots (shot-list ready at `docs/screenshot-shot-list.md`) and the two-session real-time delivery test (needs a second GMI account). Everything below this box is detail and history.
 >
 > **Live:** `https://campus-marketplace-adamafzainizam.vercel.app`
-> **Tests:** 253 passing (`npm test`). `tsc --noEmit`, `eslint`, and `next build` all clean.
+> **Tests:** 274 passing (`npm test`). `tsc --noEmit`, `eslint`, and `next build` all clean.
 > **Local dev:** `.env` points at the Neon **`development`** branch and the **`-dev`** R2 bucket. Production's values live in Vercel and are mirrored in gitignored `.env.vercel.local` / `.env.prod-db.local`.
 >
 > **If you change anything about the CSP, read Known Gotchas #31 and #34 first.** Three separate production outages came from that one policy.

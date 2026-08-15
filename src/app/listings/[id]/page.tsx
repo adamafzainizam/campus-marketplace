@@ -14,6 +14,7 @@ import { ReportButton } from "@/components/ReportButton";
 import { currentAdmin } from "@/lib/moderation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { statusLabel } from "@/lib/listing-status";
+import { categoryDisplayName } from "@/lib/category-order";
 
 export default async function ListingDetailPage({
   params,
@@ -44,7 +45,8 @@ export default async function ListingDetailPage({
       rentalPeriod: true,
       imageUrl: true,
       sellerId: true,
-      category: { select: { name: true } },
+      category: { select: { name: true, slug: true } },
+      otherCategory: true,
       seller: { select: { id: true, name: true } },
     },
   });
@@ -95,7 +97,12 @@ export default async function ListingDetailPage({
             {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
           </p>
           <p className="text-fine text-secondary">
-            {listing.category.name} &middot; {CONDITION_LABELS[listing.condition]}
+            {categoryDisplayName(
+              listing.category.name,
+              listing.category.slug,
+              listing.otherCategory,
+            )}{" "}
+            &middot; {CONDITION_LABELS[listing.condition]}
           </p>
           <p className="whitespace-pre-wrap leading-relaxed">{listing.description}</p>
           <p className="mt-2 text-fine text-secondary">

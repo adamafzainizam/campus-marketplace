@@ -33,6 +33,7 @@ export default async function EditListingPage({
         type: true,
         rentalPeriod: true,
         categoryId: true,
+        otherCategory: true,
         imageUrl: true,
         sellerId: true,
       },
@@ -67,6 +68,7 @@ export default async function EditListingPage({
           // which is why the column is Decimal(10,2) in the first place.
           price: listing.price.toString(),
           condition: listing.condition,
+          otherCategory: listing.otherCategory,
           type: listing.type,
           rentalPeriod: listing.rentalPeriod,
           categoryId: listing.categoryId,

@@ -115,7 +115,7 @@ Then open http://localhost:3000.
 npm test
 ```
 
-253 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
+274 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
 
 ### One thing that will trip you up
 

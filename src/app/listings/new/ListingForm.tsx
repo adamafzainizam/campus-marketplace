@@ -10,10 +10,16 @@ import {
   RENTAL_PERIOD_LABELS,
 } from "@/lib/listing-labels";
 import { uploadToStorage } from "@/lib/upload-to-storage";
+import {
+  isOtherCategorySlug,
+  MAX_OTHER_CATEGORY_LENGTH,
+} from "@/lib/category-order";
 
 type Category = {
   id: string;
   name: string;
+  /** Needed to recognise the catch-all; matched by slug, never by label. */
+  slug: string;
 };
 
 /**
@@ -30,6 +36,7 @@ export type EditableListing = {
   type: ListingType;
   rentalPeriod: RentalPeriod | null;
   categoryId: string;
+  otherCategory: string | null;
   imageUrl: string | null;
 };
 
@@ -65,12 +72,21 @@ export function ListingForm({
   const [categoryId, setCategoryId] = useState(
     listing?.categoryId ?? categories[0]?.id ?? "",
   );
+  const [otherCategory, setOtherCategory] = useState(
+    listing?.otherCategory ?? "",
+  );
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [stage, setStage] = useState<Stage>({ kind: "idle" });
   const [error, setError] = useState<string | null>(null);
 
   const submitting = stage.kind !== "idle";
+
+  // Derived from the selected category rather than tracked separately, so the
+  // field cannot be left showing after the seller moves off "Other".
+  const otherSelected = isOtherCategorySlug(
+    categories.find((category) => category.id === categoryId)?.slug,
+  );
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -128,6 +144,9 @@ export function ListingForm({
         // client holds no opinion about which fields matter.
         rentalPeriod,
         categoryId,
+        // Sent unconditionally for the same reason as rentalPeriod: the server
+        // decides whether it applies, and discards it when it does not.
+        otherCategory,
       };
 
       const result = editing
@@ -296,6 +315,29 @@ export function ListingForm({
           ))}
         </select>
       </div>
+
+      {/* Only when the catch-all is chosen. "Other" on its own tells a buyer
+          nothing and tells us nothing about which category is missing, which
+          is the more useful of the two. */}
+      {otherSelected && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="otherCategory" className="label">
+            What kind of item is it?
+          </label>
+          <input
+            id="otherCategory"
+            value={otherCategory}
+            onChange={(e) => setOtherCategory(e.target.value)}
+            maxLength={MAX_OTHER_CATEGORY_LENGTH}
+            className="field"
+            placeholder="e.g. Bicycle parts, Lab coat, Concert ticket"
+          />
+          <p className="hint">
+            A couple of words. This is shown on your listing, and it tells us
+            which categories are missing.
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="image" className="label">

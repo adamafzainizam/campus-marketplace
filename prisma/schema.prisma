@@ -250,6 +250,17 @@ model Listing {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
+  /// What the seller typed when they picked "Other".
+  ///
+  /// Set only when the chosen category is the catch-all, and enforced in
+  /// application code rather than by a database CHECK constraint Prisma would
+  /// not manage — the same arrangement as `rentalPeriod`.
+  ///
+  /// Worth keeping beyond display: a list of what people file under "Other" is
+  /// the evidence for which categories to add next, and the only way to gather
+  /// it is to ask at the moment they need one.
+  otherCategory String?
+
   conversations Conversation[]
 
   @@index([sellerId])
