@@ -65,6 +65,29 @@ It carries the product's whole argument in one shape: **a pin is what a group ch
 
 Rejected: an abstract four-square "board" mark. It echoes the grid, but a four-square shape reads as *"an app"* rather than as *"a board"*: safer and duller.
 
+## One vocabulary, three layouts
+
+The first draft of this spec scoped the change to the browse card alone, on the grounds that other pages have different jobs. That is true of their **layouts** and not of their **vocabulary**, and conflating the two is what would have left the site with three unrelated card designs.
+
+A conversation list should be rows; forcing a browse card into the inbox would be worse, not better. But there is no defence for those rows using a different surface, a different thumbnail and a different missing-image state.
+
+So three small shared pieces are extracted and used everywhere, while each page keeps the layout its job requires:
+
+| Piece | What it is | Used by |
+|---|---|---|
+| `ListingMeta` | the `category · condition · recency` line, omitting anything null | browse card, `/listings/mine`, listing detail |
+| `NoPhoto` | the icon-plus-label placeholder, sized to its container | browse card, `/listings/mine`, inbox, listing detail |
+| `.card` surface | raised background, border, radius — already exists | all of the above |
+
+Applied per page:
+
+- **Browse** — the new dense grid card, as specified above.
+- **`/listings/mine`** — keeps its horizontal row layout, because it carries status and actions that a grid cell has no room for. Adopts the raised surface, the 4:3 thumbnail, `ListingMeta` and `NoPhoto`.
+- **Inbox** — keeps its list rows, because a conversation is not a listing. Adopts `NoPhoto` and the same thumbnail treatment, nothing more; a conversation has no condition or category to show.
+- **Listing detail** — adopts `ListingMeta`, replacing its ad-hoc condition line.
+
+The test for whether this is right: **two pages should differ because their content differs, never because they were built on different days.**
+
 ## What this needs from the data
 
 The browse query currently selects `id, title, price, imageKeys, type, rentalPeriod, serviceRate, status`. The card adds:
@@ -81,7 +104,7 @@ All already stored; no schema change.
 
 1. **`condition` is nullable** — services have none (Decision Log 2026-08-15). The meta line omits it rather than printing "null" or an em-dash.
 2. **The invite tile is not a listing.** It is rendered outside the `listings.map`, so nothing counts it, keys it, or links it as one.
-3. **`/listings/mine` and the inbox keep their own card shapes.** This is the browse card only; sweeping the change into pages with different jobs is how the last revamp lost its focus.
+3. **Shared vocabulary everywhere; layout stays appropriate to each page.** See "One vocabulary, three layouts" below — the original draft of this spec kept the other pages on their own card designs, which would have left three unrelated treatments coexisting. That is the inconsistency the previous revamp existed to remove.
 4. **The perceived-performance work survives.** `loading.tsx` skeletons must be updated to the new card shape — a 4:3 image inside a bordered card is a different silhouette, and a Neon cold start is 7.3s so the skeleton is seen often.
 5. **Spacing stays on the seven-step scale**, with sub-step optical values only inside a component.
 6. **Reviewed at 375px and 1280px, light and dark**, and specifically with two listings, with eight, and with a filter that matches nothing.
@@ -89,5 +112,6 @@ All already stored; no schema change.
 ## Out of scope
 
 - Pagination. Still owed, still unrelated.
-- Any change to `/listings/mine`, the inbox, admin or legal.
+- Admin and legal, which show no listing imagery.
+- Re-laying-out `/listings/mine` or the inbox. They adopt the shared vocabulary; their layouts are correct for their jobs and stay as they are.
 - A logo for anything other than the header and favicon — no splash, no share images.
