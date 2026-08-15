@@ -114,10 +114,33 @@ export default function TermsPage() {
 
       <h2>5. Suspension and removal</h2>
       <p>
-        Listings that break these terms or the Acceptable Use Policy may be
-        removed, and accounts may be suspended, without notice where the problem
-        is serious. Where it is reasonable to do so, you will be told why and
-        given a chance to respond.
+        Listings that break these terms or the{" "}
+        <Link href={legalPath("acceptable-use")}>Acceptable Use Policy</Link>{" "}
+        may be taken down, and accounts may be suspended.
+      </p>
+      <p>
+        <strong>What suspension actually does:</strong> you can still sign in
+        and read the site, including conversations you are already part of, but
+        you cannot post a listing, send a message, or upload a photograph. You
+        are shown the reason. It is not permanent by default and can be lifted.
+      </p>
+      <p>
+        Listings taken down are <strong>archived rather than deleted</strong>,
+        so that a conversation you and another person have already had is not
+        destroyed along with the listing it was about.
+      </p>
+      <p>
+        <strong>Nothing here is monitored automatically.</strong> There is no
+        filtering and nobody watching; action follows a report. Where a problem
+        is serious it may be acted on without warning, and in the most serious
+        cases an account may be removed entirely. Otherwise you will normally be
+        told what the problem is and given a chance to respond. Every action
+        taken is recorded, with its reason, in an internal log.
+      </p>
+      <p>
+        To appeal, email{" "}
+        <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a> from
+        the address on your account.
       </p>
       <p>
         You may stop using the service at any time and ask for your account to

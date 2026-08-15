@@ -64,4 +64,11 @@ Listing takedown lives on the listing detail page rather than behind a search bo
 
 ## Follow-up: PR B
 
-Report buttons, a triage queue, and scoped message viewing (`MESSAGE_VIEWED` is already in the enum and logged as a non-mutating action). That PR must also correct the Acceptable Use Policy, which currently states plainly that there is no in-app reporting button — true today, and it must not stay in the document once it stops being true.
+Report buttons, a triage queue, and scoped message viewing (`MESSAGE_VIEWED` is already in the enum and logged as a non-mutating action).
+
+**Two statements in the live legal pages become false the moment PR B ships, and correcting them is part of that PR, not a follow-up:**
+
+1. The Acceptable Use Policy states plainly that **there is no in-app reporting button**. True today; it must not survive the PR that adds one.
+2. The Privacy Policy states that **the moderation tools do not show message content** — "there is no screen anywhere in the site that lets an administrator read a conversation they are not part of". Scoped message viewing is exactly such a screen. It will need to describe the real scope: the reported message plus a little context, never a whole thread, never an unrelated conversation, and every view written to the audit log before the content is returned.
+
+Both were correct when written. That is the recurring trap here — a policy document is only true as of the code it was written against, and shipping a feature can falsify a sentence nobody thought to re-read.

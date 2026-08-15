@@ -143,8 +143,32 @@ export default function PrivacyPage() {
         anything you write. Assume anything you post can be screenshotted.
       </p>
       <p>
-        Your <strong>email address is never shown</strong> to other users. It is
-        used only to identify your account.
+        Your <strong>email address is never shown to other people using the
+        site</strong> &mdash; not on your listings, and not in conversations.
+      </p>
+
+      <h3>Administrators</h3>
+      <p>
+        One exception, stated plainly rather than left for you to discover: an
+        administrator can see the name and email address of every account, on
+        the moderation screen. There is currently one administrator &mdash; the
+        student who runs the service.
+      </p>
+      <p>
+        That access exists so an account can be identified when a rule is
+        broken, since two people may share a display name.{" "}
+        <strong>The moderation tools do not show message content</strong>
+        &mdash; there is no screen anywhere in the site that lets an
+        administrator read a conversation they are not part of.
+      </p>
+      <p>
+        Being straight about the limit of that: the person who runs the service
+        also holds the database credentials, as the operator of any small
+        service does, and a database can be queried directly. What is being
+        promised here is that the application provides no such feature and that
+        it is not done &mdash; not that it is technically impossible. If that
+        distinction matters to you, treat these messages the way you would
+        treat any message on a service you do not host yourself.
       </p>
 
       <h3>Service providers</h3>
