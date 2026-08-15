@@ -41,6 +41,16 @@ export default async function ConversationPage({
         <p className="text-sm text-secondary">
           with {thread.counterpartyName}
         </p>
+
+        {/* Otherwise you sit waiting for a reply that cannot come: a suspended
+            account can still read, but not send. Placed in the header rather
+            than among the messages so it is seen before anything is typed. */}
+        {thread.counterpartySuspended && (
+          <p role="status" className="notice notice-danger mt-3">
+            {thread.counterpartyName}&rsquo;s account is suspended, so they
+            can&rsquo;t reply at the moment. They can still read what you send.
+          </p>
+        )}
       </div>
 
       <MessageThread

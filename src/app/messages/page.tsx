@@ -57,6 +57,11 @@ export default async function MessagesPage() {
                   </div>
                   <p className="truncate text-sm text-secondary">
                     {conversation.counterpartyName}
+                    {conversation.counterpartySuspended && (
+                      <span className="badge badge-neutral ml-2">
+                        Can&rsquo;t reply
+                      </span>
+                    )}
                     {conversation.lastMessage
                       ? ` · ${conversation.lastMessage}`
                       : " · No messages yet"}
