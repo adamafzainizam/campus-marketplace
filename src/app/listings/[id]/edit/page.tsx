@@ -32,6 +32,7 @@ export default async function EditListingPage({
         condition: true,
         type: true,
         rentalPeriod: true,
+        serviceRate: true,
         categoryId: true,
         otherCategory: true,
         quantity: true,
@@ -75,6 +76,7 @@ export default async function EditListingPage({
           halalStatus: listing.halalStatus,
           type: listing.type,
           rentalPeriod: listing.rentalPeriod,
+          serviceRate: listing.serviceRate,
           categoryId: listing.categoryId,
           imageUrl: listing.imageUrl,
         }}

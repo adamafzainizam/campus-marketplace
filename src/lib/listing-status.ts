@@ -36,7 +36,12 @@ export function statusLabel(status: ListingStatus, type: ListingType): string {
     case "RESERVED":
       return "Reserved";
     case "SOLD":
-      return type === "RENT" ? "Rented out" : "Sold";
+      // A service is not sold and not rented out — the seller has stopped
+      // offering it. Same stored state, different vocabulary, which is the
+      // arrangement chosen when rentals were added.
+      if (type === "RENT") return "Rented out";
+      if (type === "SERVICE") return "No longer offered";
+      return "Sold";
     case "ARCHIVED":
       return "Archived";
   }

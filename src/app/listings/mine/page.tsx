@@ -26,6 +26,7 @@ export default async function MyListingsPage() {
       imageUrl: true,
       type: true,
       rentalPeriod: true,
+        serviceRate: true,
       status: true,
       createdAt: true,
       _count: { select: { conversations: true } },
@@ -83,7 +84,12 @@ export default async function MyListingsPage() {
                     {listing.title}
                   </Link>
                   <span className="text-sm text-secondary">
-                    {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
+                    {formatPrice(
+                      listing.price,
+                      listing.type,
+                      listing.rentalPeriod,
+                      listing.serviceRate,
+                    )}
                   </span>
                 </div>
 

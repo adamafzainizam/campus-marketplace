@@ -149,7 +149,7 @@ describe("validatePrice", () => {
 describe("validateCondition", () => {
   it("accepts every schema enum value", () => {
     for (const condition of ["NEW", "LIKE_NEW", "GOOD", "FAIR", "WORN"]) {
-      assert.equal(validateCondition(condition).ok, true, condition);
+      assert.equal(validateCondition(condition, "SALE").ok, true, condition);
     }
   });
 
@@ -164,7 +164,7 @@ describe("validateCondition", () => {
       "__proto__",
     ]) {
       assert.equal(
-        validateCondition(inherited).ok,
+        validateCondition(inherited, "SALE").ok,
         false,
         `expected "${inherited}" to be rejected`,
       );
@@ -172,11 +172,11 @@ describe("validateCondition", () => {
   });
 
   it("rejects unknown values, wrong casing, and non-strings", () => {
-    assert.equal(validateCondition("BRAND_NEW").ok, false);
-    assert.equal(validateCondition("good").ok, false);
+    assert.equal(validateCondition("BRAND_NEW", "SALE").ok, false);
+    assert.equal(validateCondition("good", "SALE").ok, false);
     for (const value of NON_STRINGS) {
-      assert.doesNotThrow(() => validateCondition(value));
-      assert.equal(validateCondition(value).ok, false);
+      assert.doesNotThrow(() => validateCondition(value, "SALE"));
+      assert.equal(validateCondition(value, "SALE").ok, false);
     }
   });
 });

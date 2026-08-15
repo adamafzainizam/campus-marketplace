@@ -53,6 +53,7 @@ export default async function Home({
         imageUrl: true,
         type: true,
         rentalPeriod: true,
+        serviceRate: true,
         status: true,
       },
       orderBy: { createdAt: "desc" },
@@ -222,7 +223,12 @@ export default async function Home({
                     {listing.title}
                   </p>
                   <p className="tabular text-fine text-secondary">
-                    {formatPrice(listing.price, listing.type, listing.rentalPeriod)}
+                    {formatPrice(
+                      listing.price,
+                      listing.type,
+                      listing.rentalPeriod,
+                      listing.serviceRate,
+                    )}
                   </p>
                 </div>
               </PendingLink>
