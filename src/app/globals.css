@@ -127,7 +127,8 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
 }
 
 /* ==========================================================================
@@ -144,12 +145,22 @@ html {
 body {
   background: var(--surface);
   color: var(--text);
-  /* The previous rule here hard-coded Arial, which silently overrode the
-     Geist font the layout goes to the trouble of loading. */
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  /* Gotcha #36: the rule that lived here once hard-coded Arial and silently
+     beat the loaded webfont for the project's entire life. Verify the
+     *computed* font in a browser after changing this, not that the build
+     passed. */
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Headings and prices carry the display face; body, labels, hints and form
+   controls stay on Inter. A distinctive face on small UI text gets tiring
+   fast, which is the whole reason the pairing is split. Grouped in one rule
+   so the three sizes cannot drift onto different families. */
+h1, h2, h3, .text-display, .text-price {
+  font-family: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
 }
 
 /* Type scale. Tracking is size-specific — a single letter-spacing value is

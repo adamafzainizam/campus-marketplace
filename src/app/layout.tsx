@@ -1,13 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SuspensionBanner } from "@/components/SuspensionBanner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/**
+ * Two families, loaded through next/font so they are self-hosted at build
+ * time. The CSP is `font-src 'self' data:` — a <link> to fonts.googleapis.com
+ * would be blocked, and would be the fourth outage that policy has caused.
+ *
+ * Space Grotesk carries headings and prices; Inter carries body and UI. A
+ * distinctive face on small text gets tiring, which is why the split exists.
+ */
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -39,7 +54,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
       /*
         Browser extensions write their own attributes onto <html> before React
         hydrates — a password manager, a recorder, an accessibility tool — and
