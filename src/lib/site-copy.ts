@@ -56,3 +56,14 @@ export const SIGNIN_HEADLINE = "Sign in";
  */
 export const SIGNIN_INTRO =
   "This is a marketplace for the GMI community, so sign-in is limited to institutional Google accounts.";
+
+/* -------------------------------------------------------------------- /messages */
+
+/**
+ * A state of possibility. The second sentence is the product's argument again:
+ * a message here is findable later, unlike one in a group chat.
+ */
+export const INBOX_EMPTY = {
+  title: "No conversations yet",
+  body: "When someone wants your stuff, it lands here — not buried under forty messages.",
+};
