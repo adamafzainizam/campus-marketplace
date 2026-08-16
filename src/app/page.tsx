@@ -278,6 +278,12 @@ export default async function Home({
                   {BOARD_INVITE.title}
                 </span>
                 <span className="text-fine">{BOARD_INVITE.body}</span>
+                {/* A span, not a button or a nested link: the tile is already
+                    the link, and the whole cell should stay the tap target
+                    rather than shrinking it to a pill somebody has to hit. */}
+                <span className="btn btn-primary btn-sm mt-2">
+                  {BOARD_INVITE.cta}
+                </span>
               </Link>
             </li>
           )}

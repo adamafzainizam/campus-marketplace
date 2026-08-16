@@ -82,4 +82,10 @@ export const INBOX_EMPTY = {
 export const BOARD_INVITE = {
   title: "Got something to sell?",
   body: "Takes about a minute. It stays here until you take it down.",
+  /**
+   * The whole tile is the link, so this pill is an affordance rather than the
+   * control — a dashed cell of text reads as a notice, and people do not tap
+   * notices. Kept as copy rather than inlined so the voice tests cover it.
+   */
+  cta: "Create listing",
 };

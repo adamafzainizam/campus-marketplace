@@ -30,6 +30,7 @@ const everything = [
   SIGNIN_INTRO,
   BOARD_INVITE.title,
   BOARD_INVITE.body,
+  BOARD_INVITE.cta,
 ];
 
 describe("voice rules", () => {
