@@ -175,8 +175,12 @@ export function ListingForm({
         condition,
         type,
         // Ignored by the server for a sale, but sent unconditionally so the
-        // client holds no opinion about which fields matter.
+        // client holds no opinion about which fields matter. The two price
+        // units are siblings and must stay together: serviceRate was missing
+        // from this object from the day services shipped, so every attempt to
+        // post one was rejected for a field the person had actually filled in.
         rentalPeriod,
+        serviceRate,
         categoryId,
         // Sent unconditionally for the same reason as rentalPeriod: the server
         // decides whether it applies, and discards it when it does not.
