@@ -643,6 +643,34 @@ small, .text-fine {
     .invite-tile:hover { border-color: var(--accent); color: var(--text); }
   }
 
+  /* The theme button ships both icons and both labels and hides one pair,
+     so its markup never depends on state the server cannot know. These
+     rules are the only thing that makes it a *toggle* rather than two
+     stacked glyphs, so they are not optional decoration.
+
+     Light is the default branch: with no `data-theme` the reader is
+     following the OS, so the media query decides, and an explicit choice
+     overrides it through the attribute selectors below. */
+  .theme-toggle { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+  .theme-icon-moon,
+  .theme-label-light { display: none; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-icon-sun,
+    :root:not([data-theme="light"]) .theme-label-dark { display: none; }
+    :root:not([data-theme="light"]) .theme-icon-moon { display: inline-block; }
+    :root:not([data-theme="light"]) .theme-label-light { display: inline; }
+  }
+
+  :root[data-theme="dark"] .theme-icon-sun,
+  :root[data-theme="dark"] .theme-label-dark { display: none; }
+  :root[data-theme="dark"] .theme-icon-moon { display: inline-block; }
+  :root[data-theme="dark"] .theme-label-light { display: inline; }
+
+  :root[data-theme="light"] .theme-icon-sun { display: inline-block; }
+  :root[data-theme="light"] .theme-label-dark { display: inline; }
+
   /* Long-form documents — currently the legal pages.
      Nobody reads terms of service front to back; they skim for the one clause
      that answers their question. So the hierarchy has to survive skimming,
