@@ -1,7 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="GMI Campus Marketplace">
-  <!-- #7544cd is oklch(52% 0.20 295), the light-mode --accent, converted with
-       src/lib/color-contrast.ts. A favicon has no access to CSS custom
+  <!-- #7544cd is oklch(52% 0.20 295), the light-mode accent token, converted
+       with src/lib/color-contrast.ts. A favicon has no access to CSS custom
        properties, so the value is baked; it reads on a light or dark tab.
+
+       Do not write the token's real name here. A CSS custom property starts
+       with two hyphens, and two hyphens inside an XML comment make the whole
+       file unparseable — which is not a rendering bug but a silent one: the
+       browser gets no icon at all and falls back to whatever it had before.
+       That shipped once and survived a build and three reviews.
 
        This glyph is duplicated from src/components/PinMark.tsx: a static
        asset cannot import a React component or reach the page's CSS custom
