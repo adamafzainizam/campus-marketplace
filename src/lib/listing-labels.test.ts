@@ -7,6 +7,7 @@ import {
   LISTING_TYPE_LABELS,
   RENTAL_PERIOD_LABELS,
   formatPrice,
+  listingMetaParts,
   postedAgo,
   priceParts,
 } from "./listing-labels.ts";
@@ -168,5 +169,59 @@ describe("priceParts", () => {
       const { amount, unit } = priceParts(...args);
       assert.equal(formatPrice(...args), unit ? `${amount} ${unit}` : amount);
     }
+  });
+});
+
+describe("listingMetaParts", () => {
+  const now = new Date("2026-08-16T12:00:00Z");
+  const postedAt = new Date("2026-08-14T12:00:00Z"); // "2d ago"
+
+  it("reads category, condition, then recency", () => {
+    assert.deepEqual(
+      listingMetaParts({ category: "Books", condition: "GOOD", postedAt, now }),
+      ["Books", "Good", "2d ago"],
+    );
+  });
+
+  // Services have no condition (the column is nullable for exactly that
+  // reason). The line must close up rather than print a gap or "null".
+  it("omits a null condition entirely", () => {
+    const parts = listingMetaParts({
+      category: "Tutoring",
+      condition: null,
+      postedAt,
+      now,
+    });
+    assert.deepEqual(parts, ["Tutoring", "2d ago"]);
+    assert.ok(!parts.join(" · ").includes("null"));
+    assert.ok(!parts.join(" · ").includes("undefined"));
+  });
+
+  it("appends extra facts after recency", () => {
+    assert.deepEqual(
+      listingMetaParts({
+        category: "Electronics",
+        condition: "NEW",
+        postedAt,
+        now,
+        extra: ["3 available"],
+      }),
+      ["Electronics", "New", "2d ago", "3 available"],
+    );
+  });
+
+  // quantityLabel returns null for a quantity of one, so the common case
+  // hands this function a null it must drop silently.
+  it("drops null, undefined and blank extras", () => {
+    assert.deepEqual(
+      listingMetaParts({
+        category: "Furniture",
+        condition: null,
+        postedAt,
+        now,
+        extra: [null, undefined, "   "],
+      }),
+      ["Furniture", "2d ago"],
+    );
   });
 });

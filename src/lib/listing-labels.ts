@@ -147,3 +147,36 @@ export function postedAgo(date: Date, now: Date): string {
   const month = MONTH_ABBREVIATIONS[date.getUTCMonth()];
   return `${date.getUTCDate()} ${month} ${date.getUTCFullYear()}`;
 }
+
+/** What the shared meta line needs to know. See `ListingMeta`. */
+export type ListingMetaInput = {
+  /** Already resolved for display — the detail page passes the "Other — …" form. */
+  category: string;
+  /** Null for services, which have no condition. */
+  condition: ListingCondition | null;
+  postedAt: Date;
+  now: Date;
+  /** Page-specific facts appended after recency, nulls dropped. */
+  extra?: readonly (string | null | undefined)[];
+};
+
+/**
+ * The `category · condition · recency` line, as a list of parts.
+ *
+ * Anything absent is *omitted* rather than rendered as an empty slot: a
+ * service has no condition, and "Tutoring ·  · 2d ago" is worse than saying
+ * less. The joining is left to the caller so the separator lives in one place
+ * (`ListingMeta`) and this stays testable as data.
+ */
+export function listingMetaParts(input: ListingMetaInput): string[] {
+  const parts: Array<string | null | undefined> = [
+    input.category,
+    input.condition ? CONDITION_LABELS[input.condition] : null,
+    postedAgo(input.postedAt, input.now),
+    ...(input.extra ?? []),
+  ];
+
+  return parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter((part) => part.length > 0);
+}
