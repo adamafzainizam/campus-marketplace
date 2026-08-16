@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="GMI Campus Marketplace">
+  <!-- #7544cd is oklch(52% 0.20 295), the light-mode --accent, converted with
+       src/lib/color-contrast.ts. A favicon has no access to CSS custom
+       properties, so the value is baked; it reads on a light or dark tab.
+
+       This glyph is duplicated from src/components/PinMark.tsx: a static
+       asset cannot import a React component or reach the page's CSS custom
+       properties, so if the shape changes, change both. -->
+  <rect width="32" height="32" rx="7" fill="#7544cd"/>
+  <g fill="#fcfcfc" transform="translate(4 4)">
+    <rect x="8" y="3" width="8" height="2.4" rx="1.2"/>
+    <path d="M10 5.4h4l1.7 6.5a1 1 0 0 1-.97 1.25H9.27a1 1 0 0 1-.97-1.25L10 5.4z"/>
+    <rect x="11.3" y="13.15" width="1.4" height="7.85" rx="0.7"/>
+  </g>
+</svg>
