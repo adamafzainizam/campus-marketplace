@@ -267,6 +267,11 @@ export default async function Home({
             </li>
           ))}
           {sparse && (
+            // A plain <li>, not a role="presentation" or a wrapper outside the
+            // <ul> — either would keep the invite tile out of the grid flow it
+            // needs to sit in. The cost is that assistive tech announces "list,
+            // 3 items" for two listings; seen and accepted, since there is no
+            // markup that keeps the grid and drops the tile from the count.
             <li>
               <Link href="/listings/new" className="invite-tile">
                 <span className="text-sm font-semibold text-content">

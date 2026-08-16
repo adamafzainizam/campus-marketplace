@@ -25,7 +25,7 @@ export async function SiteHeader() {
           href="/"
           className="pressable mr-auto flex items-center gap-2 text-[0.9375rem] font-semibold tracking-[-0.01em] sm:text-base"
         >
-          <PinMark className="h-7 w-7" />
+          <PinMark />
           {/* The wordmark is one colour now: the mark carries the accent, and
               an accent square beside accent text is two things competing to
               be the first thing you look at. */}

@@ -82,7 +82,7 @@ export default async function MyListingsPage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <NoPhoto compact />
+                  <NoPhoto />
                 )}
               </div>
 

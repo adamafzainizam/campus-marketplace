@@ -62,7 +62,7 @@ export function ListingGridSkeleton({ count = 6 }: { count?: number }) {
 
 export function RowSkeleton() {
   return (
-    <div className="card flex gap-4 p-4">
+    <div className="card flex flex-col gap-4 p-4 sm:flex-row">
       <Skeleton className="aspect-[4/3] w-32 shrink-0 rounded-lg" />
       <div className="flex flex-1 flex-col gap-2 py-1">
         <Skeleton className="h-4 w-1/2 rounded" />

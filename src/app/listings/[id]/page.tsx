@@ -106,15 +106,22 @@ export default async function ListingDetailPage({
           <h1>{listing.title}</h1>
           <p className="text-price-lg">
             {formatPrice(
-                      listing.price,
-                      listing.type,
-                      listing.rentalPeriod,
-                      listing.serviceRate,
-                    )}
+              listing.price,
+              listing.type,
+              listing.rentalPeriod,
+              listing.serviceRate,
+            )}
           </p>
           {/* The same line as the browse card and my-listings, plus the one
               fact particular to this page. It was an ad-hoc third treatment
-              of the same three facts. */}
+              of the same three facts.
+
+              text-secondary here, not the tertiary browse and my-listings
+              use: on those pages the line sits in a dense grid cell beneath a
+              title and price, where it should recede. Here it sits among
+              body-scale prose — the same tone as "Listed by …" a few lines
+              down — so it takes the tone its neighbours have rather than
+              fading against them. */}
           <ListingMeta
             category={categoryDisplayName(
               listing.category.name,
