@@ -603,6 +603,36 @@ small, .text-fine {
     opacity: 0.55;
   }
 
+  /* The invite tile.
+     A dashed cell in the browse grid while the board is thin. Dashed for the
+     same reason .dropzone is: it is the near-universal signal for "something
+     goes here", which is precisely the statement. Not .dropzone itself —
+     that one means "drop a file", and one class meaning two things is how a
+     design system starts to lie.
+
+     It fills the gap with the only thing that actually fixes a thin
+     marketplace, and disappears on its own as listings accumulate. */
+  .invite-tile {
+    display: flex;
+    height: 100%;
+    min-height: 11rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 1rem;
+    text-align: center;
+    border: 1.5px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+    transition:
+      border-color var(--response-fast) var(--ease-out),
+      color var(--response-fast) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .invite-tile:hover { border-color: var(--accent); color: var(--text); }
+  }
+
   /* Long-form documents — currently the legal pages.
      Nobody reads terms of service front to back; they skim for the one clause
      that answers their question. So the hierarchy has to survive skimming,

@@ -67,3 +67,19 @@ export const INBOX_EMPTY = {
   title: "No conversations yet",
   body: "When someone wants your stuff, it lands here — not buried under forty messages.",
 };
+
+/* --------------------------------------------------------------- the invite tile */
+
+/**
+ * Shown in the browse grid while the board is thin, in place of decorating
+ * around the gap. The only thing that genuinely fixes a thin marketplace is
+ * more listings, so the space asks for one.
+ *
+ * A state of possibility, so it gets the point of view — and the second
+ * sentence is the product's argument again: a listing here outlives the
+ * twenty minutes it would survive in a group chat.
+ */
+export const BOARD_INVITE = {
+  title: "Got something to sell?",
+  body: "Takes about a minute. It stays here until you take it down.",
+};

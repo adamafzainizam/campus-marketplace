@@ -2,6 +2,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCategories } from "@/lib/categories";
 import { getImageUrl } from "@/lib/r2";
+import { isSparseBoard } from "@/lib/browse-board";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PendingLink } from "@/components/PendingLink";
 import { ListingMeta } from "@/components/ListingMeta";
@@ -12,6 +13,7 @@ import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
 import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
 import {
+  BOARD_INVITE,
   EMPTY_NO_MATCHES,
   EMPTY_NOTHING_POSTED,
   HOME_HEADLINE,
@@ -82,6 +84,11 @@ export default async function Home({
 
   const active = { category: categorySlug, q: query, type: typeFilter ?? undefined };
   const filtered = Boolean(categorySlug || query || typeFilter);
+
+  // Two listings in a four-column grid is half a row of content and then a
+  // viewport of nothing. Below two full rows the grid narrows and the space
+  // that remains asks for a listing instead of sitting empty.
+  const sparse = isSparseBoard(listings.length, filtered);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
@@ -194,7 +201,11 @@ export default async function Home({
           )}
         </div>
       ) : (
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4">
+        <ul
+          className={`grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5${
+            sparse ? "" : " md:grid-cols-4"
+          }`}
+        >
           {listings.map((listing) => (
             <li key={listing.id}>
               <PendingLink
@@ -254,6 +265,16 @@ export default async function Home({
               </PendingLink>
             </li>
           ))}
+          {sparse && (
+            <li>
+              <Link href="/listings/new" className="invite-tile">
+                <span className="text-sm font-semibold text-content">
+                  {BOARD_INVITE.title}
+                </span>
+                <span className="text-fine">{BOARD_INVITE.body}</span>
+              </Link>
+            </li>
+          )}
         </ul>
       )}
     </div>
