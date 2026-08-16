@@ -5,6 +5,7 @@ import { listInboxFor } from "@/lib/conversations";
 import { INBOX_EMPTY } from "@/lib/site-copy";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { NoPhoto } from "@/components/NoPhoto";
 
 export default async function MessagesPage() {
   const session = await auth();
@@ -37,14 +38,20 @@ export default async function MessagesPage() {
                 href={`/messages/${conversation.id}`}
                 className="flex items-center gap-4 py-4"
               >
-                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
-                  {conversation.listingImageKey && (
+                {/* Same treatment as every other listing thumbnail on the
+                    site. It was a 56px square that rendered a blank grey box
+                    when the listing had no photograph — the one state this
+                    site has most of. */}
+                <div className="aspect-[4/3] w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
+                  {conversation.listingImageKey ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={getImageUrl(conversation.listingImageKey)}
                       alt=""
                       className="h-full w-full object-cover"
                     />
+                  ) : (
+                    <NoPhoto compact />
                   )}
                 </div>
 
