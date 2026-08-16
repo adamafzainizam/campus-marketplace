@@ -5,7 +5,6 @@ import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
 import { ListingGallery } from "./ListingGallery";
 import {
-  CONDITION_LABELS,
   LISTING_TYPE_LABELS,
   formatPrice,
 } from "@/lib/listing-labels";
@@ -18,6 +17,8 @@ import { statusLabel } from "@/lib/listing-status";
 import { categoryDisplayName } from "@/lib/category-order";
 import { halalDisplayLabel, HALAL_NOT_VERIFIED } from "@/lib/halal";
 import { quantityLabel } from "@/lib/listing-quantity";
+import { ListingMeta } from "@/components/ListingMeta";
+import { NoPhoto } from "@/components/NoPhoto";
 
 export default async function ListingDetailPage({
   params,
@@ -46,8 +47,9 @@ export default async function ListingDetailPage({
       status: true,
       type: true,
       rentalPeriod: true,
-        serviceRate: true,
+      serviceRate: true,
       imageKeys: true,
+      createdAt: true,
       sellerId: true,
       category: { select: { name: true, slug: true } },
       otherCategory: true,
@@ -78,7 +80,12 @@ export default async function ListingDetailPage({
             title={listing.title}
           />
         ) : (
-          <div className="aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm" />
+          // Square rather than 4:3, matching the gallery it stands in for on
+          // this page — the two states of the same slot should be the same
+          // shape. It was an empty grey box that read as a broken image.
+          <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
+            <NoPhoto />
+          </div>
         )}
 
         <div className="flex flex-col gap-3">
@@ -99,25 +106,33 @@ export default async function ListingDetailPage({
           <h1>{listing.title}</h1>
           <p className="text-price-lg">
             {formatPrice(
-                      listing.price,
-                      listing.type,
-                      listing.rentalPeriod,
-                      listing.serviceRate,
-                    )}
+              listing.price,
+              listing.type,
+              listing.rentalPeriod,
+              listing.serviceRate,
+            )}
           </p>
-          <p className="text-fine text-secondary">
-            {categoryDisplayName(
+          {/* The same line as the browse card and my-listings, plus the one
+              fact particular to this page. It was an ad-hoc third treatment
+              of the same three facts.
+
+              text-secondary here, not the tertiary browse and my-listings
+              use: on those pages the line sits in a dense grid cell beneath a
+              title and price, where it should recede. Here it sits among
+              body-scale prose — the same tone as "Listed by …" a few lines
+              down — so it takes the tone its neighbours have rather than
+              fading against them. */}
+          <ListingMeta
+            category={categoryDisplayName(
               listing.category.name,
               listing.category.slug,
               listing.otherCategory,
-            )}{" "}
-            {listing.condition && (
-              <> &middot; {CONDITION_LABELS[listing.condition]}</>
             )}
-            {quantityLabel(listing.quantity) && (
-              <> &middot; {quantityLabel(listing.quantity)}</>
-            )}
-          </p>
+            condition={listing.condition}
+            postedAt={listing.createdAt}
+            extra={[quantityLabel(listing.quantity)]}
+            className="text-fine text-secondary"
+          />
           {/* Attributed to the seller, always. This site certifies nothing,
               and a bare "Halal" badge would present a stranger's unverified
               claim about a religious dietary restriction as established fact. */}

@@ -47,8 +47,20 @@ export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
   FIXED: "",
 };
 
+/** A price split so the unit can be styled differently from the amount. */
+export type PriceParts = {
+  amount: string;
+  /** e.g. "/ week". Null when the price is the whole statement. */
+  unit: string | null;
+};
+
 /**
- * Renders a price, with its rental unit when there is one.
+ * Splits a price into its amount and its unit.
+ *
+ * The card renders the amount at full weight and the unit smaller and greyer,
+ * which a single joined string cannot express. Splitting it here rather than
+ * in JSX keeps one rule in one place: `formatPrice` below is defined in terms
+ * of this function, and a test asserts the two agree.
  *
  * Takes anything stringable so it can be handed Prisma's `Decimal` directly —
  * the value must never go through a float, which is why the schema uses
@@ -57,26 +69,114 @@ export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
  * A rental with no period falls back to a bare price rather than rendering
  * "/ undefined": the data would be wrong, but the page should not be.
  */
+export function priceParts(
+  price: { toString(): string },
+  type: ListingType,
+  rentalPeriod: RentalPeriod | null,
+  serviceRate: ServiceRate | null = null,
+): PriceParts {
+  const amount = `RM ${price.toString()}`;
+
+  if (type === "RENT" && rentalPeriod !== null) {
+    const period = RENTAL_PERIOD_LABELS[rentalPeriod];
+    return { amount, unit: period ? `/ ${period}` : null };
+  }
+
+  if (type === "SERVICE" && serviceRate !== null) {
+    // FIXED maps to an empty label, so this also covers "no unit wanted".
+    const rate = SERVICE_RATE_LABELS[serviceRate];
+    return { amount, unit: rate ? `/ ${rate}` : null };
+  }
+
+  return { amount, unit: null };
+}
+
+/**
+ * Renders a price, with its rental or service unit when there is one.
+ *
+ * The joined form, for everywhere the price is one piece of text.
+ */
 export function formatPrice(
   price: { toString(): string },
   type: ListingType,
   rentalPeriod: RentalPeriod | null,
   serviceRate: ServiceRate | null = null,
 ): string {
-  const amount = `RM ${price.toString()}`;
+  const { amount, unit } = priceParts(price, type, rentalPeriod, serviceRate);
+  return unit ? `${amount} ${unit}` : amount;
+}
 
-  if (type === "RENT") {
-    if (rentalPeriod === null) return amount;
-    const period = RENTAL_PERIOD_LABELS[rentalPeriod];
-    return period ? `${amount} / ${period}` : amount;
-  }
+/**
+ * Past this many days, a relative age stops being useful — "9w ago" makes a
+ * reader do arithmetic — so an absolute date is shown instead.
+ */
+export const ABSOLUTE_DATE_AFTER_DAYS = 56;
 
-  if (type === "SERVICE") {
-    if (serviceRate === null) return amount;
-    // FIXED maps to an empty label, so this also covers "no unit wanted".
-    const rate = SERVICE_RATE_LABELS[serviceRate];
-    return rate ? `${amount} / ${rate}` : amount;
-  }
+const MONTH_ABBREVIATIONS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
 
-  return amount;
+/**
+ * How long ago a listing was posted, in the coarsest unit that still says
+ * something: "just now", "5h ago", "2d ago", "3w ago", then a date.
+ *
+ * `now` is a parameter rather than a call to `Date.now()` so this is testable
+ * without freezing the clock — the same reason `formatPrice` takes its type
+ * rather than reading it back off a listing.
+ *
+ * The absolute branch reads UTC fields so the output is deterministic wherever
+ * the tests run. That is a few hours' difference from Malaysian local time on
+ * a date at least eight weeks old, which nobody is reading that closely.
+ */
+export function postedAgo(date: Date, now: Date): string {
+  const elapsedMs = now.getTime() - date.getTime();
+
+  // A future date means a clock is wrong somewhere; counting backwards from it
+  // would render "-3h ago". Treat it as brand new instead.
+  const minutes = Math.floor(Math.max(elapsedMs, 0) / 60_000);
+  if (minutes < 60) return "just now";
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  if (days < ABSOLUTE_DATE_AFTER_DAYS) return `${Math.floor(days / 7)}w ago`;
+
+  const month = MONTH_ABBREVIATIONS[date.getUTCMonth()];
+  return `${date.getUTCDate()} ${month} ${date.getUTCFullYear()}`;
+}
+
+/** What the shared meta line needs to know. See `ListingMeta`. */
+export type ListingMetaInput = {
+  /** Already resolved for display — the detail page passes the "Other — …" form. */
+  category: string;
+  /** Null for services, which have no condition. */
+  condition: ListingCondition | null;
+  postedAt: Date;
+  now: Date;
+  /** Page-specific facts appended after recency, nulls dropped. */
+  extra?: readonly (string | null | undefined)[];
+};
+
+/**
+ * The `category · condition · recency` line, as a list of parts.
+ *
+ * Anything absent is *omitted* rather than rendered as an empty slot: a
+ * service has no condition, and "Tutoring ·  · 2d ago" is worse than saying
+ * less. The joining is left to the caller so the separator lives in one place
+ * (`ListingMeta`) and this stays testable as data.
+ */
+export function listingMetaParts(input: ListingMetaInput): string[] {
+  const parts: Array<string | null | undefined> = [
+    input.category,
+    input.condition ? CONDITION_LABELS[input.condition] : null,
+    postedAgo(input.postedAt, input.now),
+    ...(input.extra ?? []),
+  ];
+
+  return parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter((part) => part.length > 0);
 }

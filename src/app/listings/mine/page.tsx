@@ -5,7 +5,9 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { formatPrice } from "@/lib/listing-labels";
+import { ListingMeta } from "@/components/ListingMeta";
+import { NoPhoto } from "@/components/NoPhoto";
+import { CardPrice } from "@/components/CardPrice";
 import { MINE_EMPTY } from "@/lib/site-copy";
 import { statusLabel } from "@/lib/listing-status";
 import { ListingStatusControl } from "./ListingStatusControl";
@@ -27,9 +29,12 @@ export default async function MyListingsPage() {
       imageKeys: true,
       type: true,
       rentalPeriod: true,
-        serviceRate: true,
+      serviceRate: true,
       status: true,
       createdAt: true,
+      // The shared meta line, same as the browse card.
+      condition: true,
+      category: { select: { name: true } },
       _count: { select: { conversations: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -65,14 +70,19 @@ export default async function MyListingsPage() {
               key={listing.id}
               className="card flex flex-col gap-4 p-4 sm:flex-row"
             >
-              <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
-                {listing.imageKeys[0] && (
+              {/* 4:3 and the same missing-photo state as every other page.
+                  It was a bare 96px square that rendered nothing at all when
+                  a listing had no photograph. */}
+              <div className="aspect-[4/3] w-32 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
+                {listing.imageKeys[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={getImageUrl(listing.imageKeys[0])}
                     alt=""
                     className="h-full w-full object-cover"
                   />
+                ) : (
+                  <NoPhoto />
                 )}
               </div>
 
@@ -84,15 +94,14 @@ export default async function MyListingsPage() {
                   >
                     {listing.title}
                   </Link>
-                  <span className="text-sm text-secondary">
-                    {formatPrice(
-                      listing.price,
-                      listing.type,
-                      listing.rentalPeriod,
-                      listing.serviceRate,
-                    )}
-                  </span>
+                  <CardPrice listing={listing} />
                 </div>
+
+                <ListingMeta
+                  category={listing.category.name}
+                  condition={listing.condition}
+                  postedAt={listing.createdAt}
+                />
 
                 <p className="text-sm text-secondary">
                   {statusLabel(listing.status, listing.type)}

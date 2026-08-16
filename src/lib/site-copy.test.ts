@@ -2,6 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  BOARD_INVITE,
   EMPTY_NO_MATCHES,
   EMPTY_NOTHING_POSTED,
   HOME_HEADLINE,
@@ -27,6 +28,9 @@ const everything = [
   INBOX_EMPTY.body,
   SIGNIN_HEADLINE,
   SIGNIN_INTRO,
+  BOARD_INVITE.title,
+  BOARD_INVITE.body,
+  BOARD_INVITE.cta,
 ];
 
 describe("voice rules", () => {
@@ -116,5 +120,21 @@ describe("sign-in copy", () => {
 describe("inbox copy", () => {
   test("makes the product's argument rather than just stating a fact", () => {
     assert.match(INBOX_EMPTY.body, /buried|group chat|forty/i);
+  });
+});
+
+describe("the invite tile", () => {
+  test("makes the permanence argument rather than just asking", () => {
+    // "Post a listing" is a button label. This is the space where a thin
+    // board would otherwise say nothing, so it should say why bothering is
+    // worth it — which is the same argument the tagline makes.
+    assert.match(BOARD_INVITE.body, /until you take it down/i);
+  });
+
+  test("stays short enough to sit in a grid cell", () => {
+    assert.ok(
+      BOARD_INVITE.body.length <= 80,
+      `invite body is ${BOARD_INVITE.body.length} characters`,
+    );
   });
 });

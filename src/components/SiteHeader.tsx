@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PendingLink } from "@/components/PendingLink";
+import { PinMark } from "@/components/PinMark";
 import { auth, signOut } from "@/auth";
 
 /**
@@ -22,10 +23,13 @@ export async function SiteHeader() {
       <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-2.5 sm:px-6 sm:py-3">
         <Link
           href="/"
-          className="pressable mr-auto flex items-baseline gap-1.5 text-[0.9375rem] font-semibold tracking-[-0.01em] sm:text-base"
+          className="pressable mr-auto flex items-center gap-2 text-[0.9375rem] font-semibold tracking-[-0.01em] sm:text-base"
         >
-          <span className="text-accent">GMI</span>
-          <span>Campus Marketplace</span>
+          <PinMark />
+          {/* The wordmark is one colour now: the mark carries the accent, and
+              an accent square beside accent text is two things competing to
+              be the first thing you look at. */}
+          <span>GMI Campus Marketplace</span>
         </Link>
 
         <nav className="flex items-center gap-1.5 sm:gap-2">
