@@ -87,5 +87,5 @@ export const BOARD_INVITE = {
    * control — a dashed cell of text reads as a notice, and people do not tap
    * notices. Kept as copy rather than inlined so the voice tests cover it.
    */
-  cta: "Create listing",
+  cta: "Post a listing",
 };
