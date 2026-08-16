@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SuspensionBanner } from "@/components/SuspensionBanner";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 /**
@@ -64,16 +65,34 @@ export default function RootLayout({
 
         This suppresses the warning for *this element's own attributes only*.
         It does not cascade to children, so it cannot hide a real mismatch
-        inside a page. What it could hide is a genuine <html> attribute
-        mismatch — and there is nothing here to produce one: `lang` is a
-        literal and the class names come from `next/font` at build time. Dark
-        mode is pure CSS with no theme script, which is the usual reason this
-        element's attributes change at runtime.
+        inside a page.
 
-        Reconsider if a script is ever added that sets an attribute on <html>.
+        It now covers a real one, deliberately. The theme script sets
+        `data-theme` on this element before React hydrates, so the client's
+        <html> genuinely differs from the server's whenever a reader has
+        chosen a theme — the server cannot know which, and the alternative is
+        rendering the wrong colours first and correcting them. That is the
+        trade: the warning is suppressed here because a mismatch on this one
+        element is expected, and the cost is that an *unexpected* one on
+        <html> would also pass unnoticed.
       */
       suppressHydrationWarning
     >
+      <head>
+        {/*
+          Runs before the first paint, which is the whole point: anything
+          deferred paints the system theme and then corrects it, and that
+          flash happens on every page load rather than once.
+
+          `dangerouslySetInnerHTML` is the only way to emit an inline script
+          from JSX, and the name overstates the risk here — the content is a
+          module constant built from two string literals, with no interpolated
+          input of any kind. The CSP permits it (`script-src 'self'
+          'unsafe-inline'`); do not "improve" this into an external file,
+          which would defer it and reintroduce the flash.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-dvh flex-col">
         <SiteHeader />
         {/* Renders nothing for everyone except a suspended user — see the
