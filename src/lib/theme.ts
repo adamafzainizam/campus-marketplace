@@ -47,9 +47,14 @@ export function isTheme(value: unknown): value is Theme {
  *
  * Built from the constants above rather than written out, so the key and the
  * attribute cannot drift from what the button uses; theme.test.ts asserts it.
+ *
+ * Wrapped in an IIFE so `t` stays local rather than becoming `window.t` —
+ * matches the pattern Next's own guide uses for this exact case (see the
+ * "Themes" section of `node_modules/next/dist/docs/01-app/02-guides/
+ * preventing-flash-before-hydration.md`, the file Gotcha #38 already cites).
  */
-export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(
+export const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
   THEME_STORAGE_KEY,
 )});if(t==="light"||t==="dark"){document.documentElement.setAttribute(${JSON.stringify(
   THEME_ATTRIBUTE,
-)},t)}}catch(e){}`;
+)},t)}}catch(e){}})()`;

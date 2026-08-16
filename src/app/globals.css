@@ -18,6 +18,11 @@
      It also fixes native form controls and scrollbars, which used to stay
      light in dark mode because nothing had ever told the browser. */
   color-scheme: light dark;
+  /* color-scheme is what makes native controls (radios, checkboxes) render
+     dark-aware at all; without this they'd render dark-aware in the browser's
+     default blue, which is exactly the stray pre-violet accent the design
+     revamp hunted down elsewhere (Decision Log 2026-08-16). */
+  accent-color: var(--accent);
 
   /* Surfaces, from furthest back to nearest front. */
   --surface-sunken: light-dark(oklch(96.5% 0.003 265), oklch(14% 0.006 265));

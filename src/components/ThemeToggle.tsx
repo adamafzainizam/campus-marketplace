@@ -20,6 +20,12 @@ import { THEME_ATTRIBUTE, THEME_STORAGE_KEY, isTheme, nextTheme } from "@/lib/th
  * which is the less common convention and was chosen deliberately. The
  * accessible name says what the press does, so the two together are
  * unambiguous whether or not you can see the icon.
+ *
+ * Two tabs open on the site can disagree until one of them reloads — a
+ * `storage` event listener would fix that, and was considered and declined:
+ * it would reintroduce the React state this component's whole design argues
+ * against, to solve a case (two tabs, same site, mid-session) far narrower
+ * than the flash-of-wrong-theme this design already solves for every load.
  */
 export function ThemeToggle() {
   function toggle() {
@@ -46,7 +52,18 @@ export function ThemeToggle() {
   }
 
   return (
-    <button type="button" onClick={toggle} className="btn btn-ghost btn-sm theme-toggle">
+    <button
+      type="button"
+      onClick={toggle}
+      className="btn btn-ghost btn-sm theme-toggle"
+      // The icon alone is ambiguous for a sighted mouse user who isn't
+      // reading the sr-only label. This doesn't double-announce: a button's
+      // accessible name is computed from its content before its title is
+      // ever considered, and the visible content here is the sr-only span,
+      // so the name a screen reader gets is unchanged — this is purely a
+      // hover tooltip for everyone else.
+      title="Switch theme"
+    >
       <svg
         viewBox="0 0 24 24"
         fill="none"
