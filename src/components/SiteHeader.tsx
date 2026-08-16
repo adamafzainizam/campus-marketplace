@@ -28,11 +28,25 @@ export async function SiteHeader() {
           <PinMark />
           {/* The wordmark is one colour now: the mark carries the accent, and
               an accent square beside accent text is two things competing to
-              be the first thing you look at. */}
-          <span>GMI Campus Marketplace</span>
+              be the first thing you look at.
+
+              Hidden below `sm`, which is the whole reason to own a mark. The
+              words cannot shrink past "Marketplace" and every nav button is
+              nowrap, so on a 360px phone a signed-in header wanted about 450px
+              and pushed the entire page into horizontal scroll — a strip of
+              dead space down the right of every screen. */}
+          <span className="hidden sm:inline">GMI Campus Marketplace</span>
+          <span className="sr-only sm:hidden">GMI Campus Marketplace</span>
         </Link>
 
-        <nav className="flex items-center gap-1.5 sm:gap-2">
+        {/* Wraps rather than overflowing, as a floor. The widths above are what
+            a default text size produces, and someone running large type can
+            exceed any budget we pick — wrapping makes the header taller, which
+            is survivable, where overflowing takes the whole page with it.
+            Wrapping rather than scrolling because a scroll container clips the
+            focus ring drawn outside each button, and because an action nobody
+            can see is worse than a header on two lines. */}
+        <nav className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
           {user && (
             <PendingLink href="/listings/mine" className="btn btn-ghost btn-sm">
               <span className="hidden sm:inline">My listings</span>
