@@ -1,7 +1,7 @@
 # A light/dark toggle
 
 **Date:** 2026-08-16
-**Status:** Approved, not yet implemented
+**Status:** Implemented 2026-08-16 (branch `feature/theme-toggle`)
 
 ## Why this exists
 
