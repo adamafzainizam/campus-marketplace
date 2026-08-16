@@ -4,8 +4,10 @@ import { getCategories } from "@/lib/categories";
 import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PendingLink } from "@/components/PendingLink";
-import { ListingType } from "@/generated/prisma/enums";
-import { LISTING_TYPE_LABELS, formatPrice } from "@/lib/listing-labels";
+import { ListingMeta } from "@/components/ListingMeta";
+import { NoPhoto } from "@/components/NoPhoto";
+import { ListingType, type RentalPeriod, type ServiceRate } from "@/generated/prisma/enums";
+import { LISTING_TYPE_LABELS, priceParts } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
 import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
@@ -62,6 +64,12 @@ export default async function Home({
         rentalPeriod: true,
         serviceRate: true,
         status: true,
+        // The card's meta line. All three are already stored; category,
+        // condition and recency are what make a marketplace look used, and a
+        // card with three facts in a grid of two reads as a demo.
+        condition: true,
+        createdAt: true,
+        category: { select: { name: true } },
       },
       orderBy: { createdAt: "desc" },
       // Bounded so the query can't grow without limit as listings accumulate.
@@ -191,11 +199,14 @@ export default async function Home({
             <li key={listing.id}>
               <PendingLink
                 href={`/listings/${listing.id}`}
-                className="card-interactive block"
-                innerClassName="flex flex-col gap-2.5"
+                className="card card-interactive block overflow-hidden"
+                innerClassName="block"
                 pendingClassName="card-pending"
               >
-                <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
+                {/* 4:3 rather than 1:1. A square crops phone photographs
+                    hardest, and it made a listing with no photo a large void
+                    instead of a small one. */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-sunken">
                   {listing.imageKeys[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -205,9 +216,7 @@ export default async function Home({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="flex h-full w-full items-center justify-center text-fine text-tertiary">
-                      No photo
-                    </span>
+                    <NoPhoto />
                   )}
 
                   {listing.type === "RENT" && (
@@ -227,18 +236,20 @@ export default async function Home({
                   )}
                 </div>
 
-                <div className="flex flex-col gap-0.5">
-                  <p className="truncate text-[0.9375rem] leading-snug font-medium">
+                {/* gap-1 is inside a component, where the spacing is a
+                    relationship between three lines of one block rather than
+                    a gap between page groups. */}
+                <div className="flex flex-col gap-1 p-3">
+                  <p className="truncate text-sm leading-snug font-semibold">
                     {listing.title}
                   </p>
-                  <p className="text-price">
-                    {formatPrice(
-                      listing.price,
-                      listing.type,
-                      listing.rentalPeriod,
-                      listing.serviceRate,
-                    )}
-                  </p>
+                  <CardPrice listing={listing} />
+                  <ListingMeta
+                    category={listing.category.name}
+                    condition={listing.condition}
+                    postedAt={listing.createdAt}
+                    className="truncate text-fine text-tertiary"
+                  />
                 </div>
               </PendingLink>
             </li>
@@ -266,5 +277,34 @@ function FilterChip({
     >
       {children}
     </PendingLink>
+  );
+}
+
+/**
+ * The price, with its unit de-emphasised. A separate component only so the
+ * card markup above stays readable — it has no state and no other caller.
+ */
+function CardPrice({
+  listing,
+}: {
+  listing: {
+    price: { toString(): string };
+    type: ListingType;
+    rentalPeriod: RentalPeriod | null;
+    serviceRate: ServiceRate | null;
+  };
+}) {
+  const { amount, unit } = priceParts(
+    listing.price,
+    listing.type,
+    listing.rentalPeriod,
+    listing.serviceRate,
+  );
+
+  return (
+    <p className="text-price">
+      {amount}
+      {unit && <span className="text-price-unit"> {unit}</span>}
+    </p>
   );
 }

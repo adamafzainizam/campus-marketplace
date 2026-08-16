@@ -22,13 +22,19 @@ export function Skeleton({
   return <div className={`skeleton ${className}`} style={style} aria-hidden="true" />;
 }
 
-/** Matches the browse grid's card proportions exactly. */
+/** Matches the browse grid's card proportions exactly — a bordered card with
+ *  a 4:3 image, a title, a price and a meta line. A silhouette that no longer
+ *  matches is worse than none: the layout jumps when the content lands, and a
+ *  7.3s cold start means this is on screen often. */
 export function ListingCardSkeleton() {
   return (
-    <li className="flex flex-col gap-2.5">
-      <Skeleton className="aspect-square w-full rounded-lg" />
-      <Skeleton className="h-4 w-3/4 rounded" />
-      <Skeleton className="h-3.5 w-1/3 rounded" />
+    <li className="card overflow-hidden">
+      <Skeleton className="aspect-[4/3] w-full" />
+      <div className="flex flex-col gap-1 p-3">
+        <Skeleton className="h-4 w-3/4 rounded" />
+        <Skeleton className="h-5 w-2/5 rounded" />
+        <Skeleton className="h-3.5 w-4/5 rounded" />
+      </div>
     </li>
   );
 }
