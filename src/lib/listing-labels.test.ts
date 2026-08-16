@@ -8,6 +8,7 @@ import {
   RENTAL_PERIOD_LABELS,
   formatPrice,
   postedAgo,
+  priceParts,
 } from "./listing-labels.ts";
 import {
   ListingCondition,
@@ -112,5 +113,60 @@ describe("postedAgo", () => {
   // "just now" is the least wrong thing to render; "-3h ago" is nonsense.
   it("clamps a future date rather than counting backwards", () => {
     assert.equal(postedAgo(new Date("2026-08-17T12:00:00Z"), now), "just now");
+  });
+});
+
+describe("priceParts", () => {
+  it("gives a sale price no unit", () => {
+    assert.deepEqual(priceParts("25.00", "SALE", null), {
+      amount: "RM 25.00",
+      unit: null,
+    });
+  });
+
+  it("splits a rental into amount and unit", () => {
+    assert.deepEqual(priceParts("20.00", "RENT", "WEEK"), {
+      amount: "RM 20.00",
+      unit: "/ week",
+    });
+  });
+
+  it("splits a service into amount and rate", () => {
+    assert.deepEqual(priceParts("30.00", "SERVICE", null, "HOUR"), {
+      amount: "RM 30.00",
+      unit: "/ hour",
+    });
+  });
+
+  // FIXED maps to an empty label on purpose: "RM 80" is the whole statement
+  // for a whole job, so there must be no unit element to style at all.
+  it("gives a fixed-rate service no unit", () => {
+    assert.deepEqual(priceParts("80.00", "SERVICE", null, "FIXED"), {
+      amount: "RM 80.00",
+      unit: null,
+    });
+  });
+
+  it("falls back to no unit when a rental has no period", () => {
+    assert.deepEqual(priceParts("20.00", "RENT", null), {
+      amount: "RM 20.00",
+      unit: null,
+    });
+  });
+
+  // The joined string is what every existing caller uses, so the two must not
+  // be able to drift: one is defined in terms of the other, and this checks it.
+  it("agrees with formatPrice", () => {
+    const cases: Array<Parameters<typeof formatPrice>> = [
+      ["25.00", "SALE", null, null],
+      ["20.00", "RENT", "WEEK", null],
+      ["150.00", "RENT", "SEMESTER", null],
+      ["30.00", "SERVICE", null, "HOUR"],
+      ["80.00", "SERVICE", null, "FIXED"],
+    ];
+    for (const args of cases) {
+      const { amount, unit } = priceParts(...args);
+      assert.equal(formatPrice(...args), unit ? `${amount} ${unit}` : amount);
+    }
   });
 });

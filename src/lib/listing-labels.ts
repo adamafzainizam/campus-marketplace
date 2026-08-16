@@ -47,8 +47,20 @@ export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
   FIXED: "",
 };
 
+/** A price split so the unit can be styled differently from the amount. */
+export type PriceParts = {
+  amount: string;
+  /** e.g. "/ week". Null when the price is the whole statement. */
+  unit: string | null;
+};
+
 /**
- * Renders a price, with its rental unit when there is one.
+ * Splits a price into its amount and its unit.
+ *
+ * The card renders the amount at full weight and the unit smaller and greyer,
+ * which a single joined string cannot express. Splitting it here rather than
+ * in JSX keeps one rule in one place: `formatPrice` below is defined in terms
+ * of this function, and a test asserts the two agree.
  *
  * Takes anything stringable so it can be handed Prisma's `Decimal` directly —
  * the value must never go through a float, which is why the schema uses
@@ -57,28 +69,41 @@ export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
  * A rental with no period falls back to a bare price rather than rendering
  * "/ undefined": the data would be wrong, but the page should not be.
  */
+export function priceParts(
+  price: { toString(): string },
+  type: ListingType,
+  rentalPeriod: RentalPeriod | null,
+  serviceRate: ServiceRate | null = null,
+): PriceParts {
+  const amount = `RM ${price.toString()}`;
+
+  if (type === "RENT" && rentalPeriod !== null) {
+    const period = RENTAL_PERIOD_LABELS[rentalPeriod];
+    return { amount, unit: period ? `/ ${period}` : null };
+  }
+
+  if (type === "SERVICE" && serviceRate !== null) {
+    // FIXED maps to an empty label, so this also covers "no unit wanted".
+    const rate = SERVICE_RATE_LABELS[serviceRate];
+    return { amount, unit: rate ? `/ ${rate}` : null };
+  }
+
+  return { amount, unit: null };
+}
+
+/**
+ * Renders a price, with its rental or service unit when there is one.
+ *
+ * The joined form, for everywhere the price is one piece of text.
+ */
 export function formatPrice(
   price: { toString(): string },
   type: ListingType,
   rentalPeriod: RentalPeriod | null,
   serviceRate: ServiceRate | null = null,
 ): string {
-  const amount = `RM ${price.toString()}`;
-
-  if (type === "RENT") {
-    if (rentalPeriod === null) return amount;
-    const period = RENTAL_PERIOD_LABELS[rentalPeriod];
-    return period ? `${amount} / ${period}` : amount;
-  }
-
-  if (type === "SERVICE") {
-    if (serviceRate === null) return amount;
-    // FIXED maps to an empty label, so this also covers "no unit wanted".
-    const rate = SERVICE_RATE_LABELS[serviceRate];
-    return rate ? `${amount} / ${rate}` : amount;
-  }
-
-  return amount;
+  const { amount, unit } = priceParts(price, type, rentalPeriod, serviceRate);
+  return unit ? `${amount} ${unit}` : amount;
 }
 
 /**
