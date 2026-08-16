@@ -12,39 +12,56 @@
    ========================================================================== */
 
 :root {
+  /* "Happy in either scheme, follow the OS" — which is what every token
+     below resolves against. An explicit choice overrides this a few rules
+     down, and that is the entire switching mechanism: one declaration.
+     It also fixes native form controls and scrollbars, which used to stay
+     light in dark mode because nothing had ever told the browser. */
+  color-scheme: light dark;
+  /* color-scheme is what makes native controls (radios, checkboxes) render
+     dark-aware at all; without this they'd render dark-aware in the browser's
+     default blue, which is exactly the stray pre-violet accent the design
+     revamp hunted down elsewhere (Decision Log 2026-08-16). */
+  accent-color: var(--accent);
+
   /* Surfaces, from furthest back to nearest front. */
-  --surface-sunken: oklch(96.5% 0.003 265);
-  --surface: oklch(99.2% 0.002 265);
-  --surface-raised: oklch(100% 0 0);
+  --surface-sunken: light-dark(oklch(96.5% 0.003 265), oklch(14% 0.006 265));
+  --surface: light-dark(oklch(99.2% 0.002 265), oklch(17.5% 0.007 265));
+  --surface-raised: light-dark(oklch(100% 0 0), oklch(21.5% 0.008 265));
 
   /* Text. Three levels is enough hierarchy; a fourth starts to look like a
      bug rather than an intention. */
-  --text: oklch(21% 0.012 265);
-  --text-secondary: oklch(48% 0.011 265);
-  --text-tertiary: oklch(62% 0.010 265);
+  --text: light-dark(oklch(21% 0.012 265), oklch(96% 0.003 265));
+  --text-secondary: light-dark(oklch(48% 0.011 265), oklch(72% 0.008 265));
+  --text-tertiary: light-dark(oklch(62% 0.010 265), oklch(58% 0.008 265));
 
-  --border: oklch(91% 0.004 265);
-  --border-strong: oklch(84% 0.006 265);
+  --border: light-dark(oklch(91% 0.004 265), oklch(28% 0.008 265));
+  --border-strong: light-dark(oklch(84% 0.006 265), oklch(36% 0.010 265));
 
   /* One accent. A marketplace's colour should come from the photographs, not
      from the chrome competing with them. */
   /* Violet, chosen partly because it is the furthest hue from everything
      already spoken for: --success owns 155 and --danger owns 25, and an
      accent near either makes "saved" and "this is a link" the same signal.
-     Contrast against the surfaces is asserted in color-contrast.test.ts. */
-  --accent: oklch(52% 0.20 295);
-  --accent-hover: oklch(46% 0.19 295);
-  --accent-contrast: oklch(99% 0 0);
-  --accent-subtle: oklch(95% 0.04 295);
+     Contrast against the surfaces is asserted in color-contrast.test.ts,
+     which keeps its own copy of these values on purpose — it tests a
+     property of the colours, not the contents of this file. */
+  --accent: light-dark(oklch(52% 0.20 295), oklch(72% 0.17 295));
+  --accent-hover: light-dark(oklch(46% 0.19 295), oklch(78% 0.15 295));
+  --accent-contrast: light-dark(oklch(99% 0 0), oklch(16% 0.01 295));
+  --accent-subtle: light-dark(oklch(95% 0.04 295), oklch(30% 0.08 295));
 
-  --success: oklch(52% 0.13 155);
-  --success-subtle: oklch(96% 0.04 155);
-  --danger: oklch(55% 0.19 25);
-  --danger-subtle: oklch(96% 0.03 25);
+  --success: light-dark(oklch(52% 0.13 155), oklch(72% 0.14 155));
+  --success-subtle: light-dark(oklch(96% 0.04 155), oklch(26% 0.05 155));
+  --danger: light-dark(oklch(55% 0.19 25), oklch(70% 0.17 25));
+  --danger-subtle: light-dark(oklch(96% 0.03 25), oklch(27% 0.06 25));
 
   /* Translucent chrome. Content scrolls *under* this rather than being
      clipped by an opaque strip (§12). */
-  --material-chrome: oklch(99.2% 0.002 265 / 0.72);
+  --material-chrome: light-dark(
+    oklch(99.2% 0.002 265 / 0.72),
+    oklch(17.5% 0.007 265 / 0.72)
+  );
   --material-blur: 20px;
 
   /* Shadows are two-part: a tight contact shadow that grounds the element,
@@ -72,37 +89,35 @@
   --ease-in: cubic-bezier(0.64, 0, 0.78, 0.39); /* mirror of the above (§7) */
 }
 
+/* The switch. Absent `data-theme`, `color-scheme: light dark` above leaves
+   every token following the operating system — which is exactly what this
+   site did before the toggle existed, so a reader who never presses it sees
+   no change at all. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* Shadows cannot go through light-dark(), which is a *colour* function,
+   and these are whole shadow lists whose two forms differ in structure
+   rather than only in colour: depth on a dark surface comes from the
+   surface steps, so the dark set is fewer and weaker layers rather than
+   the same layers in another colour. Flattening that to share a structure
+   would be changing the design to suit the mechanism.
+
+   So these three keep an override — the only place in this file where a
+   value is written twice. The `:not([data-theme="light"])` guard is what
+   makes an explicit light choice beat the OS saying dark. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --surface-sunken: oklch(14% 0.006 265);
-    --surface: oklch(17.5% 0.007 265);
-    --surface-raised: oklch(21.5% 0.008 265);
-
-    --text: oklch(96% 0.003 265);
-    --text-secondary: oklch(72% 0.008 265);
-    --text-tertiary: oklch(58% 0.008 265);
-
-    --border: oklch(28% 0.008 265);
-    --border-strong: oklch(36% 0.010 265);
-
-    --accent: oklch(72% 0.17 295);
-    --accent-hover: oklch(78% 0.15 295);
-    --accent-contrast: oklch(16% 0.01 295);
-    --accent-subtle: oklch(30% 0.08 295);
-
-    --success: oklch(72% 0.14 155);
-    --success-subtle: oklch(26% 0.05 155);
-    --danger: oklch(70% 0.17 25);
-    --danger-subtle: oklch(27% 0.06 25);
-
-    --material-chrome: oklch(17.5% 0.007 265 / 0.72);
-
-    /* Shadows do almost nothing on dark surfaces; depth comes from the
-       surface steps above, so these stay subtle rather than pretending. */
+  :root:not([data-theme="light"]) {
     --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.30);
     --shadow-md: 0 2px 4px oklch(0% 0 0 / 0.30), 0 6px 16px oklch(0% 0 0 / 0.25);
     --shadow-lg: 0 4px 8px oklch(0% 0 0 / 0.35), 0 16px 40px oklch(0% 0 0 / 0.30);
   }
+}
+
+:root[data-theme="dark"] {
+  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.30);
+  --shadow-md: 0 2px 4px oklch(0% 0 0 / 0.30), 0 6px 16px oklch(0% 0 0 / 0.25);
+  --shadow-lg: 0 4px 8px oklch(0% 0 0 / 0.35), 0 16px 40px oklch(0% 0 0 / 0.30);
 }
 
 @theme inline {
@@ -633,6 +648,34 @@ small, .text-fine {
     .invite-tile:hover { border-color: var(--accent); color: var(--text); }
   }
 
+  /* The theme button ships both icons and both labels and hides one pair,
+     so its markup never depends on state the server cannot know. These
+     rules are the only thing that makes it a *toggle* rather than two
+     stacked glyphs, so they are not optional decoration.
+
+     Light is the default branch: with no `data-theme` the reader is
+     following the OS, so the media query decides, and an explicit choice
+     overrides it through the attribute selectors below. */
+  .theme-toggle { padding-left: 0.5rem; padding-right: 0.5rem; }
+
+  .theme-icon-moon,
+  .theme-label-light { display: none; }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-icon-sun,
+    :root:not([data-theme="light"]) .theme-label-dark { display: none; }
+    :root:not([data-theme="light"]) .theme-icon-moon { display: inline-block; }
+    :root:not([data-theme="light"]) .theme-label-light { display: inline; }
+  }
+
+  :root[data-theme="dark"] .theme-icon-sun,
+  :root[data-theme="dark"] .theme-label-dark { display: none; }
+  :root[data-theme="dark"] .theme-icon-moon { display: inline-block; }
+  :root[data-theme="dark"] .theme-label-light { display: inline; }
+
+  :root[data-theme="light"] .theme-icon-sun { display: inline-block; }
+  :root[data-theme="light"] .theme-label-dark { display: inline; }
+
   /* Long-form documents — currently the legal pages.
      Nobody reads terms of service front to back; they skim for the one clause
      that answers their question. So the hierarchy has to survive skimming,
@@ -717,21 +760,10 @@ body:has(.thread-viewport) > footer { display: none; }
   background: linear-gradient(
     90deg,
     transparent,
-    oklch(100% 0 0 / 0.45),
+    light-dark(oklch(100% 0 0 / 0.45), oklch(100% 0 0 / 0.06)),
     transparent
   );
   animation: skeleton-sweep 1.4s ease-in-out infinite;
-}
-
-@media (prefers-color-scheme: dark) {
-  .skeleton::after {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      oklch(100% 0 0 / 0.06),
-      transparent
-    );
-  }
 }
 
 @keyframes skeleton-sweep {

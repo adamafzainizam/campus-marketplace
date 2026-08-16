@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PendingLink } from "@/components/PendingLink";
 import { PinMark } from "@/components/PinMark";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { auth, signOut } from "@/auth";
 
 /**
@@ -47,6 +48,7 @@ export async function SiteHeader() {
             focus ring drawn outside each button, and because an action nobody
             can see is worse than a header on two lines. */}
         <nav className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
+          <ThemeToggle />
           {user && (
             <PendingLink href="/listings/mine" className="btn btn-ghost btn-sm">
               <span className="hidden sm:inline">My listings</span>
