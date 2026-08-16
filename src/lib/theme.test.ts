@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
@@ -65,5 +66,37 @@ describe("the init script", () => {
   it("is one expression with no imports, since it runs before any bundle", () => {
     assert.ok(!THEME_INIT_SCRIPT.includes("import"));
     assert.ok(!THEME_INIT_SCRIPT.includes("require("));
+  });
+});
+
+describe("THEME_ATTRIBUTE", () => {
+  // The pair above proves the script and the button agree on the attribute
+  // name. Neither of them is the thing that gives that name meaning: the
+  // stylesheet is, since it's the only place `data-theme` is turned into a
+  // `color-scheme` and, from there, into every token on the page. Renaming
+  // this constant (or the CSS selectors, independently) would leave the
+  // script and the button still agreeing with *each other* while the button
+  // silently stops doing anything — tsc, eslint and the rest of this suite
+  // all stay green, because nothing else reads the CSS as data. This is the
+  // one check standing between that rename and a shipped no-op button.
+  const css = readFileSync("src/app/globals.css", "utf8");
+
+  it("is the attribute the stylesheet actually switches on", () => {
+    const light = new RegExp(
+      `:root\\[${THEME_ATTRIBUTE}="light"\\]\\s*\\{[^}]*color-scheme:\\s*light`,
+    );
+    const dark = new RegExp(
+      `:root\\[${THEME_ATTRIBUTE}="dark"\\]\\s*\\{[^}]*color-scheme:\\s*dark`,
+    );
+    assert.match(
+      css,
+      light,
+      `globals.css has no :root[${THEME_ATTRIBUTE}="light"] rule setting color-scheme — THEME_ATTRIBUTE and the stylesheet have drifted`,
+    );
+    assert.match(
+      css,
+      dark,
+      `globals.css has no :root[${THEME_ATTRIBUTE}="dark"] rule setting color-scheme — THEME_ATTRIBUTE and the stylesheet have drifted`,
+    );
   });
 });
