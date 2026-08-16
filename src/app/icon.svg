@@ -5,7 +5,12 @@
 
        This glyph is duplicated from src/components/PinMark.tsx: a static
        asset cannot import a React component or reach the page's CSS custom
-       properties, so if the shape changes, change both. -->
+       properties, so if the shape changes, change both.
+
+       Two proportions here have to be matched, not copied as pixels: this
+       corner is rx=7 on a 32-unit box (21.875%, PinMark uses rounded-[22%]),
+       and the glyph is translate(4 4) on a 24-unit glyph in this 32-unit box
+       (24/32 = 75%, matched by PinMark's inner <svg> at h-[75%] w-[75%]). -->
   <rect width="32" height="32" rx="7" fill="#7544cd"/>
   <g fill="#fcfcfc" transform="translate(4 4)">
     <rect x="8" y="3" width="8" height="2.4" rx="1.2"/>

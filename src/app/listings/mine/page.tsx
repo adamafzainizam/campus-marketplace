@@ -7,7 +7,7 @@ import { getImageUrl } from "@/lib/r2";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ListingMeta } from "@/components/ListingMeta";
 import { NoPhoto } from "@/components/NoPhoto";
-import { formatPrice } from "@/lib/listing-labels";
+import { CardPrice } from "@/components/CardPrice";
 import { MINE_EMPTY } from "@/lib/site-copy";
 import { statusLabel } from "@/lib/listing-status";
 import { ListingStatusControl } from "./ListingStatusControl";
@@ -94,14 +94,7 @@ export default async function MyListingsPage() {
                   >
                     {listing.title}
                   </Link>
-                  <span className="text-sm text-secondary">
-                    {formatPrice(
-                      listing.price,
-                      listing.type,
-                      listing.rentalPeriod,
-                      listing.serviceRate,
-                    )}
-                  </span>
+                  <CardPrice listing={listing} />
                 </div>
 
                 <ListingMeta

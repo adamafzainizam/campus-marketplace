@@ -10,14 +10,24 @@
  * The same glyph is duplicated in `src/app/icon.svg` for the browser tab.
  * That file cannot import this one — it is a static asset with no access to
  * the page's tokens — so if the shape changes, change both.
+ *
+ * Two proportions have to agree with `icon.svg`, and only one of them
+ * survives a fixed value: `icon.svg`'s corner is `rx="7"` on a 32-unit box,
+ * i.e. 21.875% (rounded to `rounded-[22%]` below — the 0.035px difference at
+ * this size is not worth an unrounded arbitrary value). A *token* radius
+ * (`rounded-lg` = 1rem = 16px) does not scale with the box: CSS clamps a
+ * corner radius at half the side length, so on this component's 28px default
+ * it was clamping to exactly 14px — a perfect circle, not the rounded square
+ * the favicon renders. Its glyph fill is `translate(4 4)` on a 24-unit glyph
+ * in a 32-unit box, i.e. 24/32 = 75% — matched below.
  */
 export function PinMark({ className = "h-7 w-7" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-flex shrink-0 items-center justify-center rounded-lg bg-accent text-accent-contrast ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[22%] bg-accent text-accent-contrast ${className}`}
     >
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="h-[62%] w-[62%]">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="h-[75%] w-[75%]">
         {/* Cap, tapered body, needle — a pushpin seen side-on. Drawn from
             primitives rather than one clever path so it stays legible when
             somebody has to adjust it. */}

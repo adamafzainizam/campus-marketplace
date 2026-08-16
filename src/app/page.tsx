@@ -7,8 +7,9 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PendingLink } from "@/components/PendingLink";
 import { ListingMeta } from "@/components/ListingMeta";
 import { NoPhoto } from "@/components/NoPhoto";
-import { ListingType, type RentalPeriod, type ServiceRate } from "@/generated/prisma/enums";
-import { LISTING_TYPE_LABELS, priceParts } from "@/lib/listing-labels";
+import { CardPrice } from "@/components/CardPrice";
+import { ListingType } from "@/generated/prisma/enums";
+import { LISTING_TYPE_LABELS } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
 import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
@@ -298,34 +299,5 @@ function FilterChip({
     >
       {children}
     </PendingLink>
-  );
-}
-
-/**
- * The price, with its unit de-emphasised. A separate component only so the
- * card markup above stays readable — it has no state and no other caller.
- */
-function CardPrice({
-  listing,
-}: {
-  listing: {
-    price: { toString(): string };
-    type: ListingType;
-    rentalPeriod: RentalPeriod | null;
-    serviceRate: ServiceRate | null;
-  };
-}) {
-  const { amount, unit } = priceParts(
-    listing.price,
-    listing.type,
-    listing.rentalPeriod,
-    listing.serviceRate,
-  );
-
-  return (
-    <p className="text-price">
-      {amount}
-      {unit && <span className="text-price-unit"> {unit}</span>}
-    </p>
   );
 }

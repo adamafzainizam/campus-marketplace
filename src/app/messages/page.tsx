@@ -36,7 +36,7 @@ export default async function MessagesPage() {
             <li key={conversation.id}>
               <Link
                 href={`/messages/${conversation.id}`}
-                className="flex items-center gap-4 py-4"
+                className="flex items-center gap-4 px-4 py-4"
               >
                 {/* Same treatment as every other listing thumbnail on the
                     site. It was a 56px square that rendered a blank grey box
