@@ -39,10 +39,18 @@ export function ListingCardSkeleton() {
   );
 }
 
-export function ListingGridSkeleton({ count = 8 }: { count?: number }) {
+/**
+ * The skeleton has to guess the shape of a board it hasn't fetched yet.
+ * Guessing the common case is the whole job: the board sits below the
+ * sparse threshold today, not above it, so this assumes three columns and
+ * two rows of it rather than the full four-column silhouette — the wrong
+ * guess used to be free because the real grid's column count never varied,
+ * and stopped being free the moment it did.
+ */
+export function ListingGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <ul
-      className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5 md:grid-cols-4"
+      className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5"
       aria-hidden="true"
     >
       {Array.from({ length: count }, (_, i) => (
