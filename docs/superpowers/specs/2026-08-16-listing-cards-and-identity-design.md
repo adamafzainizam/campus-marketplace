@@ -1,7 +1,7 @@
 # Listing cards, the grid, and a mark
 
 **Date:** 2026-08-16
-**Status:** Approved, not yet implemented
+**Status:** Implemented 2026-08-16 (branch `feature/listing-cards`)
 **Follows:** `docs/superpowers/specs/2026-08-16-design-revamp-design.md` (phases 1–5, merged)
 
 ## Why this exists
