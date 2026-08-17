@@ -47,6 +47,39 @@ export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
   FIXED: "",
 };
 
+/**
+ * Only a plain decimal number is safe to pad — anything else is returned
+ * untouched rather than mangled into something that looks like money.
+ */
+const PLAIN_AMOUNT = /^-?\d+(\.\d+)?$/;
+
+/**
+ * Pads a stringified amount out to two decimal places: "0.1" → "0.10".
+ *
+ * Prisma returns `Decimal`, which is decimal.js, and decimal.js normalises
+ * trailing zeros — so a `Decimal(10,2)` column holding 0.10 stringifies to
+ * "0.1" and a price of ten cents rendered as "RM 0.1". The database was never
+ * wrong; the loss happened on the way to the screen.
+ *
+ * Done as string surgery rather than `Number(...).toFixed(2)` because money in
+ * this project must never pass through a float — the same reason the column is
+ * `Decimal(10,2)` rather than `Float`. `.toFixed(2)` on the Decimal itself
+ * would be neater, but the parameter type is deliberately anything stringable,
+ * so it cannot be assumed to have that method.
+ *
+ * A fraction longer than two digits is left alone rather than rounded. It is
+ * unreachable through a 2dp column, and quietly rounding somebody's money is a
+ * worse failure than showing an odd-looking price.
+ */
+function padToTwoDecimalPlaces(raw: string): string {
+  if (!PLAIN_AMOUNT.test(raw)) return raw;
+
+  const [whole, fraction = ""] = raw.split(".");
+  if (fraction.length >= 2) return raw;
+
+  return `${whole}.${fraction.padEnd(2, "0")}`;
+}
+
 /** A price split so the unit can be styled differently from the amount. */
 export type PriceParts = {
   amount: string;
@@ -75,7 +108,7 @@ export function priceParts(
   rentalPeriod: RentalPeriod | null,
   serviceRate: ServiceRate | null = null,
 ): PriceParts {
-  const amount = `RM ${price.toString()}`;
+  const amount = `RM ${padToTwoDecimalPlaces(price.toString())}`;
 
   if (type === "RENT" && rentalPeriod !== null) {
     const period = RENTAL_PERIOD_LABELS[rentalPeriod];

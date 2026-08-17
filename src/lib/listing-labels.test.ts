@@ -16,6 +16,7 @@ import {
   ListingType,
   RentalPeriod,
 } from "../generated/prisma/enums.ts";
+import { Decimal } from "../generated/prisma/internal/prismaNamespace.ts";
 
 describe("label maps cover every enum value", () => {
   // A missing entry renders as "undefined" in the UI rather than failing, so
@@ -70,6 +71,45 @@ describe("formatPrice", () => {
   it("accepts the Decimal-like objects Prisma returns", () => {
     const decimalish = { toString: () => "12.50" };
     assert.equal(formatPrice(decimalish, "SALE", null), "RM 12.50");
+  });
+});
+
+/**
+ * These use the *real* `Decimal` class Prisma hands back, not a stand-in.
+ *
+ * That is the entire point of them. The suite already had a case named
+ * "accepts the Decimal-like objects Prisma returns", and it passed throughout
+ * a bug that made every price with cents render short — because its fake was
+ * `{ toString: () => "12.50" }`, and a string literal survives `toString()`
+ * unchanged. The real class does not: it is decimal.js, which normalises
+ * trailing zeros, so a column holding 0.10 stringifies to "0.1".
+ *
+ * A fake that is easier to satisfy than the thing it replaces is worse than no
+ * test, because it reports the case as covered. Anything asserting how a price
+ * renders belongs here rather than beside it.
+ */
+describe("formatPrice with the Decimal Prisma actually returns", () => {
+  it("keeps both decimal places on a price with cents", () => {
+    assert.equal(formatPrice(new Decimal("0.10"), "SALE", null), "RM 0.10");
+  });
+
+  it("keeps a trailing zero on a price above one ringgit", () => {
+    assert.equal(formatPrice(new Decimal("10.50"), "SALE", null), "RM 10.50");
+  });
+
+  it("pads a whole number to two places", () => {
+    assert.equal(formatPrice(new Decimal("25"), "SALE", null), "RM 25.00");
+  });
+
+  it("keeps the unit alongside a corrected amount", () => {
+    assert.equal(formatPrice(new Decimal("20.50"), "RENT", "WEEK"), "RM 20.50 / week");
+  });
+
+  // Guards the assumption the tests above rest on. If a future Prisma stopped
+  // trimming trailing zeros, the cases above would pass for the wrong reason
+  // and this one would fail, saying so out loud.
+  it("is really the trailing-zero behaviour these tests exist for", () => {
+    assert.equal(new Decimal("0.10").toString(), "0.1");
   });
 });
 
