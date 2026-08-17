@@ -70,7 +70,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ---
 
-## Current State (as of 2026-08-16 — deployed and live, tagged `v0.4`; design revamp and the card redesign both merged and live)
+## Current State (as of 2026-08-16 — deployed and live, tagged `v0.4`; design revamp, card redesign and light/dark toggle all merged and live)
+
+> **Handing off to a fresh session? Read this paragraph, then "Next Steps".**
+> `main` is green and deployed: 402 tests, `tsc`, `eslint` and `next build` clean, nothing in flight, no open branches. Six PRs merged on 2026-08-16 — #42 the card redesign, #43 a docs correction, #44 a mobile header overflow, #45 the service-listing fix, #46 the theme toggle.
+> **The next work is section 4 of Next Steps: three features the builder has asked for and none of them has a spec.** Start each with `superpowers:brainstorming`, not with code — the reasoning already gathered is written there so you do not have to re-derive it, but every actual decision is still the builder's.
+> **What is owed to the builder, not to an agent:** the browser passes listed below, the friend session, screenshots, and the GMI letter.
+> The one process note worth carrying: every real defect on this project has been found by the builder in a browser, never by a test. Two shipped features — services, and every native form control in dark mode — were broken or unseen for their entire lives because nothing that runs in CI opens a page.
 
 > **Start here.** The app is **live and working**. All eight weeks of the plan are done, and a substantial amount of unplanned work has shipped on top: moderation (reporting, suspension, an audit log), the legal pages, five changes from a live testing session with a second person, and the card redesign below.
 >
@@ -84,10 +90,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > **Three items still need the builder's hands, not an agent's:** the **friend session** (`docs/friend-session-checklist.md` — 30 ordered steps, including the two-session real-time test outstanding since Week 5, plus the card work's own visual pass), **screenshots** (`docs/screenshot-shot-list.md` — **now unblocked**, since the card work it was waiting on is merged and live), and **sending the GMI letter** (`docs/gmi-permission-request.md`, which gates any domain decision and is the only item whose clock runs on somebody else).
 >
-> **A light/dark toggle exists now, on `feature/theme-toggle`.** The button sits in the header; the default is unchanged — the site still follows the OS until somebody presses it, and "system" was never a third button position, only the absence of a stored choice. Read via a terminal only (no browser pass yet): a fresh visit carries no `data-theme` attribute, the built CSS contains both pinned states, and exactly two `prefers-color-scheme` rules remain in source. See the 2026-08-16 Decision Log entry and Gotcha #38's addendum.
+> **A light/dark toggle shipped** — PR #46, merged and live. The button sits in the header; the default is unchanged, because "system" was never a third button position, only the absence of a stored choice, so the site still follows the OS until somebody presses it. See the 2026-08-16 Decision Log entry, Gotcha #38's addendum, and the new material in #47.
+>
+> **Its largest change is one nobody asked for and nobody has looked at.** Declaring `color-scheme` is what tells a browser to draw its *own* widgets to match — and this site had never declared it, so `<select>` popups, radios, checkboxes, scrollbars and the overscroll canvas had been rendering light on dark surfaces for the project's whole life. They now follow the theme. That is five `<select>`s, three radio groups and a checkbox whose dark appearance has never been seen; `/listings/new` with type SERVICE and category Food & Drink renders every conditional control at once, which makes it the one page worth opening. `accent-color` was set alongside it, because a checked radio would otherwise draw in the browser's default blue — the exact shade the design revamp went out of its way to remove.
+>
+> **Two service-listing facts worth carrying forward.** Posting a service failed with *"Choose what the price is per."* however you answered it, because `ListingForm` never put `serviceRate` in the object it submits — missing since the commit that introduced services, so **services were unpostable for their entire existence**, which is also why no dev or production listing is one. Fixed in PR #45. The general lesson is in Gotcha #42's family and now has its own guard, `src/lib/listing-form-contract.test.ts`: **unit-testing both halves of a contract proves nothing about whether they are wired together.** `validateServiceRate` had nine tests; its only caller silently disagreed with it. The same shape turned up again hours later in the theme work — nothing tied `THEME_ATTRIBUTE` to the eight `[data-theme]` selectors in `globals.css`, so a rename would have left every check green and the feature dead. Both now have tests that read the other side's file.
 >
 > **Live:** `https://campus-marketplace-adamafzainizam.vercel.app`
-> **Tests:** 401 passing (`npm test`), plus 31 database-backed (`npm run test:db`, needs `TEST_DATABASE_URL`). `tsc --noEmit`, `eslint`, and `next build` all clean — verified 2026-08-16 on `feature/theme-toggle`.
+> **Tests:** 402 passing (`npm test`), plus 31 database-backed (`npm run test:db`, needs `TEST_DATABASE_URL`). `tsc --noEmit`, `eslint`, and `next build` all clean — verified 2026-08-16 on `main`, after PRs #45 and #46 merged.
 >
 > **Design revamp complete** (PRs #35–#41, five phases): Space Grotesk + Inter over Geist, a violet accent, one spacing vocabulary, one heading scale, and copy with a point of view in `src/lib/site-copy.ts`. Direction, decisions and rejected alternatives: `docs/superpowers/specs/2026-08-16-design-revamp-design.md`.
 > **Local dev:** `.env` points at the Neon **`development`** branch and the **`-dev`** R2 bucket. Production's values live in Vercel and are mirrored in gitignored `.env.vercel.local` / `.env.prod-db.local`.
@@ -511,7 +521,34 @@ The case study used the deployment material listed below. Kept here because it i
 - **Pagination** for the browse grid. Bounded at `take: 60`, which stops the unbounded case but is not pagination. Needed before real users.
 - **The seller cannot mark a listing sold from inside a conversation**, only from `/listings/mine`. Marking sold should probably surface in the thread.
 
-### 4. Deferred by decision — revisit only when relevant
+### 4. Agreed next, not yet designed
+
+Three pieces of work the builder has asked for. **None has a spec yet**, so each starts with `superpowers:brainstorming` rather than a plan. What follows is the reasoning already established, so the next session does not re-derive it — not decisions, which are the builder's to make.
+
+**4a. Deleting a listing.** Raised 2026-08-16: "there's no way for users to delete their own listings." The capability half-exists — `ARCHIVED` on `/listings/mine` removes a listing from browse — but it hides in a status dropdown under a word nobody scanning for "delete" would recognise, so in practice the answer is no.
+
+A true hard delete is blocked *by design*: `Conversation → Listing` is `onDelete: Restrict` (Decision Log 2026-08-13) precisely so removing a listing cannot destroy the other party's message history. But that restriction only bites when conversations exist. **The shape worth designing is one honest action that hard-deletes when nobody has messaged about the listing and archives when somebody has, telling the seller which happened and why.** That gives a real delete where it is safe, protects a stranger's thread where it is not, and avoids calling archiving "deletion" — the same dishonesty the quantity wording deliberately refuses. Photos need no extra work: a deleted row leaves its R2 objects unreferenced, and the orphan-cleanup cron reclaims them within a day.
+
+**4b. Keyword filtering, with held posts going to an admin queue.** A new listing whose text matches a watchlist is withheld from browse until a moderator approves or denies it.
+
+This is a **bigger change than it sounds, because it inverts the moderation model.** Everything built so far is post-hoc: listings go live instantly, and `Report` → `/admin/reports` catches what turns out to be wrong. This is pre-publication review, and it brings consequences worth settling in the spec rather than discovering:
+
+- **It falsifies the legal pages the moment it ships.** The Acceptable Use Policy and Privacy Policy currently state that nothing is monitored, filtered or automatically scanned — deliberately, because that was true. This is exactly the pattern the 2026-08-15 legal work recorded: *a policy document is only true as of the code it was written against*, and this project has already shipped three features that quietly contradicted one. Update both in the same PR, not afterwards.
+- **Where the held state lives needs care.** `ListingStatus` is an exhaustive switch in `isPubliclyVisible` and `statusLabel`, which is why adding a value is a compile error at every site that must think about it — a feature, and also a real cost to weigh against a separate `heldAt`/`heldReason` pair that leaves the status enum alone.
+- **The queue is not the reports queue.** `/admin/reports` is sorted oldest-first because the longest-unanswered report is the one most likely to have been real; a held-listing queue has a *seller waiting on it*, which is a different urgency and probably a different page.
+- **What the seller sees while held is most of the design.** Silence looks like a bug and invites a re-post, which is how one held listing becomes four.
+- The no-spend constraint rules out a paid moderation API, so the watchlist is self-hosted data. Whether it lives in the database (editable by an admin) or in a source file (reviewable in a diff) is a genuine trade, not an obvious call.
+
+**4c. Negotiation inside messages.** Buyers and sellers currently haggle in free text; this would make an offer a structured thing that can be accepted.
+
+The load-bearing constraint is one the project has already committed to repeatedly: **no money passes through this site.** So an accepted offer is a *record that two people agreed*, never a transaction, and the wording must not imply escrow, payment protection, or a binding sale — the same standard `quantityLabel` and `halalDisplayLabel` are held to. Also worth settling early:
+
+- **An offer is structured data, not text.** Whether that is a `Message` with a type discriminator and nullable amount columns, or a separate `Offer` model the thread renders inline, decides how much of the messaging code has to learn about offers.
+- **Messaging is server-authoritative and clients never hold `publish` capability** (Decision Log 2026-08-13). An offer must enter a channel the same way a message does — server writes to Postgres, *then* publishes — or the whole security property is lost for the sake of a feature.
+- **Accepting an offer probably wants to set `RESERVED`**, which is the state that already exists for exactly this and is currently only reachable from `/listings/mine`. That connects to the open item in section 3 about marking a listing sold from inside a thread.
+- **Ably's free tier is a finite message budget** (Decision Log 2026-08-13 dropped typing indicators over precisely this). Offers are low-volume, so this is a note rather than an objection.
+
+### 5. Deferred by decision — revisit only when relevant
 
 - Blocking and reporting users. A real moderation need for a marketplace, deliberately out of the 8-week scope.
 - Message editing and deletion.
