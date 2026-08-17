@@ -47,6 +47,45 @@ export const SERVICE_RATE_LABELS: Record<ServiceRate, string> = {
   FIXED: "",
 };
 
+/**
+ * Only a plain decimal number is safe to pad — anything else is returned
+ * untouched rather than mangled into something that looks like money.
+ */
+const PLAIN_AMOUNT = /^-?\d+(\.\d+)?$/;
+
+/**
+ * Restores the second cent digit on a price that has cents: "0.1" → "0.10".
+ *
+ * Prisma returns `Decimal`, which is decimal.js, and decimal.js normalises
+ * trailing zeros — so a `Decimal(10,2)` column holding 0.10 stringifies to
+ * "0.1" and a price of ten cents rendered as "RM 0.1". The database was never
+ * wrong; the loss happened on the way to the screen.
+ *
+ * **A whole number is deliberately left alone**: "RM 20" rather than
+ * "RM 20.00". That was the builder's call on 2026-08-17, made against a
+ * rendering of the real browse page, and it is the reason this function is not
+ * simply `toFixed(2)`. Most prices on a campus marketplace have no cents, and
+ * padding them all buys alignment at the cost of making every price heavier to
+ * read. The trade accepted is that two shapes now coexist in one grid.
+ *
+ * Done as string surgery rather than `Number(...).toFixed(2)` because money in
+ * this project must never pass through a float — the same reason the column is
+ * `Decimal(10,2)` rather than `Float`.
+ *
+ * A fraction longer than two digits is left alone rather than rounded. It is
+ * unreachable through a 2dp column, and quietly rounding somebody's money is a
+ * worse failure than showing an odd-looking price.
+ */
+function padCentsToTwoPlaces(raw: string): string {
+  if (!PLAIN_AMOUNT.test(raw)) return raw;
+
+  const [whole, fraction] = raw.split(".");
+  // No decimal point at all means no cents to complete — see above.
+  if (fraction === undefined || fraction.length >= 2) return raw;
+
+  return `${whole}.${fraction.padEnd(2, "0")}`;
+}
+
 /** A price split so the unit can be styled differently from the amount. */
 export type PriceParts = {
   amount: string;
@@ -75,7 +114,7 @@ export function priceParts(
   rentalPeriod: RentalPeriod | null,
   serviceRate: ServiceRate | null = null,
 ): PriceParts {
-  const amount = `RM ${price.toString()}`;
+  const amount = `RM ${padCentsToTwoPlaces(price.toString())}`;
 
   if (type === "RENT" && rentalPeriod !== null) {
     const period = RENTAL_PERIOD_LABELS[rentalPeriod];
@@ -89,6 +128,26 @@ export function priceParts(
   }
 
   return { amount, unit: null };
+}
+
+/**
+ * The value to prefill a price input with: the price as it renders, less "RM".
+ *
+ * Same correction as the rendered price, one layer away — an edit form showing
+ * "0.1" for a listing priced at ten cents is the same defect, and the seller is
+ * the one person guaranteed to look closely at it. No currency prefix, because
+ * the field already carries one in its label and the server would reject it.
+ *
+ * Whole numbers stay whole here for a reason beyond matching the display:
+ * anything this returns is what the form posts back if the seller edits some
+ * other field, so rewriting an untouched "20" into "20.00" would make opening
+ * the form quietly change a value nobody chose to change.
+ *
+ * A test asserts that what this produces is something `validatePrice` accepts,
+ * since the form hands the value straight back on submit.
+ */
+export function priceInputValue(price: { toString(): string }): string {
+  return padCentsToTwoPlaces(price.toString());
 }
 
 /**

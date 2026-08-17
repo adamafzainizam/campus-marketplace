@@ -9,13 +9,16 @@ import {
   formatPrice,
   listingMetaParts,
   postedAgo,
+  priceInputValue,
   priceParts,
 } from "./listing-labels.ts";
+import { validatePrice } from "./listing-constraints.ts";
 import {
   ListingCondition,
   ListingType,
   RentalPeriod,
 } from "../generated/prisma/enums.ts";
+import { Decimal } from "../generated/prisma/internal/prismaNamespace.ts";
 
 describe("label maps cover every enum value", () => {
   // A missing entry renders as "undefined" in the UI rather than failing, so
@@ -70,6 +73,77 @@ describe("formatPrice", () => {
   it("accepts the Decimal-like objects Prisma returns", () => {
     const decimalish = { toString: () => "12.50" };
     assert.equal(formatPrice(decimalish, "SALE", null), "RM 12.50");
+  });
+});
+
+/**
+ * These use the *real* `Decimal` class Prisma hands back, not a stand-in.
+ *
+ * That is the entire point of them. The suite already had a case named
+ * "accepts the Decimal-like objects Prisma returns", and it passed throughout
+ * a bug that made every price with cents render short — because its fake was
+ * `{ toString: () => "12.50" }`, and a string literal survives `toString()`
+ * unchanged. The real class does not: it is decimal.js, which normalises
+ * trailing zeros, so a column holding 0.10 stringifies to "0.1".
+ *
+ * A fake that is easier to satisfy than the thing it replaces is worse than no
+ * test, because it reports the case as covered. Anything asserting how a price
+ * renders belongs here rather than beside it.
+ */
+describe("formatPrice with the Decimal Prisma actually returns", () => {
+  it("keeps both decimal places on a price with cents", () => {
+    assert.equal(formatPrice(new Decimal("0.10"), "SALE", null), "RM 0.10");
+  });
+
+  it("keeps a trailing zero on a price above one ringgit", () => {
+    assert.equal(formatPrice(new Decimal("10.50"), "SALE", null), "RM 10.50");
+  });
+
+  // A whole price keeps its clean shape: the builder's call on 2026-08-17,
+  // taking "RM 20" over "RM 20.00" for the many prices that have no cents.
+  it("leaves a whole number alone rather than adding cents it does not have", () => {
+    assert.equal(formatPrice(new Decimal("25"), "SALE", null), "RM 25");
+  });
+
+  it("keeps the unit alongside a corrected amount", () => {
+    assert.equal(formatPrice(new Decimal("20.50"), "RENT", "WEEK"), "RM 20.50 / week");
+  });
+
+  // Guards the assumption the tests above rest on. If a future Prisma stopped
+  // trimming trailing zeros, the cases above would pass for the wrong reason
+  // and this one would fail, saying so out loud.
+  it("is really the trailing-zero behaviour these tests exist for", () => {
+    assert.equal(new Decimal("0.10").toString(), "0.1");
+  });
+});
+
+describe("priceInputValue", () => {
+  it("prefills a price field with both decimal places", () => {
+    assert.equal(priceInputValue(new Decimal("0.10")), "0.10");
+  });
+
+  it("carries no currency prefix, unlike the rendered price", () => {
+    assert.equal(priceInputValue(new Decimal("10.50")), "10.50");
+  });
+
+  // Matches what the price renders as, so opening the edit form does not
+  // silently rewrite a price the seller never touched.
+  it("leaves a whole number alone, as the rendered price does", () => {
+    assert.equal(priceInputValue(new Decimal("25")), "25");
+  });
+
+  // The edit form hands whatever this returns straight back on submit, so a
+  // value it produces must be one the server will accept. Hard-coding the
+  // pattern here would let the two drift; this reads the real rule.
+  it("produces a value the server-side price validator accepts", () => {
+    for (const raw of ["0.10", "25", "10.5", "1234.00"]) {
+      const prefilled = priceInputValue(new Decimal(raw));
+      assert.equal(
+        validatePrice(prefilled).ok,
+        true,
+        `the server rejected its own prefilled value: ${prefilled}`,
+      );
+    }
   });
 });
 

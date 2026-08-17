@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getCategories } from "@/lib/categories";
 import { getImageUrl } from "@/lib/r2";
+import { priceInputValue } from "@/lib/listing-labels";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ListingForm } from "@/app/listings/new/ListingForm";
 
@@ -69,7 +70,9 @@ export default async function EditListingPage({
           description: listing.description,
           // Decimal to string: the value must never pass through a float,
           // which is why the column is Decimal(10,2) in the first place.
-          price: listing.price.toString(),
+          // Not `.toString()` directly — that drops trailing zeros, so a
+          // listing priced at ten cents opened its own edit form showing 0.1.
+          price: priceInputValue(listing.price),
           condition: listing.condition,
           otherCategory: listing.otherCategory,
           quantity: listing.quantity,
