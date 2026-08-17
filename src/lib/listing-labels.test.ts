@@ -9,8 +9,10 @@ import {
   formatPrice,
   listingMetaParts,
   postedAgo,
+  priceInputValue,
   priceParts,
 } from "./listing-labels.ts";
+import { validatePrice } from "./listing-constraints.ts";
 import {
   ListingCondition,
   ListingType,
@@ -97,8 +99,10 @@ describe("formatPrice with the Decimal Prisma actually returns", () => {
     assert.equal(formatPrice(new Decimal("10.50"), "SALE", null), "RM 10.50");
   });
 
-  it("pads a whole number to two places", () => {
-    assert.equal(formatPrice(new Decimal("25"), "SALE", null), "RM 25.00");
+  // A whole price keeps its clean shape: the builder's call on 2026-08-17,
+  // taking "RM 20" over "RM 20.00" for the many prices that have no cents.
+  it("leaves a whole number alone rather than adding cents it does not have", () => {
+    assert.equal(formatPrice(new Decimal("25"), "SALE", null), "RM 25");
   });
 
   it("keeps the unit alongside a corrected amount", () => {
@@ -110,6 +114,36 @@ describe("formatPrice with the Decimal Prisma actually returns", () => {
   // and this one would fail, saying so out loud.
   it("is really the trailing-zero behaviour these tests exist for", () => {
     assert.equal(new Decimal("0.10").toString(), "0.1");
+  });
+});
+
+describe("priceInputValue", () => {
+  it("prefills a price field with both decimal places", () => {
+    assert.equal(priceInputValue(new Decimal("0.10")), "0.10");
+  });
+
+  it("carries no currency prefix, unlike the rendered price", () => {
+    assert.equal(priceInputValue(new Decimal("10.50")), "10.50");
+  });
+
+  // Matches what the price renders as, so opening the edit form does not
+  // silently rewrite a price the seller never touched.
+  it("leaves a whole number alone, as the rendered price does", () => {
+    assert.equal(priceInputValue(new Decimal("25")), "25");
+  });
+
+  // The edit form hands whatever this returns straight back on submit, so a
+  // value it produces must be one the server will accept. Hard-coding the
+  // pattern here would let the two drift; this reads the real rule.
+  it("produces a value the server-side price validator accepts", () => {
+    for (const raw of ["0.10", "25", "10.5", "1234.00"]) {
+      const prefilled = priceInputValue(new Decimal(raw));
+      assert.equal(
+        validatePrice(prefilled).ok,
+        true,
+        `the server rejected its own prefilled value: ${prefilled}`,
+      );
+    }
   });
 });
 
