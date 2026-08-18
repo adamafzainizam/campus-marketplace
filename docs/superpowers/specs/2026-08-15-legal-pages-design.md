@@ -21,7 +21,7 @@ Three things the builder wanted point in opposite directions: a disclaimer of af
 Resolved as:
 
 - **Legal pages: build now.** Useful whatever else happens.
-- **Domain: ask GMI first**, before spending anything. Draft at `docs/gmi-permission-request.md`.
+- **Domain: ask GMI first**, before spending anything. Draft kept outside this repo — see AGENTS.md section 2b.
 - **Advertising: declined**, recorded in the Decision Log with reasoning.
 
 ## Structure
