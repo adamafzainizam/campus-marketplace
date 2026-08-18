@@ -44,3 +44,8 @@ next-env.d.ts
 
 # Visual brainstorming companion scratch (superpowers skill)
 .superpowers/
+
+# Submitted to GMI; carries a student ID, a phone number, and a named third
+# party. This repository is public — keep it in ../campus-marketplace-private/
+docs/gmi-proposal.md
+docs/gmi-permission-request.md
