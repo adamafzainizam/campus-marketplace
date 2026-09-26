@@ -89,7 +89,7 @@ These are the mockup's exact colours converted to OKLCH. Success and danger also
 | `--link-decoration` | highlight | highlight | link underline |
 | `--focus` | ink | highlight | focus rings |
 
-**The one rule about yellow:** in light mode yellow is **never text and never a hairline**, only a fill with ink on it (yellow on paper is about 1.3:1). This is why the primary button inverts between themes.
+**The one rule about yellow:** in light mode yellow is **never text and never a hairline on a light surface**, only a fill with ink on it (yellow on paper is about 1.3:1). Yellow text on an ink fill, as on the light-mode primary button, is fine (about 14:1). This is why the primary button inverts between themes.
 
 `--accent*` is retired. Every current use (5x `text-accent`, 3x `bg-accent`, 1x `text-accent-contrast`, 1x `border-accent`, `.badge-accent`, `.btn-primary`, `.dropzone`, `.invite-tile`, `accent-color`) is mapped to one of the tokens above; the Phase 1 plan lists each site. `accent-color` for native controls becomes `var(--action)`.
 

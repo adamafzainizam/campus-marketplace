@@ -15,7 +15,7 @@
 - Branch: `feature/overhaul-1-foundation`, created from `main` after the spec branch merges (or from `docs/notice-board-overhaul-spec` if it has not). Never commit on `main`.
 - **Never stage `README.md` or `docs/case-study.md`**; they carry the builder's uncommitted edits. Always `git add` explicit paths.
 - Colour literals (`oklch(`, `#hex`, `rgb(`, `hsl(`) may appear in the `:root` block **only** on `--brand-*` lines.
-- In light mode yellow is never text and never a hairline, only a fill with ink on it.
+- In light mode yellow is never text or a hairline **on a light surface** (paper, card, sunken): there it is only a fill with ink on it. Yellow text on an ink fill (the light-mode primary button, about 14:1) is the approved design.
 - Radius: `3px` everywhere, `2px` on tags and badges. No pills.
 - Borders `1.5px`. Header bottom border `2px`.
 - Shadows are hard offsets (`Npx Npx 0 var(--shadow-color)`), never blurred.
