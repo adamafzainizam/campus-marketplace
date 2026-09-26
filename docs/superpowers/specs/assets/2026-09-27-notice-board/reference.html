@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notice board reference</title>
+<style>body{font-family:system-ui,sans-serif;background:#f4f4f5;color:#18181b;max-width:1200px;margin:0 auto;padding:24px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card-body{padding:8px 2px}.card-body h3{margin:4px 0}.card-body p{font-size:13px;margin:0}.subtitle{color:#52525b}</style></head><body>
+<!-- Approved 2026-09-27: light mode as shown; dark mode uses option 2 (grey offset shadows). Type is Archivo throughout. Photos are placeholders. The pushpin emoji stands in for PinMark. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+<style>
+  .nb { font-family:Archivo, sans-serif; border-radius:10px; overflow:hidden; border:1px solid #0003; }
+  .nb * { box-sizing:border-box; margin:0; }
+  .nb img { display:block; width:100%; height:100%; object-fit:cover; }
+  .nb.light { --bg:#fafaf9; --card:#fff; --ink:#18181b; --line:#18181b; --muted:#52525b; --faint:#71717a; --hl:#fde047; --onhl:#18181b; --shadow:#18181b; --field:#fff; --stripe1:#f4f4f5; --stripe2:#e4e4e7; }
+  .nb.dark { --bg:#111113; --card:#1a1a1d; --ink:#f4f4f5; --line:#3f3f46; --muted:#a1a1aa; --faint:#8b8b93; --hl:#fde047; --onhl:#18181b; --field:#1a1a1d; --stripe1:#1a1a1d; --stripe2:#232327; }
+  .nb.dark.s-yellow { --shadow:#fde047; }
+  .nb.dark.s-none { --shadow:transparent; }
+  .nb.dark.s-grey { --shadow:#3f3f46; }
+  .nb { background:var(--bg); color:var(--ink); }
+  .nb .nav { display:flex; justify-content:space-between; align-items:center; padding:11px 16px; border-bottom:2px solid var(--line); font-weight:800; font-size:13px; }
+  .nb .nav .r { display:flex; gap:12px; align-items:center; font-weight:600; font-size:12px; color:var(--muted); }
+  .nb .cta { background:var(--hl); color:var(--onhl); padding:6px 11px; border-radius:3px; font-size:12px; font-weight:800; }
+  .nb.light .nav .cta { background:var(--ink); color:var(--hl); }
+  .nb .hero { padding:18px 16px 12px; }
+  .nb h1 { font-size:28px; font-weight:900; letter-spacing:-0.03em; line-height:1; }
+  .nb h1 mark { background:var(--hl); color:var(--onhl); padding:0 4px; }
+  .nb .sub { margin-top:6px; font-size:12.5px; color:var(--muted); }
+  .nb .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding:4px 16px 18px; }
+  .nb .item { background:var(--card); border:1.5px solid var(--line); border-radius:3px; box-shadow:3px 3px 0 var(--shadow); }
+  .nb .ph { aspect-ratio:4/3; position:relative; overflow:hidden; border-bottom:1.5px solid var(--line); }
+  .nb .b { padding:7px 9px 9px; }
+  .nb .t { font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .nb .p { font-size:15px; font-weight:900; }
+  .nb .p small { font-size:10.5px; font-weight:600; color:var(--faint); }
+  .nb .m { font-size:10px; color:var(--faint); margin-top:2px; }
+  .nb .nophoto { display:flex; align-items:center; justify-content:center; height:100%; font-size:11px; color:var(--muted); background:repeating-linear-gradient(45deg,var(--stripe1) 0 8px,var(--stripe2) 8px 16px); }
+  .nb .tag { position:absolute; left:6px; top:6px; background:var(--hl); color:var(--onhl); font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:2px; }
+
+  /* detail page */
+  .nb .detail { display:grid; grid-template-columns:1.15fr 1fr; gap:16px; padding:16px; }
+  .nb .gal { border:1.5px solid var(--line); border-radius:3px; overflow:hidden; aspect-ratio:4/3; box-shadow:3px 3px 0 var(--shadow); }
+  .nb .thumbs { display:flex; gap:6px; margin-top:8px; }
+  .nb .thumbs div { width:46px; height:34px; border:1.5px solid var(--line); border-radius:2px; overflow:hidden; }
+  .nb .thumbs div.on { outline:2px solid var(--hl); outline-offset:1px; }
+  .nb .crumb { font-size:10.5px; color:var(--faint); margin-bottom:6px; }
+  .nb h2.lt { font-size:22px; font-weight:900; letter-spacing:-0.02em; line-height:1.05; }
+  .nb .bigp { font-size:26px; font-weight:900; margin-top:6px; }
+  .nb .bigp small { font-size:13px; font-weight:600; color:var(--faint); }
+  .nb .facts { margin-top:10px; display:flex; flex-wrap:wrap; gap:5px; }
+  .nb .facts span { font-size:10.5px; font-weight:600; border:1.5px solid var(--line); padding:3px 7px; border-radius:3px; }
+  .nb .desc { font-size:12px; line-height:1.55; color:var(--muted); margin-top:10px; }
+  .nb .btns { display:flex; gap:8px; margin-top:12px; }
+  .nb .btn1 { background:var(--hl); color:var(--onhl); border:1.5px solid var(--line); font-weight:800; font-size:12px; padding:8px 12px; border-radius:3px; box-shadow:2px 2px 0 var(--shadow); }
+  .nb.light .btn1 { background:var(--ink); color:var(--hl); }
+  .nb .btn2 { border:1.5px solid var(--line); font-weight:700; font-size:12px; padding:8px 12px; border-radius:3px; }
+  .nb .seller { margin-top:12px; font-size:11px; color:var(--faint); border-top:1.5px dashed var(--line); padding-top:8px; }
+  .nb label { display:block; font-size:11px; font-weight:700; margin-top:10px; }
+  .nb .field { margin-top:4px; background:var(--field); border:1.5px solid var(--line); border-radius:3px; padding:7px 9px; font-size:12px; color:var(--faint); }
+
+  .pair { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:22px; }
+  .cap { font-size:12px; font-weight:600; margin:0 0 6px; opacity:.75; }
+</style>
+
+<h2>Notice board: does it hold up in dark mode and on a busier page?</h2>
+<p class="subtitle">The existing light/dark toggle carries over unchanged: it follows the OS until pressed. One real decision is below: what the hard offset shadow becomes on a dark background, since a black shadow on near-black disappears.</p>
+
+<div class="pair">
+  <div>
+    <p class="cap">Browse, light</p>
+    <div class="nb light">
+      <div class="nav"><span>📌 Campus Marketplace</span><span class="r">Messages <span class="cta">Post a listing</span></span></div>
+      <div class="hero"><h1>Buy, sell and rent<br>around <mark>GMI.</mark></h1><p class="sub">Without it buried in a group chat.</p></div>
+      <div class="grid">
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-calc/400/300"></div><div class="b"><p class="t">Casio fx-570EX calculator</p><p class="p">RM 45</p><p class="m">Electronics · Like new</p></div></div>
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-fridge/400/300"><span class="tag">For rent</span></div><div class="b"><p class="t">Mini fridge, 50L</p><p class="p">RM 20 <small>/ week</small></p><p class="m">Appliances · Good</p></div></div>
+        <div class="item"><div class="ph"><div class="nophoto">No photo</div></div><div class="b"><p class="t">C++ tutoring, Sem 2</p><p class="p">RM 25 <small>/ hour</small></p><p class="m">Services · 2d ago</p></div></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <p class="cap">Listing detail, light (a busier page)</p>
+    <div class="nb light">
+      <div class="nav"><span>📌 Campus Marketplace</span><span class="r">Messages <span class="cta">Post a listing</span></span></div>
+      <div class="detail">
+        <div><div class="gal"><img src="https://picsum.photos/seed/gmi-fridge/600/450"></div><div class="thumbs"><div class="on"><img src="https://picsum.photos/seed/gmi-fridge/100/75"></div><div><img src="https://picsum.photos/seed/gmi-fridge2/100/75"></div><div><img src="https://picsum.photos/seed/gmi-fridge3/100/75"></div></div></div>
+        <div>
+          <p class="crumb">Browse / Appliances</p>
+          <h2 class="lt">Mini fridge, 50L</h2>
+          <p class="bigp">RM 20 <small>/ week</small></p>
+          <div class="facts"><span>For rent</span><span>Good</span><span>2 available</span></div>
+          <p class="desc">Quiet, fits under a hostel desk. Pick up at Block C. Deposit RM 30, returned when it comes back.</p>
+          <div class="btns"><span class="btn1">Message seller</span><span class="btn2">Report</span></div>
+          <p class="seller">Posted by Nurul A. · 3 days ago</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>Dark mode: pick the shadow treatment</h3>
+<div class="cards">
+  <div class="card" data-choice="yellow" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="nb dark s-yellow">
+      <div class="nav"><span>📌 Campus Marketplace</span><span class="r">Messages <span class="cta">Post a listing</span></span></div>
+      <div class="detail">
+        <div><div class="gal"><img src="https://picsum.photos/seed/gmi-fridge/600/450"></div></div>
+        <div><h2 class="lt">Mini fridge, 50L</h2><p class="bigp">RM 20 <small>/ week</small></p><div class="facts"><span>For rent</span><span>Good</span></div><div class="btns"><span class="btn1">Message seller</span><span class="btn2">Report</span></div><label>Search</label><div class="field">Books, clown nose, time machine…</div></div>
+      </div>
+      <div class="grid">
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-calc/400/300"></div><div class="b"><p class="t">Casio fx-570EX</p><p class="p">RM 45</p></div></div>
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-fridge/400/300"><span class="tag">For rent</span></div><div class="b"><p class="t">Mini fridge, 50L</p><p class="p">RM 20 <small>/ week</small></p></div></div>
+        <div class="item"><div class="ph"><div class="nophoto">No photo</div></div><div class="b"><p class="t">C++ tutoring</p><p class="p">RM 25 <small>/ hour</small></p></div></div>
+      </div>
+    </div></div>
+    <div class="card-body"><h3>1. Yellow shadows</h3><p>The highlighter becomes the shadow. Loud and very "notice board", but yellow is then everywhere, which dilutes it as the one accent.</p></div>
+  </div>
+  <div class="card" data-choice="grey" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="nb dark s-grey">
+      <div class="nav"><span>📌 Campus Marketplace</span><span class="r">Messages <span class="cta">Post a listing</span></span></div>
+      <div class="detail">
+        <div><div class="gal"><img src="https://picsum.photos/seed/gmi-fridge/600/450"></div></div>
+        <div><h2 class="lt">Mini fridge, 50L</h2><p class="bigp">RM 20 <small>/ week</small></p><div class="facts"><span>For rent</span><span>Good</span></div><div class="btns"><span class="btn1">Message seller</span><span class="btn2">Report</span></div><label>Search</label><div class="field">Books, clown nose, time machine…</div></div>
+      </div>
+      <div class="grid">
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-calc/400/300"></div><div class="b"><p class="t">Casio fx-570EX</p><p class="p">RM 45</p></div></div>
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-fridge/400/300"><span class="tag">For rent</span></div><div class="b"><p class="t">Mini fridge, 50L</p><p class="p">RM 20 <small>/ week</small></p></div></div>
+        <div class="item"><div class="ph"><div class="nophoto">No photo</div></div><div class="b"><p class="t">C++ tutoring</p><p class="p">RM 25 <small>/ hour</small></p></div></div>
+      </div>
+    </div></div>
+    <div class="card-body"><h3>2. Grey shadows (recommended)</h3><p>Same offset shape, drawn in a lifted grey. Keeps the printed-card depth and leaves yellow for the things that matter: the primary button, "For rent", focus.</p></div>
+  </div>
+  <div class="card" data-choice="none" onclick="toggleSelect(this)">
+    <div class="card-image"><div class="nb dark s-none">
+      <div class="nav"><span>📌 Campus Marketplace</span><span class="r">Messages <span class="cta">Post a listing</span></span></div>
+      <div class="detail">
+        <div><div class="gal"><img src="https://picsum.photos/seed/gmi-fridge/600/450"></div></div>
+        <div><h2 class="lt">Mini fridge, 50L</h2><p class="bigp">RM 20 <small>/ week</small></p><div class="facts"><span>For rent</span><span>Good</span></div><div class="btns"><span class="btn1">Message seller</span><span class="btn2">Report</span></div><label>Search</label><div class="field">Books, clown nose, time machine…</div></div>
+      </div>
+      <div class="grid">
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-calc/400/300"></div><div class="b"><p class="t">Casio fx-570EX</p><p class="p">RM 45</p></div></div>
+        <div class="item"><div class="ph"><img src="https://picsum.photos/seed/gmi-fridge/400/300"><span class="tag">For rent</span></div><div class="b"><p class="t">Mini fridge, 50L</p><p class="p">RM 20 <small>/ week</small></p></div></div>
+        <div class="item"><div class="ph"><div class="nophoto">No photo</div></div><div class="b"><p class="t">C++ tutoring</p><p class="p">RM 25 <small>/ hour</small></p></div></div>
+      </div>
+    </div></div>
+    <div class="card-body"><h3>3. No shadows in dark</h3><p>Borders only. Calmest, but the notice-board character mostly lives in that shadow, so dark mode becomes a different, plainer site.</p></div>
+  </div>
+</div>
+
+</body></html>
