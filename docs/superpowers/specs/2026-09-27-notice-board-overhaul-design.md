@@ -46,22 +46,25 @@ URLs and route slugs; navigation destinations; form field names and order; the t
 
 Primitive values (Tailwind v4's own OKLCH values for the named colours):
 
-| Primitive | Value | Named |
+| Primitive | Value | Named / source |
 |---|---|---|
-| `--brand-paper` | `oklch(98.5% 0.001 106.4)` | stone-50 |
-| `--brand-card` | `oklch(100% 0 0)` | white |
-| `--brand-ink` | `oklch(21% 0.006 285.9)` | zinc-900 |
-| `--brand-ink-2` | `oklch(44.2% 0.017 285.8)` | zinc-600 |
-| `--brand-ink-3` | `oklch(55.2% 0.016 285.9)` | zinc-500 |
+| `--brand-paper` | `oklch(98.5% 0.001 106.4)` | `#fafaf9` |
 | `--brand-paper-sunken` | `oklch(96% 0.002 106.4)` | a step below paper |
-| `--brand-night` | `oklch(16.5% 0.004 285.9)` | near zinc-950 |
-| `--brand-night-sunken` | `oklch(13.5% 0.004 285.9)` | a step below night |
-| `--brand-night-card` | `oklch(20.5% 0.005 285.9)` | lifted charcoal |
-| `--brand-night-line` | `oklch(37% 0.013 285.8)` | zinc-700 |
-| `--brand-snow` | `oklch(96.7% 0.001 286.4)` | zinc-100 |
-| `--brand-snow-2` | `oklch(70.5% 0.015 286.1)` | zinc-400 |
-| `--brand-snow-3` | `oklch(64% 0.015 286)` | between zinc-400 and 500 |
-| `--brand-highlight` | `oklch(90.5% 0.182 98.1)` | yellow-300 |
+| `--brand-card` | `oklch(100% 0 0)` | white |
+| `--brand-ink` | `oklch(21% 0.006 285.9)` | `#18181b` |
+| `--brand-ink-2` | `oklch(44.2% 0.015 285.8)` | `#52525b` |
+| `--brand-ink-3` | `oklch(52% 0.014 285.9)` | darker than `#71717a`, so it passes AA on the sunken surface |
+| `--brand-night` | `oklch(17.9% 0.004 286)` | `#111113` |
+| `--brand-night-sunken` | `oklch(15% 0.004 286)` | a step below night |
+| `--brand-night-card` | `oklch(21.9% 0.006 285.9)` | `#1a1a1d` |
+| `--brand-night-line` | `oklch(37% 0.012 285.8)` | `#3f3f46` |
+| `--brand-night-control` | `oklch(55.2% 0.014 285.9)` | `#71717a`, borders of form controls in dark |
+| `--brand-snow` | `oklch(96.7% 0.001 286.4)` | `#f4f4f5` |
+| `--brand-snow-2` | `oklch(71.2% 0.013 286.1)` | `#a1a1aa` |
+| `--brand-snow-3` | `oklch(63.9% 0.012 286.1)` | `#8b8b93` |
+| `--brand-highlight` | `oklch(90.5% 0.166 98.1)` | `#fde047`, the approved yellow |
+
+These are the mockup's exact colours converted to OKLCH. Success and danger also become primitives (`--brand-success-day`, `--brand-success-night`, and so on), holding their current values.
 
 `--success` and `--danger` keep their hues (155 and 25) and current values unless the contrast test fails against the new surfaces, in which case only lightness moves and the new value is recorded in the Decision Log.
 
@@ -75,7 +78,8 @@ Primitive values (Tailwind v4's own OKLCH values for the named colours):
 | `--surface-raised` | card | night-card | cards, fields, tags on photos |
 | `--surface-sunken` | paper-sunken | night-sunken | photo wells, skeletons, ghost-button hover |
 | `--text` / `-secondary` / `-tertiary` | ink / ink-2 / ink-3 | snow / snow-2 / snow-3 | text |
-| `--line` | ink | night-line | every 1.5px border |
+| `--line` | ink | night-line | card, chip, tag and header borders (decorative) |
+| `--control-line` | ink | night-control | borders of fields, secondary buttons and the drop zone, which must meet 3:1 (WCAG 1.4.11); zinc-700 on charcoal is only about 1.9:1 |
 | `--shadow-color` | ink | night-line | offset shadows |
 | `--action` | ink | highlight | primary button fill |
 | `--action-contrast` | highlight | ink | primary button text |
@@ -217,7 +221,7 @@ Each goes into the AGENTS.md Decision Log in the phase that ships it:
 **Every task, before its report is accepted:** `npm test`, `npx tsc --noEmit`, `npx eslint`, `npx next build`, all clean.
 
 **Tests that change**
-- `color-contrast.test.ts`: new primitive values; asserts AA for every text/surface pair in both themes, `--on-highlight` on `--highlight`, `--action-contrast` on `--action`, and 3:1 for `--focus` and `--line` against `--surface` (non-text contrast).
+- `color-contrast.test.ts`: new primitive values; asserts AA for every text/surface pair in both themes, `--on-highlight` on `--highlight`, `--action-contrast` on `--action`, and 3:1 for `--focus` against `--surface` and `--control-line` against `--surface-raised` (non-text contrast). `--line` is exempt: in dark mode it is a decorative card edge, not a control boundary. The test reads the primitive values from `globals.css` rather than keeping its own copy, so the two cannot drift.
 - `icon.test.ts`: new baked colours in `icon.svg`.
 - `theme.test.ts`: keeps passing unchanged (it ties `THEME_ATTRIBUTE` to the stylesheet's `[data-theme]` selectors).
 - `listing-labels.test.ts` / `browse-board.test.ts`: meta-line split, if `listingMetaParts` changes shape.
