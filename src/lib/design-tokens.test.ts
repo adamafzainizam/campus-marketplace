@@ -14,30 +14,10 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
+import { rootTokens } from "./css-tokens.ts";
+
 const CSS_PATH = "src/app/globals.css";
 const css = readFileSync(CSS_PATH, "utf8");
-
-/** The first `:root { ... }` block, which is where every token is declared. */
-function rootBlock(source: string): string {
-  const start = source.indexOf(":root {");
-  assert.ok(start >= 0, `${CSS_PATH} has no ":root {" block`);
-  let depth = 0;
-  for (let i = source.indexOf("{", start); i < source.length; i++) {
-    if (source[i] === "{") depth++;
-    else if (source[i] === "}" && --depth === 0) return source.slice(start, i + 1);
-  }
-  throw new Error(`${CSS_PATH}: unterminated :root block`);
-}
-
-/** Custom-property declarations in a block, comments stripped first. */
-function declarations(block: string): Map<string, string> {
-  const code = block.replace(/\/\*[\s\S]*?\*\//g, "");
-  const out = new Map<string, string>();
-  for (const [, name, value] of code.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
-    out.set(name, value.replace(/\s+/g, " ").trim());
-  }
-  return out;
-}
 
 const SEMANTIC_COLOURS = [
   "--surface",
@@ -64,7 +44,7 @@ const SEMANTIC_COLOURS = [
 
 const LITERAL = /oklch\(|rgba?\(|hsla?\(|#[0-9a-fA-F]{3,8}\b/;
 
-const tokens = declarations(rootBlock(css));
+const tokens = rootTokens(css);
 
 describe("the colour tokens", () => {
   it("declares every brand primitive as one plain oklch() literal", () => {
