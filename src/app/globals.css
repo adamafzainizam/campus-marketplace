@@ -22,9 +22,11 @@
   accent-color: var(--action);
 
   /* ---- Brand primitives -------------------------------------------------
-     The only place in this file where a literal colour may appear
-     (design-tokens.test.ts enforces it). To re-skin the site, for example
-     to GMI's palette if the Institute approves, edit this block and nothing
+     design-tokens.test.ts enforces that the :root token block below carries
+     no literal colour outside this section. The one known literal elsewhere
+     in this file is .skeleton::after's translucent shimmer, which the test
+     does not (and need not) reach. To re-skin the site, for example to
+     GMI's palette if the Institute approves, edit this block and nothing
      else. Values are the approved mockup's colours converted to OKLCH; the
      spec lists the hex each one came from. */
   --brand-paper: oklch(98.5% 0.001 106.4);
@@ -135,7 +137,7 @@
   --color-danger-subtle: var(--danger-subtle);
 
   --radius-sm: var(--radius-sm);
-  --radius-DEFAULT: var(--radius);
+  --radius: var(--radius);
   --radius-md: var(--radius);
   --radius-lg: var(--radius-lg);
 
@@ -275,7 +277,6 @@ small, .text-fine {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 /* Feedback on pointer-*down*, not on release (§1). Waiting for click to show
@@ -376,6 +377,8 @@ small, .text-fine {
   :root {
     --text-secondary: var(--text);
     --text-tertiary: var(--text-secondary);
+    --line: var(--control-line);
+    --shadow-color: var(--control-line);
   }
   .btn-primary, .btn-secondary, .field, .chip, .card, .badge-outline,
   .notice, .dropzone, .invite-tile {
@@ -478,7 +481,6 @@ small, .text-fine {
     padding: 0.625rem 0.875rem;
     font-size: 0.9375rem;
     min-height: 2.75rem;
-    transition: outline-color var(--response-fast) var(--ease-out);
   }
   .field::placeholder { color: var(--text-tertiary); }
   .field:focus {
@@ -515,7 +517,6 @@ small, .text-fine {
     text-decoration-color: var(--link-decoration);
     text-decoration-thickness: 0.18em;
     text-underline-offset: 0.18em;
-    transition: text-decoration-thickness var(--response-fast) var(--ease-out);
   }
   @media (hover: hover) {
     .link:hover { text-decoration-thickness: 0.32em; }
@@ -667,9 +668,7 @@ small, .text-fine {
     border: 1.5px dashed var(--line);
     border-radius: var(--radius);
     color: var(--text-secondary);
-    transition:
-      border-color var(--response-fast) var(--ease-out),
-      color var(--response-fast) var(--ease-out);
+    transition: border-color var(--response-fast) var(--ease-out);
   }
   @media (hover: hover) {
     .invite-tile:hover { border-style: solid; color: var(--text); }
@@ -733,6 +732,7 @@ small, .text-fine {
   .prose strong { font-weight: 700; color: var(--text); }
   .prose a {
     color: var(--link);
+    font-weight: 600;
     text-decoration-line: underline;
     text-decoration-color: var(--link-decoration);
     text-decoration-thickness: 0.18em;
