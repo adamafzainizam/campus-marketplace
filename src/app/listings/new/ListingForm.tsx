@@ -508,7 +508,7 @@ export function ListingForm({
 
       {stage.kind === "uploading" && (
         <div className="field-group" aria-live="polite">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-sunken">
+          <div className="h-1.5 w-full overflow-hidden rounded-sm bg-surface-sunken">
             <div
               className="h-full bg-action transition-[width] duration-200"
               style={{ width: `${stage.percent ?? 0}%` }}

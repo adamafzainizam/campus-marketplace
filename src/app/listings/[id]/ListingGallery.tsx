@@ -41,7 +41,7 @@ export function ListingGallery({
                 onClick={() => setShown(index)}
                 aria-current={index === shown}
                 aria-label={`Photo ${index + 1} of ${urls.length}`}
-                className={`block w-full overflow-hidden rounded-md border transition-[border-color,opacity] ${
+                className={`block w-full overflow-hidden rounded-sm border-[1.5px] transition-[border-color,opacity] ${
                   index === shown
                     ? "border-focus"
                     : "border-line opacity-70 hover:opacity-100"
