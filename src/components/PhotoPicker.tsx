@@ -204,7 +204,7 @@ export function PhotoPicker({
                   className="aspect-square w-full rounded-lg border border-line object-cover shadow-sm"
                 />
                 {index === 0 && (
-                  <span className="badge badge-accent absolute left-1 top-1">
+                  <span className="badge badge-highlight absolute left-1 top-1">
                     Cover
                   </span>
                 )}

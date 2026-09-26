@@ -25,7 +25,7 @@ export function PinMark({ className = "h-7 w-7" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-flex shrink-0 items-center justify-center rounded-[22%] bg-accent text-accent-contrast ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[22%] bg-highlight text-on-highlight ${className}`}
     >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="h-[75%] w-[75%]">
         {/* Cap, tapered body, needle — a pushpin seen side-on. Drawn from

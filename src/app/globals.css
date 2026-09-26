@@ -3,69 +3,89 @@
 /* ==========================================================================
    Design tokens
    --------------------------------------------------------------------------
-   Every value here is a deliberate choice rather than a default, which is the
-   point of Apple's "craft" principle: nothing random, everything defensible.
-
-   Colours are OKLCH so that lightness steps are perceptually even — the same
-   numeric step looks like the same step to the eye, which plain hex does not
-   give you. Dark mode is a token swap, not a second set of components.
+   Two layers. Literal colours live only in --brand-* primitives; every
+   semantic token below is written in terms of those primitives, never a
+   literal directly (design-tokens.test.ts enforces this). That is what makes
+   a future palette swap, GMI's if the Institute approves, an edit to one
+   block rather than a hunt through the file. light-dark() picks which arm of
+   a primitive's pair applies; color-scheme decides which mode the browser
+   (and light-dark()) thinks it is in.
    ========================================================================== */
 
 :root {
-  /* "Happy in either scheme, follow the OS" — which is what every token
-     below resolves against. An explicit choice overrides this a few rules
-     down, and that is the entire switching mechanism: one declaration.
-     It also fixes native form controls and scrollbars, which used to stay
-     light in dark mode because nothing had ever told the browser. */
+  /* Follow the OS until the theme toggle stores a choice; the two
+     [data-theme] rules below override this. Also makes native controls and
+     scrollbars follow the theme. */
   color-scheme: light dark;
-  /* color-scheme is what makes native controls (radios, checkboxes) render
-     dark-aware at all; without this they'd render dark-aware in the browser's
-     default blue, which is exactly the stray pre-violet accent the design
-     revamp hunted down elsewhere (Decision Log 2026-08-16). */
-  accent-color: var(--accent);
+  /* Native radios and checkboxes. --action is ink in light and yellow in
+     dark, which is what a checked control should look like in each. */
+  accent-color: var(--action);
 
-  /* Surfaces, from furthest back to nearest front. */
-  --surface-sunken: light-dark(oklch(96.5% 0.003 265), oklch(14% 0.006 265));
-  --surface: light-dark(oklch(99.2% 0.002 265), oklch(17.5% 0.007 265));
-  --surface-raised: light-dark(oklch(100% 0 0), oklch(21.5% 0.008 265));
+  /* ---- Brand primitives -------------------------------------------------
+     The only place in this file where a literal colour may appear
+     (design-tokens.test.ts enforces it). To re-skin the site, for example
+     to GMI's palette if the Institute approves, edit this block and nothing
+     else. Values are the approved mockup's colours converted to OKLCH; the
+     spec lists the hex each one came from. */
+  --brand-paper: oklch(98.5% 0.001 106.4);
+  --brand-paper-sunken: oklch(96% 0.002 106.4);
+  --brand-card: oklch(100% 0 0);
+  --brand-ink: oklch(21% 0.006 285.9);
+  --brand-ink-2: oklch(44.2% 0.015 285.8);
+  --brand-ink-3: oklch(52% 0.014 285.9);
+  --brand-night: oklch(17.9% 0.004 286);
+  --brand-night-sunken: oklch(15% 0.004 286);
+  --brand-night-card: oklch(21.9% 0.006 285.9);
+  --brand-night-line: oklch(37% 0.012 285.8);
+  --brand-night-control: oklch(55.2% 0.014 285.9);
+  --brand-snow: oklch(96.7% 0.001 286.4);
+  --brand-snow-2: oklch(71.2% 0.013 286.1);
+  --brand-snow-3: oklch(63.9% 0.012 286.1);
+  --brand-highlight: oklch(90.5% 0.166 98.1);
+  --brand-success-day: oklch(52% 0.13 155);
+  --brand-success-night: oklch(72% 0.14 155);
+  --brand-success-subtle-day: oklch(96% 0.04 155);
+  --brand-success-subtle-night: oklch(26% 0.05 155);
+  --brand-danger-day: oklch(50% 0.19 25);
+  --brand-danger-night: oklch(70% 0.17 25);
+  --brand-danger-subtle-day: oklch(96% 0.03 25);
+  --brand-danger-subtle-night: oklch(27% 0.06 25);
 
-  /* Text. Three levels is enough hierarchy; a fourth starts to look like a
-     bug rather than an intention. */
-  --text: light-dark(oklch(21% 0.012 265), oklch(96% 0.003 265));
-  --text-secondary: light-dark(oklch(48% 0.011 265), oklch(72% 0.008 265));
-  --text-tertiary: light-dark(oklch(62% 0.010 265), oklch(58% 0.008 265));
+  /* ---- Semantic tokens --------------------------------------------------
+     What components use. Each is light-dark(<light arm>, <dark arm>) over
+     primitives. The one rule that shapes them: in light mode yellow is only
+     ever a fill with ink on it (yellow on paper is about 1.3:1), which is why
+     --action, --link and --focus swap sides between the themes. */
+  --surface: light-dark(var(--brand-paper), var(--brand-night));
+  --surface-sunken: light-dark(var(--brand-paper-sunken), var(--brand-night-sunken));
+  --surface-raised: light-dark(var(--brand-card), var(--brand-night-card));
 
-  --border: light-dark(oklch(91% 0.004 265), oklch(28% 0.008 265));
-  --border-strong: light-dark(oklch(84% 0.006 265), oklch(36% 0.010 265));
+  --text: light-dark(var(--brand-ink), var(--brand-snow));
+  --text-secondary: light-dark(var(--brand-ink-2), var(--brand-snow-2));
+  --text-tertiary: light-dark(var(--brand-ink-3), var(--brand-snow-3));
 
-  /* One accent. A marketplace's colour should come from the photographs, not
-     from the chrome competing with them. */
-  /* Violet, chosen partly because it is the furthest hue from everything
-     already spoken for: --success owns 155 and --danger owns 25, and an
-     accent near either makes "saved" and "this is a link" the same signal.
-     Contrast against the surfaces is asserted in color-contrast.test.ts,
-     which keeps its own copy of these values on purpose — it tests a
-     property of the colours, not the contents of this file. */
-  --accent: light-dark(oklch(52% 0.20 295), oklch(72% 0.17 295));
-  --accent-hover: light-dark(oklch(46% 0.19 295), oklch(78% 0.15 295));
-  --accent-contrast: light-dark(oklch(99% 0 0), oklch(16% 0.01 295));
-  --accent-subtle: light-dark(oklch(95% 0.04 295), oklch(30% 0.08 295));
+  /* --line is the decorative edge of cards, chips, tags and the header.
+     --control-line bounds things you operate (fields, secondary buttons,
+     the drop zone) and must meet 3:1; in dark mode that needs a lighter
+     grey than a card edge wants. */
+  --line: light-dark(var(--brand-ink), var(--brand-night-line));
+  --control-line: light-dark(var(--brand-ink), var(--brand-night-control));
+  --shadow-color: light-dark(var(--brand-ink), var(--brand-night-line));
 
-  --success: light-dark(oklch(52% 0.13 155), oklch(72% 0.14 155));
-  --success-subtle: light-dark(oklch(96% 0.04 155), oklch(26% 0.05 155));
-  --danger: light-dark(oklch(55% 0.19 25), oklch(70% 0.17 25));
-  --danger-subtle: light-dark(oklch(96% 0.03 25), oklch(27% 0.06 25));
+  --action: light-dark(var(--brand-ink), var(--brand-highlight));
+  --action-contrast: light-dark(var(--brand-highlight), var(--brand-ink));
+  --highlight: light-dark(var(--brand-highlight), var(--brand-highlight));
+  --on-highlight: light-dark(var(--brand-ink), var(--brand-ink));
+  --link: light-dark(var(--brand-ink), var(--brand-highlight));
+  --link-decoration: light-dark(var(--brand-highlight), var(--brand-highlight));
+  --focus: light-dark(var(--brand-ink), var(--brand-highlight));
 
-  /* Translucent chrome. Content scrolls *under* this rather than being
-     clipped by an opaque strip (§12). */
-  --material-chrome: light-dark(
-    oklch(99.2% 0.002 265 / 0.72),
-    oklch(17.5% 0.007 265 / 0.72)
-  );
-  --material-blur: 20px;
+  --success: light-dark(var(--brand-success-day), var(--brand-success-night));
+  --success-subtle: light-dark(var(--brand-success-subtle-day), var(--brand-success-subtle-night));
+  --danger: light-dark(var(--brand-danger-day), var(--brand-danger-night));
+  --danger-subtle: light-dark(var(--brand-danger-subtle-day), var(--brand-danger-subtle-night));
 
-  /* Shadows are two-part: a tight contact shadow that grounds the element,
-     plus a wider ambient one. A single blurred box-shadow reads as a sticker. */
+  /* Shape, depth and motion: unchanged in this task (Task 2 rewrites them). */
   --shadow-sm: 0 1px 2px oklch(21% 0.012 265 / 0.05),
                0 1px 3px oklch(21% 0.012 265 / 0.04);
   --shadow-md: 0 2px 4px oklch(21% 0.012 265 / 0.05),
@@ -78,15 +98,11 @@
   --radius-lg: 1rem;
   --radius-full: 999px;
 
-  /* Motion. Critically damped by default — no overshoot on things the user
-     did not physically throw (§4). The "response" names mirror Apple's
-     parameter rather than calling these durations, because that is what they
-     are conceptually. */
   --response-fast: 120ms;
   --response: 200ms;
   --response-slow: 320ms;
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --ease-in: cubic-bezier(0.64, 0, 0.78, 0.39); /* mirror of the above (§7) */
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0.39);
 }
 
 /* The switch. Absent `data-theme`, `color-scheme: light dark` above leaves
@@ -127,12 +143,14 @@
   --color-content: var(--text);
   --color-secondary: var(--text-secondary);
   --color-tertiary: var(--text-tertiary);
-  --color-line: var(--border);
-  --color-line-strong: var(--border-strong);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-contrast: var(--accent-contrast);
-  --color-accent-subtle: var(--accent-subtle);
+  --color-line: var(--line);
+  --color-control-line: var(--control-line);
+  --color-action: var(--action);
+  --color-action-contrast: var(--action-contrast);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --color-link: var(--link);
+  --color-focus: var(--focus);
   --color-success: var(--success);
   --color-success-subtle: var(--success-subtle);
   --color-danger: var(--danger);
@@ -281,7 +299,7 @@ small, .text-fine {
 /* Focus is a single consistent ring everywhere, so "where am I" is never a
    guess. Uses :focus-visible so a mouse click doesn't paint a ring. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
@@ -336,13 +354,13 @@ small, .text-fine {
 @media (hover: hover) and (pointer: fine) {
   .rail {
     scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-color: var(--line) transparent;
     padding-bottom: 0.25rem;
   }
   .rail::-webkit-scrollbar { display: block; height: 0.5rem; }
   .rail::-webkit-scrollbar-track { background: transparent; }
   .rail::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
+    background: var(--line);
     border-radius: var(--radius-full);
   }
 }
@@ -369,18 +387,9 @@ small, .text-fine {
   .pressable:active { opacity: 0.7; }
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  :root { --material-chrome: var(--surface); --material-blur: 0px; }
-}
-
 @media (prefers-contrast: more) {
-  :root {
-    --text-secondary: var(--text);
-    --border: var(--border-strong);
-    --material-chrome: var(--surface);
-    --material-blur: 0px;
-  }
-  .card-interactive, .field { border-color: var(--border-strong); }
+  :root { --text-secondary: var(--text); --text-tertiary: var(--text-secondary); }
+  .card-interactive, .field { border-color: var(--control-line); }
 }
 
 /* ==========================================================================
@@ -421,22 +430,19 @@ small, .text-fine {
   }
 
   .btn-primary {
-    background: var(--accent);
-    color: var(--accent-contrast);
+    background: var(--action);
+    color: var(--action-contrast);
     border: 1px solid transparent;
-  }
-  @media (hover: hover) {
-    .btn-primary:not(:disabled):hover { background: var(--accent-hover); }
   }
 
   .btn-secondary {
     background: var(--surface-raised);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid var(--control-line);
     box-shadow: var(--shadow-sm);
   }
   @media (hover: hover) {
-    .btn-secondary:not(:disabled):hover { border-color: var(--border-strong); }
+    .btn-secondary:not(:disabled):hover { border-color: var(--control-line); }
   }
 
   .btn-ghost {
@@ -458,7 +464,7 @@ small, .text-fine {
     width: 100%;
     background: var(--surface-raised);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid var(--control-line);
     border-radius: var(--radius);
     padding: 0.625rem 0.875rem;
     font-size: 0.9375rem;
@@ -469,9 +475,10 @@ small, .text-fine {
   }
   .field::placeholder { color: var(--text-tertiary); }
   .field:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-subtle);
+    border-color: var(--control-line);
+    box-shadow: none;
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
 
   .label {
@@ -495,6 +502,21 @@ small, .text-fine {
 
   .hint { font-size: 0.8125rem; letter-spacing: 0.004em; color: var(--text-secondary); }
 
+  /* Inline links. Ink with a thick highlighter underline in light mode, so
+     yellow is only ever a fill there; plain yellow text in dark mode. */
+  .link {
+    color: var(--link);
+    font-weight: 600;
+    text-decoration-line: underline;
+    text-decoration-color: var(--link-decoration);
+    text-decoration-thickness: 0.18em;
+    text-underline-offset: 0.18em;
+    transition: text-decoration-thickness var(--response-fast) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .link:hover { text-decoration-thickness: 0.32em; }
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;
@@ -507,8 +529,8 @@ small, .text-fine {
     white-space: nowrap;
   }
   .badge-neutral { background: var(--surface-sunken); color: var(--text-secondary); }
-  .badge-accent { background: var(--accent); color: var(--accent-contrast); }
-  .badge-outline { border: 1px solid var(--border-strong); color: var(--text-secondary); }
+  .badge-highlight { background: var(--highlight); color: var(--on-highlight); }
+  .badge-outline { border: 1px solid var(--line); color: var(--text-secondary); }
 
   /* Chips are a rail of filters; the selected one is filled, not merely
      outlined, so the current state is obvious at a glance. */
@@ -518,7 +540,7 @@ small, .text-fine {
     min-height: 2.125rem;
     padding: 0.375rem 0.875rem;
     border-radius: var(--radius-full);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     background: var(--surface-raised);
     color: var(--text-secondary);
     font-size: 0.875rem;
@@ -532,7 +554,7 @@ small, .text-fine {
   }
   .chip:active { transform: scale(0.96); }
   @media (hover: hover) {
-    .chip:hover { border-color: var(--border-strong); color: var(--text); }
+    .chip:hover { border-color: var(--line); color: var(--text); }
   }
   .chip-selected {
     background: var(--text);
@@ -545,19 +567,15 @@ small, .text-fine {
 
   .card {
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
   }
 
-  /* Translucent chrome that content scrolls under (§12). The bright top edge
-     is light catching the material, which is what stops it reading as a flat
-     grey bar. */
+  /* Solid, like paper: the header is printed, not frosted glass. */
   .chrome {
-    background: var(--material-chrome);
-    backdrop-filter: blur(var(--material-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--material-blur)) saturate(180%);
-    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    border-bottom: 2px solid var(--line);
   }
 
   .notice {
@@ -576,7 +594,7 @@ small, .text-fine {
   .notice-neutral {
     background: var(--surface-sunken);
     color: var(--text-secondary);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
   }
 
   /* File drop zone.
@@ -593,7 +611,7 @@ small, .text-fine {
     gap: 0.375rem;
     padding: 1.5rem 1rem;
     text-align: center;
-    border: 1.5px dashed var(--border-strong);
+    border: 1.5px dashed var(--control-line);
     border-radius: var(--radius);
     background: var(--surface-sunken);
     cursor: pointer;
@@ -602,16 +620,16 @@ small, .text-fine {
   /* Focus lands on the visually-hidden input, so the ring is drawn on the
      zone instead — otherwise a keyboard user sees no focus at all. */
   .dropzone:has(input:focus-visible) {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
   @media (hover: hover) {
-    .dropzone:hover { border-color: var(--accent); }
+    .dropzone:hover { border-style: solid; }
   }
   .dropzone-active {
-    border-color: var(--accent);
+    border-color: var(--control-line);
     border-style: solid;
-    background: var(--accent-subtle, var(--surface));
+    background: var(--surface-raised);
   }
   .dropzone-disabled {
     cursor: not-allowed;
@@ -637,7 +655,7 @@ small, .text-fine {
     gap: 0.375rem;
     padding: 1rem;
     text-align: center;
-    border: 1.5px dashed var(--border-strong);
+    border: 1.5px dashed var(--line);
     border-radius: var(--radius-lg);
     color: var(--text-secondary);
     transition:
@@ -645,7 +663,7 @@ small, .text-fine {
       color var(--response-fast) var(--ease-out);
   }
   @media (hover: hover) {
-    .invite-tile:hover { border-color: var(--accent); color: var(--text); }
+    .invite-tile:hover { border-style: solid; color: var(--text); }
   }
 
   /* The theme button ships both icons and both labels and hides one pair,
@@ -704,9 +722,11 @@ small, .text-fine {
   }
   .prose strong { font-weight: 600; color: var(--text); }
   .prose a {
-    color: var(--accent);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    color: var(--link);
+    text-decoration-line: underline;
+    text-decoration-color: var(--link-decoration);
+    text-decoration-thickness: 0.18em;
+    text-underline-offset: 0.18em;
   }
   .prose ul, .prose ol { padding-left: 1.25rem; }
   .prose ul { list-style: disc; }
@@ -797,7 +817,7 @@ body:has(.thread-viewport) > footer { display: none; }
   bottom: -2px;
   height: 2px;
   border-radius: var(--radius-full);
-  background: var(--accent);
+  background: var(--action);
   transform-origin: left;
   animation: pending-bar 1.1s var(--ease-out) infinite;
 }

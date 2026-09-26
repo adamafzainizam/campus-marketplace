@@ -111,7 +111,7 @@ export default async function Home({
             Anyone can browse.{" "}
             <Link
               href="/signin"
-              className="font-medium text-accent underline underline-offset-4"
+              className="link"
             >
               Sign in with your {ALLOWED_DOMAIN_LABEL} account
             </Link>{" "}
@@ -232,7 +232,7 @@ export default async function Home({
                   )}
 
                   {listing.type === "RENT" && (
-                    <span className="badge badge-accent absolute left-2 top-2 shadow-sm">
+                    <span className="badge badge-highlight absolute left-2 top-2 shadow-sm">
                       For rent
                     </span>
                   )}

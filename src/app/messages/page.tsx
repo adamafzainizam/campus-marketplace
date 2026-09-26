@@ -62,7 +62,7 @@ export default async function MessagesPage() {
                     </p>
                     {conversation.unread && (
                       <span
-                        className="badge badge-accent shrink-0"
+                        className="badge badge-highlight shrink-0"
                         aria-label="Unread messages"
                       >
                         New

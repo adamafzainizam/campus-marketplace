@@ -43,7 +43,7 @@ export function ListingGallery({
                 aria-label={`Photo ${index + 1} of ${urls.length}`}
                 className={`block w-full overflow-hidden rounded-md border transition-[border-color,opacity] ${
                   index === shown
-                    ? "border-accent"
+                    ? "border-focus"
                     : "border-line opacity-70 hover:opacity-100"
                 }`}
               >

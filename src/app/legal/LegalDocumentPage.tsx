@@ -47,7 +47,7 @@ export function LegalDocumentPage({
           Write to{" "}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-            className="text-accent underline underline-offset-2"
+            className="link"
           >
             {LEGAL_CONTACT_EMAIL}
           </a>

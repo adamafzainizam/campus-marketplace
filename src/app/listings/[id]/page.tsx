@@ -92,7 +92,7 @@ export default async function ListingDetailPage({
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`badge ${
-                listing.type === "RENT" ? "badge-accent" : "badge-outline"
+                listing.type === "RENT" ? "badge-highlight" : "badge-outline"
               }`}
             >
               {LISTING_TYPE_LABELS[listing.type]}

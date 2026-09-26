@@ -50,7 +50,7 @@ export default function LegalIndexPage() {
         Questions, corrections, or takedown requests:{" "}
         <a
           href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-          className="text-accent underline underline-offset-2"
+          className="link"
         >
           {LEGAL_CONTACT_EMAIL}
         </a>
