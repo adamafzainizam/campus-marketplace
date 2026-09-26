@@ -22,7 +22,7 @@ import {
  */
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-[var(--border)] bg-[var(--surface-sunken)]">
+    <footer className="mt-auto border-t border-line bg-surface-sunken">
       <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-10">
         <p className="text-fine text-secondary">{AFFILIATION_DISCLAIMER}</p>
 

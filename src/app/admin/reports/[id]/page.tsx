@@ -138,7 +138,7 @@ export default async function ReportDetailPage({
       {report.status === ReportStatus.OPEN ? (
         <ResolveReport reportId={report.id} />
       ) : (
-        <div className="mt-6 border-t border-[var(--border)] pt-4">
+        <div className="mt-6 border-t border-line pt-4">
           <p className="text-sm">
             Closed as <strong>{reportStatusLabel(report.status)}</strong>
             {report.resolvedBy && <> by {report.resolvedBy.name}</>}

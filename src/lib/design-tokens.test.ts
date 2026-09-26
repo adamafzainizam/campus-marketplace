@@ -107,4 +107,19 @@ describe("the retired vocabulary", () => {
       assert.ok(!pattern.test(source), `${file} still uses the retired accent vocabulary`);
     }
   });
+
+  it("leaves no retired custom-property references in any component", () => {
+    // Class-name utilities (bg-accent etc.) are caught above, but a retired
+    // token can also be spelled directly, inside a Tailwind arbitrary value
+    // (`border-[var(--border)]`) — that form skips the utility-name pattern
+    // entirely, which is exactly how these survived the first migration pass.
+    const files = (readdirSync("src", { recursive: true }) as string[])
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => join("src", f));
+    const pattern = /var\(--border\b|var\(--material-|var\(--accent\b/;
+    for (const file of files) {
+      const source = readFileSync(file, "utf8");
+      assert.ok(!pattern.test(source), `${file} still references a retired custom property`);
+    }
+  });
 });

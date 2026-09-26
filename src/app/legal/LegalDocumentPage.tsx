@@ -39,7 +39,7 @@ export function LegalDocumentPage({
 
       <div className="prose mt-10">{children}</div>
 
-      <hr className="mt-16 border-0 border-t border-[var(--border)]" />
+      <hr className="mt-16 border-0 border-t border-line" />
 
       <section className="mt-6">
         <h2 className="text-sm font-semibold">Questions about this document</h2>

@@ -31,7 +31,7 @@ export default async function MessagesPage() {
           </Link>
         </div>
       ) : (
-        <ul className="card flex flex-col divide-y divide-[var(--border)] overflow-hidden">
+        <ul className="card flex flex-col divide-y divide-line overflow-hidden">
           {conversations.map((conversation) => (
             <li key={conversation.id}>
               <Link
