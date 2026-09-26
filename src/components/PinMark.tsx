@@ -1,5 +1,5 @@
 /**
- * The site's mark: a pushpin in an accent-filled rounded square.
+ * The site's mark: a pushpin on a highlighter-yellow square.
  *
  * It carries the product's argument in one shape — a pin is the thing a
  * group chat does not have — and it is the motif this project has used since
@@ -12,20 +12,19 @@
  * the page's tokens — so if the shape changes, change both.
  *
  * Two proportions have to agree with `icon.svg`, and only one of them
- * survives a fixed value: `icon.svg`'s corner is `rx="7"` on a 32-unit box,
- * i.e. 21.875% (rounded to `rounded-[22%]` below — the 0.035px difference at
- * this size is not worth an unrounded arbitrary value). A *token* radius
- * (`rounded-lg` = 1rem = 16px) does not scale with the box: CSS clamps a
- * corner radius at half the side length, so on this component's 28px default
- * it was clamping to exactly 14px — a perfect circle, not the rounded square
- * the favicon renders. Its glyph fill is `translate(4 4)` on a 24-unit glyph
- * in a 32-unit box, i.e. 24/32 = 75% — matched below.
+ * survives a fixed value: `icon.svg`'s corner is `rx="3"` on a 32-unit box,
+ * i.e. 9.375% (`rounded-[9.375%]` below is exact, not rounded). A *token*
+ * radius (`rounded-lg` = 1rem = 16px) does not scale with the box: CSS
+ * clamps a corner radius at half the side length, so on this component's
+ * 28px default it was clamping to exactly 14px — a perfect circle, not the
+ * square-ish corner the favicon renders. Its glyph fill is `translate(4 4)`
+ * on a 24-unit glyph in a 32-unit box, i.e. 24/32 = 75% — matched below.
  */
 export function PinMark({ className = "h-7 w-7" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-flex shrink-0 items-center justify-center rounded-[22%] bg-highlight text-on-highlight ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[9.375%] bg-highlight text-on-highlight ${className}`}
     >
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="h-[75%] w-[75%]">
         {/* Cap, tapered body, needle — a pushpin seen side-on. Drawn from

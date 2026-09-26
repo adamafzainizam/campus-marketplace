@@ -39,10 +39,12 @@ describe("the favicon", () => {
     }
   });
 
-  it("bakes the accent colour the header mark uses", () => {
-    // A favicon cannot read the page's CSS custom properties, so this value is
-    // a copy and copies drift. If the accent token changes, this fails and
-    // names the file that has to change with it.
-    assert.match(icon, /fill="#7544cd"/);
+  it("bakes the highlight and ink colours the header mark uses", () => {
+    // A favicon cannot read the page's CSS custom properties, so these values
+    // are copies and copies drift. #fde047 is the highlight primitive and
+    // #18181b the ink primitive in globals.css; if either changes, this fails
+    // and names the file that has to change with it.
+    assert.match(icon, /<rect width="32" height="32" rx="3" fill="#fde047"\/>/);
+    assert.match(icon, /<g fill="#18181b"/);
   });
 });
