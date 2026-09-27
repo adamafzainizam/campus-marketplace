@@ -486,7 +486,7 @@ export function ListingForm({
               className="field"
             />
             <p className="hint">
-              Buyers see &ldquo;{quantity || "0"} available&rdquo;. Nothing is
+              Buyers see &ldquo;{quantity || "0"}{" "}available&rdquo;. Nothing is
               counted automatically. No money goes through this site, so
               you&rsquo;ll need to update this yourself as they go.
             </p>

@@ -38,7 +38,7 @@ export default function DisclaimerPage() {
       <h2>2. Why the name says GMI</h2>
       <p>
         The name describes <em>who the service is for</em> &mdash; people with a{" "}
-        {ALLOWED_DOMAIN_LABEL} account &mdash; not who runs it. The word is used
+        {ALLOWED_DOMAIN_LABEL}{" "}account &mdash; not who runs it. The word is used
         to identify the community the service serves, in the same way a student
         society might describe itself by its campus, and not to suggest official
         standing.

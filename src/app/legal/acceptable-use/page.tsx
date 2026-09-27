@@ -113,7 +113,7 @@ export default function AcceptableUsePage() {
           been left unrefrigerated when it should not have been;
         </li>
         <li>
-          answer the <strong>halal question</strong> honestly. Claiming
+          answer the <strong>halal question</strong>{" "}honestly. Claiming
           something is halal when you do not know is a serious
           misrepresentation on this campus, and one of the clearest reasons to
           suspend an account. If you are not certain, choose &ldquo;I&rsquo;d
@@ -126,7 +126,7 @@ export default function AcceptableUsePage() {
       </ul>
       <p>
         <strong>Nothing here is halal-certified, inspected, or checked by
-        anyone.</strong> Halal certification in Malaysia is JAKIM&rsquo;s to
+        anyone.</strong>{" "}Halal certification in Malaysia is JAKIM&rsquo;s to
         give; this is a student noticeboard and verifies nothing. Anything a
         listing says about food is the seller&rsquo;s own statement, which is
         why it is shown as such. If it matters to you &mdash; and for a
@@ -220,7 +220,7 @@ export default function AcceptableUsePage() {
         the address on your account.
       </p>
       <p>
-        <strong>Nothing here is monitored automatically.</strong> There is no
+        <strong>Nothing here is monitored automatically.</strong>{" "}There is no
         content filtering, no automated scanning, and nobody watching the site.
         Action follows a report from someone who saw the problem &mdash; which
         is why the section below matters more than it looks. Serious cases are
@@ -230,7 +230,7 @@ export default function AcceptableUsePage() {
 
       <h2>7. Reporting something</h2>
       <p>
-        Every listing has a <strong>Report</strong> button, and so does every
+        Every listing has a <strong>Report</strong>{" "}button, and so does every
         message somebody else sent you. Choose the reason that fits and add
         anything else worth knowing. The report goes to a moderator; you
         won&rsquo;t normally hear back, and no action is guaranteed &mdash; a

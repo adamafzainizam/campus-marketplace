@@ -69,7 +69,7 @@ export default function TermsPage() {
           agreement you make with another user;
         </li>
         <li>
-          <strong>does not handle payment</strong> of any kind &mdash; there is
+          <strong>does not handle payment</strong>{" "}of any kind &mdash; there is
           no checkout, no escrow, and no refund mechanism, because no money ever
           passes through it;
         </li>
