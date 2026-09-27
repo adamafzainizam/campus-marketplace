@@ -22,7 +22,7 @@
 - No em-dash or en-dash in any visible string you add or touch. Do not change any existing copy except where a step says so. Label wording comes from the existing functions (`statusLabel`, `LISTING_TYPE_LABELS`, `quantityLabel`, `halalDisplayLabel`, `HALAL_NOT_VERIFIED`, `categoryDisplayName`).
 - Do not change routes, server actions, Prisma queries beyond the `select` fields a step names, or `ListingStatusControl`'s behaviour.
 - Do not touch the conversation thread, forms (`ListingForm`, the edit page), admin or legal pages.
-- Every interactive element keeps a visible focus ring. A link inside an `overflow-hidden` card must draw its ring inside itself (`focus-visible:outline-offset-[-3px]`), or the card clips it.
+- Every interactive element keeps a visible focus ring. *Amended after Task 2's review:* a `focus-visible:outline-*` utility never takes effect here, because the global `:focus-visible` rule in `globals.css` is unlayered and beats every layered Tailwind utility. A link inside an `overflow-hidden` card instead hands its ring to the card (`.card-owner:has(> a:focus-visible)`, written unlayered beside the global rule).
 - Tests: relative imports with explicit `.ts` extensions (Gotchas #20, #21, #23).
 - Every task ends with `npm test`, `npx tsc --noEmit`, `npx eslint .`, `npx next build` all green. New classes: grep the compiled CSS at the path `ls .next/static/chunks/*.css` prints (Gotcha #47).
 - Commit messages end with: `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`
