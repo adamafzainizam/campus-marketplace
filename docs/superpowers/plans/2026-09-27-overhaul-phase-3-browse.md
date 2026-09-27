@@ -287,7 +287,10 @@ Inside `@layer components` in `src/app/globals.css`, directly after the `.invite
     line-height: 1.2;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    white-space: nowrap;
+    /* Wraps rather than clipping: "No longer offered" is wider than a
+       phone card's photo well, which has overflow hidden. */
+    max-width: calc(100% - 1rem);
+    text-align: center;
     transform: rotate(-6deg);
   }
 ```
@@ -382,7 +385,7 @@ Replace the `<li key={listing.id}>…</li>` block inside `listings.map` with the
                     </span>
                   )}
                   {listing.type === "SERVICE" && (
-                    <span className="badge badge-outline absolute left-2 top-2 shadow-sm">
+                    <span className="badge badge-outline absolute left-2 top-2 border-content shadow-sm">
                       {LISTING_TYPE_LABELS.SERVICE}
                     </span>
                   )}
