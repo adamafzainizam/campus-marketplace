@@ -57,11 +57,16 @@ describe("no em-dash or en-dash anywhere in this module", () => {
     // is UI copy and has no such exception. Iterating the module namespace
     // rather than a hand-built list means a future export is covered without
     // anyone remembering to add it here.
+    let checked = 0;
     for (const value of Object.values(copy)) {
       for (const line of collectStrings(value)) {
         assert.ok(!/[—–]/.test(line), `dash in: ${line}`);
+        checked += 1;
       }
     }
+    // Guards the guard: if the copy ever became functions or getters, the
+    // loop above would check nothing and pass.
+    assert.ok(checked > 10, `only ${checked} strings were checked`);
   });
 });
 

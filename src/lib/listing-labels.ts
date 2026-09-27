@@ -209,7 +209,7 @@ export function postedAgo(date: Date, now: Date): string {
 
 /** What the shared meta line needs to know. See `ListingMeta`. */
 export type ListingMetaInput = {
-  /** Already resolved for display — the detail page passes the "Other — …" form. */
+  /** Already resolved for display — the detail page passes the "Other: …" form. */
   category: string;
   /** Null for services, which have no condition. */
   condition: ListingCondition | null;
