@@ -32,7 +32,11 @@ export function Skeleton({
  *  A silhouette that no longer matches is worse than none: the layout jumps
  *  when the content lands, and a 7.3s cold start means this is on screen
  *  often. */
-export function ListingCardSkeleton() {
+export function ListingCardSkeleton({
+  withControls = false,
+}: {
+  withControls?: boolean;
+}) {
   return (
     <li className="card overflow-hidden">
       <Skeleton className="aspect-[4/3] w-full border-b-[1.5px] border-line" />
@@ -48,6 +52,12 @@ export function ListingCardSkeleton() {
           <Skeleton className="h-[1lh] w-8 rounded-sm" />
         </div>
       </div>
+      {withControls && (
+        <div className="mx-3 flex gap-2 border-t-[1.5px] border-dashed border-line py-3">
+          <Skeleton className="h-9 w-24 rounded" />
+          <Skeleton className="h-9 w-14 rounded" />
+        </div>
+      )}
     </li>
   );
 }
@@ -60,30 +70,22 @@ export function ListingCardSkeleton() {
  * guess used to be free because the real grid's column count never varied,
  * and stopped being free the moment it did.
  */
-export function ListingGridSkeleton({ count = 6 }: { count?: number }) {
+export function ListingGridSkeleton({
+  count = 6,
+  withControls = false,
+}: {
+  count?: number;
+  withControls?: boolean;
+}) {
   return (
     <ul
       className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5"
       aria-hidden="true"
     >
       {Array.from({ length: count }, (_, i) => (
-        <ListingCardSkeleton key={i} />
+        <ListingCardSkeleton key={i} withControls={withControls} />
       ))}
     </ul>
-  );
-}
-
-export function RowSkeleton() {
-  return (
-    <div className="card flex flex-col gap-4 p-4 sm:flex-row">
-      <Skeleton className="aspect-[4/3] w-32 shrink-0 rounded-lg" />
-      <div className="flex flex-1 flex-col gap-2 py-1">
-        <Skeleton className="h-4 w-1/2 rounded" />
-        <Skeleton className="h-3.5 w-2/3 rounded" />
-        <Skeleton className="h-3.5 w-1/4 rounded" />
-        <Skeleton className="mt-auto h-8 w-40 rounded" />
-      </div>
-    </div>
   );
 }
 

@@ -5,6 +5,7 @@ import { CardPrice } from "@/components/CardPrice";
 import { getImageUrl } from "@/lib/r2";
 import { LISTING_TYPE_LABELS } from "@/lib/listing-labels";
 import { statusLabel } from "@/lib/listing-status";
+import { quantityLabel } from "@/lib/listing-quantity";
 import type {
   ListingCondition,
   ListingStatus,
@@ -36,16 +37,45 @@ export type CardListing = {
  * do, and the two cannot drift. `/listings/mine` used to be a second, wide
  * row design that buyers never saw.
  */
-export function ListingCard({ listing }: { listing: CardListing }) {
+export function ListingCard({
+  listing,
+  controls,
+}: {
+  listing: CardListing;
+  /** The seller's controls. Present only on /listings/mine. */
+  controls?: React.ReactNode;
+}) {
+  if (!controls) {
+    return (
+      <PendingLink
+        href={`/listings/${listing.id}`}
+        className="card card-interactive block overflow-hidden"
+        innerClassName="block"
+        pendingClassName="card-pending"
+      >
+        <CardFace listing={listing} />
+      </PendingLink>
+    );
+  }
+
+  // Controls cannot live inside a link, so the owner's card is a plain card
+  // holding the link and, below it, the controls. It does not lift or press:
+  // half a card moving would tear it. The link draws its focus ring inside
+  // itself, because the card's overflow-hidden would clip one drawn outside.
   return (
-    <PendingLink
-      href={`/listings/${listing.id}`}
-      className="card card-interactive block overflow-hidden"
-      innerClassName="block"
-      pendingClassName="card-pending"
-    >
-      <CardFace listing={listing} />
-    </PendingLink>
+    <div className="card flex h-full flex-col overflow-hidden">
+      <PendingLink
+        href={`/listings/${listing.id}`}
+        className="block focus-visible:outline-offset-[-3px]"
+        innerClassName="block"
+        pendingClassName="card-pending"
+      >
+        <CardFace listing={listing} />
+      </PendingLink>
+      <div className="mx-3 mt-auto flex flex-wrap items-center gap-2 border-t-[1.5px] border-dashed border-line py-3">
+        {controls}
+      </div>
+    </div>
   );
 }
 
@@ -82,6 +112,16 @@ function CardFace({ listing }: { listing: CardListing }) {
         {listing.type === "SERVICE" && (
           <span className="badge badge-outline absolute left-2 top-2 border-content shadow-sm">
             {LISTING_TYPE_LABELS.SERVICE}
+          </span>
+        )}
+
+        {/* How many the seller says they have. Only the owner's
+            view selects quantity, so browse never shows it. A tag
+            rather than a third fact in the meta line, which would
+            put two middle dots on one line. */}
+        {listing.quantity !== undefined && quantityLabel(listing.quantity) && (
+          <span className="badge badge-outline absolute right-2 top-2 border-content shadow-sm">
+            {quantityLabel(listing.quantity)}
           </span>
         )}
 
