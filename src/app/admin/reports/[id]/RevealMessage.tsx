@@ -36,9 +36,9 @@ export function RevealMessage({ messageId }: { messageId: string }) {
             return (
               <li
                 key={message.id}
-                className={`rounded-lg border p-3 text-sm ${
+                className={`rounded border-[1.5px] p-3 text-sm ${
                   isReported
-                    ? "border-[var(--danger)] bg-[var(--danger-subtle)]"
+                    ? "border-danger bg-danger-subtle"
                     : "border-line bg-surface-sunken"
                 }`}
               >

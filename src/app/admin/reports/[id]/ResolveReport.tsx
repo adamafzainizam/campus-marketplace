@@ -33,7 +33,7 @@ export function ResolveReport({ reportId }: { reportId: string }) {
   };
 
   return (
-    <div className="mt-6 border-t border-line pt-4">
+    <div className="mt-6 border-t-[1.5px] border-line pt-4">
       <label htmlFor="resolution-note" className="hint block">
         What did you decide, and why? (at least {MIN_REASON_LENGTH} characters,
         recorded against your name)
