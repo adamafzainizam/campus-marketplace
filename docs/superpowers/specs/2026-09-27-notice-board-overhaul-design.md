@@ -181,6 +181,11 @@ The shared classes are rebuilt on the tokens above, keeping their names so pages
   - Seller line below a dashed 1.5px divider.
   - Seller-only controls (edit, status) and admin takedown keep their current placement, restyled.
 - **`/listings/mine`**: the same card language; the status control sits on each card. Empty state uses `MINE_EMPTY`.
+- *Amended in Phase 4 (from a mockup, 2026-09-27):*
+  - **Detail, not-available state:** a solid ink status tag ("RESERVED", text from `statusLabel()`) leads the tag row, and the one-line explanation sits in a neutral notice. The gallery photo stays at **full strength**, with no stamp: on the detail page the photo is what the reader came to see, whereas on the browse grid the stamp helps a scan skip the item. Chosen over the browse stamp.
+  - **Detail facts:** condition appears once, in the split meta line (`Category · Condition`, recency right). The tags are status (when not available), type and quantity. The halal statement stays a neutral notice, because it must carry `HALAL_NOT_VERIFIED`.
+  - **`/listings/mine`:** the browse card itself, in the browse grid, plus a control strip under a dashed rule holding the status select, Edit and the conversation count. Chosen over restyled rows: one card design sitewide, and sellers see their listings as buyers do. The quantity ("3 available") becomes a tag on the photo, so no meta line carries two middle dots.
+  - Both pages widen from `max-w-3xl` to the browse page's `max-w-5xl`; the detail page's two columns start at `md`.
 
 ### Phase 5: Forms (tokens and components only)
 
