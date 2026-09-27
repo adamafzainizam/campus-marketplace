@@ -6,6 +6,7 @@ import {
   CONDITION_LABELS,
   LISTING_TYPE_LABELS,
   RENTAL_PERIOD_LABELS,
+  cardMetaParts,
   formatPrice,
   listingMetaParts,
   postedAgo,
@@ -297,5 +298,52 @@ describe("listingMetaParts", () => {
       }),
       ["Furniture", "2d ago"],
     );
+  });
+});
+
+describe("cardMetaParts", () => {
+  const now = new Date("2026-08-16T12:00:00Z");
+  const postedAt = new Date("2026-08-14T12:00:00Z"); // "2d ago"
+
+  it("puts category and condition on the left and recency on its own", () => {
+    assert.deepEqual(
+      cardMetaParts({ category: "Books", condition: "GOOD", postedAt, now }),
+      { facts: ["Books", "Good"], recency: "2d ago" },
+    );
+  });
+
+  // The card shows the facts joined by a middle dot and recency in its own
+  // right-aligned slot, so a browse card can never carry more than one dot.
+  it("gives a browse card at most one separator", () => {
+    const { facts } = cardMetaParts({ category: "Books", condition: "GOOD", postedAt, now });
+    assert.equal(facts.join(" · ").split("·").length - 1, 1);
+  });
+
+  it("omits a null condition, as a service has none", () => {
+    assert.deepEqual(
+      cardMetaParts({ category: "Tutoring", condition: null, postedAt, now }),
+      { facts: ["Tutoring"], recency: "2d ago" },
+    );
+  });
+
+  it("appends extras to the facts, not to recency", () => {
+    assert.deepEqual(
+      cardMetaParts({
+        category: "Electronics",
+        condition: "NEW",
+        postedAt,
+        now,
+        extra: ["3 available", null, "  "],
+      }),
+      { facts: ["Electronics", "New", "3 available"], recency: "2d ago" },
+    );
+  });
+
+  // Same data, same vocabulary: the split must not drift from the one-line
+  // form the detail page and /listings/mine still use.
+  it("carries exactly the parts listingMetaParts does", () => {
+    const input = { category: "Furniture", condition: "FAIR" as const, postedAt, now, extra: ["2 available"] };
+    const { facts, recency } = cardMetaParts(input);
+    assert.deepEqual([...facts, recency].sort(), listingMetaParts(input).sort());
   });
 });
