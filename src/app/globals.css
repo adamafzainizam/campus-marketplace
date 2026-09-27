@@ -291,6 +291,11 @@ small, .text-fine {
   outline-offset: 2px;
 }
 
+/* Inbox rows fill an overflow-hidden card, so their ring is drawn inside
+   the row instead of being clipped. Unlayered for the same reason as the
+   rules above. */
+.inbox-row:focus-visible { outline-offset: -3px; }
+
 /* Feedback on pointer-*down*, not on release (§1). Waiting for click to show
    anything is the single thing that makes a UI feel dead. */
 .pressable {

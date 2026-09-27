@@ -190,10 +190,10 @@ export function MessageThread({
                 className={`flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
+                  className={`max-w-[75%] rounded px-3 py-2 text-sm ${
  mine
- ? "bg-highlight text-on-highlight"
- : "bg-surface-sunken border border-line"
+ ? "bg-highlight text-on-highlight border-[1.5px] border-transparent"
+ : "bg-surface-raised border-[1.5px] border-line"
  } ${message.pending ? "opacity-60" : ""}`}
                 >
                   {/* Rendered as text through JSX, so React escapes it. Never
@@ -223,7 +223,7 @@ export function MessageThread({
         </p>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-line pt-4">
+      <form onSubmit={handleSubmit} className="flex gap-2 border-t-[1.5px] border-line pt-4">
         <label htmlFor="message-body" className="sr-only">
           Message
         </label>
