@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { CANONICAL_ORIGIN } from "@/lib/canonical-host";
 import { Archivo } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -31,6 +32,16 @@ export const metadata: Metadata = {
   },
   description:
     "Buy, sell, and rent secondhand items within the German-Malaysian Institute community.",
+  // Shared-link previews need absolute URLs, and this is the one address
+  // sign-in works on (src/lib/canonical-host.ts). The image comes from
+  // opengraph-image.tsx beside this file.
+  metadataBase: new URL(CANONICAL_ORIGIN),
+  openGraph: {
+    siteName: "GMI Campus Marketplace",
+    type: "website",
+    locale: "en_MY",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 /**
