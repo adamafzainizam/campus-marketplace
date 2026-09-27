@@ -40,7 +40,7 @@ export function ContactSellerButton({ listingId }: { listingId: string }) {
         type="button"
         onClick={handleClick}
         disabled={busy}
-        className="btn btn-primary w-full sm:w-auto"
+        className="btn btn-primary"
       >
         {busy ? "Opening chat..." : "Message seller"}
       </button>

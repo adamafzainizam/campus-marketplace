@@ -18,10 +18,10 @@ export default function Loading() {
               <Skeleton className="h-[1lh] w-2/3 rounded" />
             </div>
             <div className="flex gap-2">
-              <Skeleton className="h-5 w-16 rounded-sm" />
-              <Skeleton className="h-5 w-16 rounded-sm" />
+              <Skeleton className="h-[1.5625rem] w-16 rounded-sm" />
+              <Skeleton className="h-[1.5625rem] w-16 rounded-sm" />
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col leading-relaxed">
               <Skeleton className="h-[1lh] w-full rounded" />
               <Skeleton className="h-[1lh] w-full rounded" />
               <Skeleton className="h-[1lh] w-2/3 rounded" />

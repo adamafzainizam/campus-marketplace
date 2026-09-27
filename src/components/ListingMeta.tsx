@@ -13,6 +13,10 @@ import { cardMetaParts, listingMetaParts, type ListingMetaInput } from "@/lib/li
  * `layout="split"` is the browse card's form: the facts on the left, recency
  * right-aligned, so the line never carries more than one middle dot.
  *
+ * `wrap` (split layout only, default false): the card truncates its facts to
+ * one line, but the detail page has room to be specific and needs to show
+ * the "Other" category spelled out in full, so it wraps instead.
+ *
  * A server component: `new Date()` is evaluated once during the render that
  * produced the listings, so nothing re-renders on the client and there is no
  * hydration mismatch to reconcile.
@@ -20,18 +24,26 @@ import { cardMetaParts, listingMetaParts, type ListingMetaInput } from "@/lib/li
 export function ListingMeta({
   now = new Date(),
   layout = "line",
+  wrap = false,
   className,
   ...input
 }: Omit<ListingMetaInput, "now"> & {
   now?: Date;
   layout?: "line" | "split";
+  wrap?: boolean;
   className?: string;
 }) {
   if (layout === "split") {
     const { facts, recency } = cardMetaParts({ ...input, now });
     return (
-      <p className={`flex items-baseline justify-between gap-2 text-fine ${className ?? ""}`}>
-        <span className="min-w-0 truncate text-secondary">{facts.join(" · ")}</span>
+      <p
+        className={`flex justify-between gap-2 text-fine ${
+          wrap ? "items-start" : "items-baseline"
+        } ${className ?? ""}`}
+      >
+        <span className={`min-w-0 text-secondary ${wrap ? "" : "truncate"}`}>
+          {facts.join(" · ")}
+        </span>
         <span className="shrink-0 text-tertiary">{recency}</span>
       </p>
     );

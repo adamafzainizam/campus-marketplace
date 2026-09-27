@@ -100,10 +100,11 @@ export default async function ListingDetailPage({
           </p>
           {/* The same split line as the card: category and condition on the
               left, recency right. Condition lives here only, not as a tag
-              too. text-fine at secondary strength rather than the card's
-              default, because here it sits among body-scale prose. */}
+              too. It wraps here instead of truncating, so the full "Other"
+              description shows rather than clipping to an ellipsis. */}
           <ListingMeta
             layout="split"
+            wrap
             category={categoryDisplayName(
               listing.category.name,
               listing.category.slug,
