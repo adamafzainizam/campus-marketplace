@@ -279,6 +279,18 @@ small, .text-fine {
   outline-offset: 2px;
 }
 
+/* The seller's card holds a link and, below it, controls, so the link
+   cannot be the card. Its ring would be clipped by the card's
+   overflow-hidden and painted over by the photo, so the card wears it
+   instead. Unlayered on purpose: the global :focus-visible above is
+   unlayered too, and a layered rule (or any Tailwind focus utility) would
+   silently lose to it. */
+.card-owner > a:focus-visible { outline: none; }
+.card-owner:has(> a:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
 /* Feedback on pointer-*down*, not on release (§1). Waiting for click to show
    anything is the single thing that makes a UI feel dead. */
 .pressable {

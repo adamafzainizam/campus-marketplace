@@ -60,13 +60,15 @@ export function ListingCard({
 
   // Controls cannot live inside a link, so the owner's card is a plain card
   // holding the link and, below it, the controls. It does not lift or press:
-  // half a card moving would tear it. The link draws its focus ring inside
-  // itself, because the card's overflow-hidden would clip one drawn outside.
+  // half a card moving would tear it. The link's own ring would be clipped
+  // by the card's overflow-hidden and painted over by the photo well, so
+  // the ring is suppressed on the link and drawn on the card instead —
+  // see `.card-owner` in globals.css.
   return (
-    <div className="card flex h-full flex-col overflow-hidden">
+    <div className="card card-owner flex h-full flex-col overflow-hidden">
       <PendingLink
         href={`/listings/${listing.id}`}
-        className="block focus-visible:outline-offset-[-3px]"
+        className="block"
         innerClassName="block"
         pendingClassName="card-pending"
       >
@@ -118,12 +120,18 @@ function CardFace({ listing }: { listing: CardListing }) {
         {/* How many the seller says they have. Only the owner's
             view selects quantity, so browse never shows it. A tag
             rather than a third fact in the meta line, which would
-            put two middle dots on one line. */}
-        {listing.quantity !== undefined && quantityLabel(listing.quantity) && (
-          <span className="badge badge-outline absolute right-2 top-2 border-content shadow-sm">
-            {quantityLabel(listing.quantity)}
-          </span>
-        )}
+            put two middle dots on one line. Bottom right, not top
+            right, so it doesn't collide with the type tag opposite
+            the top-left corner on a narrow card. Withheld once the
+            listing isn't AVAILABLE or RESERVED: "3 available" on a
+            sold listing contradicts itself. */}
+        {(listing.status === "AVAILABLE" || listing.status === "RESERVED") &&
+          listing.quantity !== undefined &&
+          quantityLabel(listing.quantity) && (
+            <span className="badge badge-outline absolute bottom-2 right-2 border-content shadow-sm">
+              {quantityLabel(listing.quantity)}
+            </span>
+          )}
 
         {/* Sold and reserved stay on the board, stamped: evidence
             the marketplace is used. The photo fades, in colour, so

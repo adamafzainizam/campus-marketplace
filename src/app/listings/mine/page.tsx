@@ -68,11 +68,13 @@ export default async function MyListingsPage() {
                 listing={listing}
                 controls={
                   <>
-                    <ListingStatusControl
-                      listingId={listing.id}
-                      status={listing.status}
-                      type={listing.type}
-                    />
+                    <div className="min-w-0 max-w-full [&_select]:max-w-full">
+                      <ListingStatusControl
+                        listingId={listing.id}
+                        status={listing.status}
+                        type={listing.type}
+                      />
+                    </div>
                     <Link
                       href={`/listings/${listing.id}/edit`}
                       className="btn btn-secondary btn-sm"

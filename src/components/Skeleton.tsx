@@ -38,7 +38,7 @@ export function ListingCardSkeleton({
   withControls?: boolean;
 }) {
   return (
-    <li className="card overflow-hidden">
+    <li className={`card overflow-hidden${withControls ? " flex h-full flex-col" : ""}`}>
       <Skeleton className="aspect-[4/3] w-full border-b-[1.5px] border-line" />
       <div className="flex flex-col gap-1 p-3">
         <div className="text-sm leading-snug sm:text-base">
@@ -53,8 +53,8 @@ export function ListingCardSkeleton({
         </div>
       </div>
       {withControls && (
-        <div className="mx-3 flex gap-2 border-t-[1.5px] border-dashed border-line py-3">
-          <Skeleton className="h-9 w-24 rounded" />
+        <div className="mx-3 mt-auto flex gap-2 border-t-[1.5px] border-dashed border-line py-3">
+          <Skeleton className="h-9 w-28 rounded" />
           <Skeleton className="h-9 w-14 rounded" />
         </div>
       )}
