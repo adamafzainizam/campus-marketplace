@@ -778,6 +778,14 @@ small, .text-fine {
     transform: rotate(-6deg);
   }
 
+  /* The 320px floor. "Everything" at 1rem of padding needs ~298px of a
+     288px column, and "No longer offered" breaks into three lines on a
+     ~136px card, covering the Service tag in the same corner. */
+  @media (width < 22.5rem) {
+    .segment { padding-inline: 0.25rem; }
+    .stamp { font-size: 0.75rem; padding-inline: 0.375rem; }
+  }
+
   /* The theme button ships both icons and both labels and hides one pair,
      so its markup never depends on state the server cannot know. These
      rules are the only thing that makes it a *toggle* rather than two

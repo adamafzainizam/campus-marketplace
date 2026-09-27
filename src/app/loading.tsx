@@ -25,8 +25,8 @@ export default function Loading() {
           <Skeleton className="h-[2.875rem] min-w-0 flex-1 rounded" />
           <Skeleton className="h-[2.875rem] w-full rounded sm:w-24" />
         </div>
-        <Skeleton className="mb-3 h-[2.875rem] w-full rounded sm:w-[23rem]" />
-        <div className="rail mb-6 flex gap-2 overflow-hidden pb-1">
+        <Skeleton className="mb-3 h-[2.9375rem] w-full rounded sm:w-[23rem]" />
+        <div className="rail mb-6 flex gap-2 overflow-hidden">
           {Array.from({ length: 6 }, (_, i) => (
             <Skeleton key={i} className="h-[2.25rem] w-24 shrink-0 rounded" />
           ))}

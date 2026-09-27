@@ -215,7 +215,10 @@ export type ListingMetaInput = {
   condition: ListingCondition | null;
   postedAt: Date;
   now: Date;
-  /** Page-specific facts appended after recency, nulls dropped. */
+  /**
+   * Page-specific facts, nulls dropped: after recency in `listingMetaParts`,
+   * at the end of the facts in `cardMetaParts`.
+   */
   extra?: readonly (string | null | undefined)[];
 };
 
