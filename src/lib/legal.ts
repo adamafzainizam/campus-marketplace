@@ -21,8 +21,12 @@
  * The Personal Data Protection Act 2010 requires a route for a data subject to
  * reach whoever holds their data. An address nobody reads is not that route, so
  * this is a real inbox rather than a `noreply@`.
+ *
+ * It is the project's own mailbox rather than the builder's personal one, so it
+ * can be handed on to whoever moderates the site next, and so a personal address
+ * is not printed in the footer of every page.
  */
-export const LEGAL_CONTACT_EMAIL = "m.adamafzainizam@gmail.com";
+export const LEGAL_CONTACT_EMAIL = "gmicmp@proton.me";
 
 /**
  * When the current text took effect.
