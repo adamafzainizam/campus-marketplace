@@ -381,9 +381,10 @@ small, .text-fine {
     --shadow-color: var(--control-line);
   }
   .btn-primary, .btn-secondary, .field, .chip, .card, .badge-outline,
-  .notice, .dropzone, .invite-tile {
+  .notice, .dropzone, .invite-tile, .segmented {
     border-width: 2px;
   }
+  .segment + .segment { border-left-width: 2px; }
 }
 
 /* ==========================================================================
@@ -572,6 +573,72 @@ small, .text-fine {
   .chip-selected:hover {
     background: var(--highlight);
     color: var(--on-highlight);
+  }
+
+  /* The one highlighted word in the home headline, marked the way you would
+     mark it on paper. A fill with ink on it, never yellow text. clone keeps
+     the padding on both halves if the word ever wraps. */
+  .headline-mark {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    padding: 0 0.12em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* The listing-type filter. Four answers to one question, so one control
+     rather than four loose chips: a single bordered box with hairlines
+     between the answers and the current one filled. Each segment is a link,
+     so it works without JavaScript and keeps its URL. The box does not press
+     in; a segment darkens instead, because moving a quarter of a control
+     would tear it. Full width with equal segments on a phone, so four labels
+     fit a 343px column without scrolling. */
+  .segmented {
+    display: inline-flex;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-sm);
+  }
+  .segment {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background-color var(--response-fast) var(--ease-out);
+    touch-action: manipulation;
+  }
+  .segment + .segment { border-left: 1.5px solid var(--line); }
+  .segment:first-child {
+    border-top-left-radius: calc(var(--radius) - 1.5px);
+    border-bottom-left-radius: calc(var(--radius) - 1.5px);
+  }
+  .segment:last-child {
+    border-top-right-radius: calc(var(--radius) - 1.5px);
+    border-bottom-right-radius: calc(var(--radius) - 1.5px);
+  }
+  /* Lift the focused segment so its ring is not painted over by the next
+     segment's background. */
+  .segment:focus-visible { z-index: 1; }
+  .segment:active { background: var(--surface-sunken); }
+  @media (hover: hover) {
+    .segment:hover { background: var(--surface-sunken); }
+  }
+  .segment-selected,
+  .segment-selected:hover,
+  .segment-selected:active {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+  @media (width < 40rem) {
+    .segmented { display: flex; width: 100%; }
+    .segment { flex: 1 1 0; padding-inline: 0.5rem; }
   }
 
   .card {
