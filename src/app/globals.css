@@ -674,6 +674,40 @@ small, .text-fine {
     .invite-tile:hover { border-style: solid; color: var(--text); }
   }
 
+  /* A photo well with nothing in it. Diagonal stripes, like the blank
+     space on a board where a notice has not been pinned yet, so absence
+     reads as a state rather than as an image that failed to load. Two tones
+     of the sunken surface: no literal colour, so both themes follow. */
+  .photo-missing {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--surface-sunken) 0 10px,
+      color-mix(in oklab, var(--surface-sunken), var(--text) 6%) 10px 20px
+    );
+  }
+
+  /* Sold, Reserved, Rented out. A label pinned over the photo, tilted like
+     something stuck on by hand. Its border is --text rather than --line so
+     it reads as ink in both themes (--line is a quiet grey in dark), and it
+     carries its own offset shadow so it sits *on* the card, not in it. The
+     tilt is static, so reduced motion has nothing to remove. */
+  .stamp {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border: 2px solid var(--text);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.875rem;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: rotate(-6deg);
+  }
+
   /* The theme button ships both icons and both labels and hides one pair,
      so its markup never depends on state the server cannot know. These
      rules are the only thing that makes it a *toggle* rather than two

@@ -218,32 +218,41 @@ export default async function Home({
                 {/* 4:3 rather than 1:1. A square crops phone photographs
                     hardest, and it made a listing with no photo a large void
                     instead of a small one. */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-sunken">
+                <div className="relative aspect-[4/3] w-full overflow-hidden border-b-[1.5px] border-line bg-surface-sunken">
                   {listing.imageKeys[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={getImageUrl(listing.imageKeys[0])}
                       alt=""
                       loading="lazy"
-                      className="h-full w-full object-cover"
+                      className={`h-full w-full object-cover${
+                        listing.status === "AVAILABLE" ? "" : " opacity-45"
+                      }`}
                     />
                   ) : (
-                    <NoPhoto />
+                    <NoPhoto bare={listing.status !== "AVAILABLE"} />
                   )}
 
+                  {/* Tags say what kind of listing this is. A sale is the
+                      default and carries none, so a tag always means
+                      something. */}
                   {listing.type === "RENT" && (
                     <span className="badge badge-highlight absolute left-2 top-2 shadow-sm">
-                      For rent
+                      {LISTING_TYPE_LABELS.RENT}
+                    </span>
+                  )}
+                  {listing.type === "SERVICE" && (
+                    <span className="badge badge-outline absolute left-2 top-2 shadow-sm">
+                      {LISTING_TYPE_LABELS.SERVICE}
                     </span>
                   )}
 
-                  {/* Sold and reserved stay visible, marked — evidence the
-                      marketplace is used. Dimmed rather than hidden. */}
+                  {/* Sold and reserved stay on the board, stamped: evidence
+                      the marketplace is used. The photo fades, in colour, so
+                      the stamp is what the eye lands on. */}
                   {listing.status !== "AVAILABLE" && (
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <span className="badge bg-white text-neutral-900">
-                        {statusLabel(listing.status, listing.type)}
-                      </span>
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="stamp">{statusLabel(listing.status, listing.type)}</span>
                     </span>
                   )}
                 </div>
@@ -252,15 +261,15 @@ export default async function Home({
                     relationship between three lines of one block rather than
                     a gap between page groups. */}
                 <div className="flex flex-col gap-1 p-3">
-                  <p className="truncate text-sm leading-snug font-semibold">
+                  <p className="truncate text-sm leading-snug font-semibold sm:text-base">
                     {listing.title}
                   </p>
                   <CardPrice listing={listing} />
                   <ListingMeta
+                    layout="split"
                     category={listing.category.name}
                     condition={listing.condition}
                     postedAt={listing.createdAt}
-                    className="truncate text-fine text-tertiary"
                   />
                 </div>
               </PendingLink>
