@@ -90,7 +90,7 @@ export default async function ReportDetailPage({
           </div>
         ) : (
           <p className="mt-2 text-sm text-secondary">
-            That listing no longer exists. The report is kept anyway &mdash; it
+            That listing no longer exists. The report is kept anyway, because it
             is the record of somebody raising a concern.
           </p>
         ))}
@@ -138,7 +138,7 @@ export default async function ReportDetailPage({
       {report.status === ReportStatus.OPEN ? (
         <ResolveReport reportId={report.id} />
       ) : (
-        <div className="mt-6 border-t border-line pt-4">
+        <div className="mt-6 border-t-[1.5px] border-line pt-4">
           <p className="text-sm">
             Closed as <strong>{reportStatusLabel(report.status)}</strong>
             {report.resolvedBy && <> by {report.resolvedBy.name}</>}

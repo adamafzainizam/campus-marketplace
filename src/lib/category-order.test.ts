@@ -165,7 +165,7 @@ describe("categoryDisplayName", () => {
   it("shows what the seller said for the catch-all", () => {
     assert.equal(
       categoryDisplayName("Other", OTHER_CATEGORY_SLUG, "Bicycle parts"),
-      "Other — Bicycle parts",
+      "Other: Bicycle parts",
     );
   });
 

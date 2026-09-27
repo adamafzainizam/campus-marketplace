@@ -72,7 +72,7 @@ export const SIGNIN_INTRO =
  */
 export const INBOX_EMPTY = {
   title: "No conversations yet",
-  body: "When someone wants your stuff, it lands here — not buried under forty messages.",
+  body: "When someone wants your stuff, it lands here, not buried under forty messages.",
 };
 
 /* --------------------------------------------------------------- the invite tile */

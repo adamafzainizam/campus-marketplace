@@ -266,11 +266,7 @@ export function ListingForm({
           {Object.values(ListingType).map((value) => (
             <label
               key={value}
-              className={`chip cursor-pointer ${
- type === value
- ? "chip-selected"
- : "border-line"
- }`}
+              className={`chip cursor-pointer${type === value ? " chip-selected" : ""}`}
             >
               <input
                 type="radio"
@@ -346,10 +342,10 @@ export function ListingForm({
               advertised, and the Acceptable Use Policy already bans it. */}
           <p className="notice notice-neutral mt-1">
             Tutoring, printing, repairs and skills are all welcome. Writing or
-            completing someone else&rsquo;s assignment is not &mdash; see the{" "}
+            completing someone else&rsquo;s assignment is not: see the{" "}
             <Link
               href={legalPath("acceptable-use")}
-              className="underline underline-offset-2"
+              className="link"
             >
               Acceptable Use Policy
             </Link>
@@ -491,7 +487,7 @@ export function ListingForm({
             />
             <p className="hint">
               Buyers see &ldquo;{quantity || "0"} available&rdquo;. Nothing is
-              counted automatically &mdash; no money goes through this site, so
+              counted automatically. No money goes through this site, so
               you&rsquo;ll need to update this yourself as they go.
             </p>
           </>
@@ -508,7 +504,7 @@ export function ListingForm({
 
       {stage.kind === "uploading" && (
         <div className="field-group" aria-live="polite">
-          <div className="h-1.5 w-full overflow-hidden rounded-sm bg-surface-sunken">
+          <div className="h-2 w-full overflow-hidden rounded-sm border-[1.5px] border-line bg-surface-sunken">
             <div
               className="h-full bg-action transition-[width] duration-200"
               style={{ width: `${stage.percent ?? 0}%` }}

@@ -22,7 +22,7 @@ export default async function MessagesPage() {
 
       {conversations.length === 0 ? (
         <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center sm:py-16">
-          <p className="text-display">{INBOX_EMPTY.title}</p>
+          <h2 className="text-display">{INBOX_EMPTY.title}</h2>
           <p className="max-w-sm text-fine text-secondary">{INBOX_EMPTY.body}</p>
           {/* Browse rather than a listing: there is nothing to message about
               until you have found something. */}
@@ -31,18 +31,18 @@ export default async function MessagesPage() {
           </Link>
         </div>
       ) : (
-        <ul className="card flex flex-col divide-y divide-line overflow-hidden">
+        <ul className="card flex flex-col divide-y-[1.5px] divide-line overflow-hidden">
           {conversations.map((conversation) => (
             <li key={conversation.id}>
               <Link
                 href={`/messages/${conversation.id}`}
-                className="flex items-center gap-4 px-4 py-4"
+                className="inbox-row flex items-center gap-4 px-4 py-4 transition-[background-color] hover:bg-surface-sunken"
               >
                 {/* Same treatment as every other listing thumbnail on the
                     site. It was a 56px square that rendered a blank grey box
                     when the listing had no photograph — the one state this
                     site has most of. */}
-                <div className="aspect-[4/3] w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-sunken">
+                <div className="aspect-[4/3] w-20 shrink-0 overflow-hidden rounded-sm border-[1.5px] border-line bg-surface-sunken">
                   {conversation.listingImageKey ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

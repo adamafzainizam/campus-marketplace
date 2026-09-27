@@ -36,9 +36,9 @@ export function RevealMessage({ messageId }: { messageId: string }) {
             return (
               <li
                 key={message.id}
-                className={`rounded-lg border p-3 text-sm ${
+                className={`rounded border-[1.5px] p-3 text-sm ${
                   isReported
-                    ? "border-[var(--danger)] bg-[var(--danger-subtle)]"
+                    ? "border-danger bg-danger-subtle"
                     : "border-line bg-surface-sunken"
                 }`}
               >
@@ -69,7 +69,7 @@ export function RevealMessage({ messageId }: { messageId: string }) {
         This shows a private message. Doing so is recorded in the audit log
         against your name, with the reason &ldquo;viewed in response to a
         report&rdquo;. Only the reported message and {MESSAGE_CONTEXT_RADIUS}{" "}
-        either side are read &mdash; never the whole conversation.
+        either side are read, never the whole conversation.
       </p>
 
       {error && (

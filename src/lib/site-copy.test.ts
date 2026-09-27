@@ -1,6 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 
+import * as copy from "./site-copy.ts";
 import {
   BOARD_INVITE,
   EMPTY_NO_MATCHES,
@@ -15,6 +16,21 @@ import {
   SIGNIN_HEADLINE,
   SIGNIN_INTRO,
 } from "./site-copy.ts";
+
+/**
+ * Walks every exported value, recursing into plain objects, and collects the
+ * strings found at the leaves. Recursive so a new export — or a new field on
+ * an existing one, like `INBOX_EMPTY.body` — is covered automatically rather
+ * than needing to be added to a hand-maintained list.
+ */
+function collectStrings(value: unknown, out: string[] = []): string[] {
+  if (typeof value === "string") {
+    out.push(value);
+  } else if (value && typeof value === "object") {
+    for (const child of Object.values(value)) collectStrings(child, out);
+  }
+  return out;
+}
 
 const everything = [
   HOME_HEADLINE,
@@ -34,6 +50,25 @@ const everything = [
   BOARD_INVITE.body,
   BOARD_INVITE.cta,
 ];
+
+describe("no em-dash or en-dash anywhere in this module", () => {
+  test("every exported string, at any depth, is free of — and –", () => {
+    // Legal copy is allowed to keep its dashes (spec section 3); this module
+    // is UI copy and has no such exception. Iterating the module namespace
+    // rather than a hand-built list means a future export is covered without
+    // anyone remembering to add it here.
+    let checked = 0;
+    for (const value of Object.values(copy)) {
+      for (const line of collectStrings(value)) {
+        assert.ok(!/[—–]/.test(line), `dash in: ${line}`);
+        checked += 1;
+      }
+    }
+    // Guards the guard: if the copy ever became functions or getters, the
+    // loop above would check nothing and pass.
+    assert.ok(checked > 10, `only ${checked} strings were checked`);
+  });
+});
 
 describe("voice rules", () => {
   test("nothing shouts", () => {

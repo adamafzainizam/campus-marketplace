@@ -51,6 +51,18 @@ describe("REPORT_REASONS", () => {
   });
 });
 
+describe("no em-dash or en-dash in any report reason label or hint", () => {
+  it("checks every reason", () => {
+    const lines = [
+      ...Object.values(ReportReason).map(reportReasonLabel),
+      ...Object.values(ReportReason).map(reportReasonHint),
+    ];
+    for (const line of lines) {
+      assert.ok(!/[—–]/.test(line), `dash in: ${line}`);
+    }
+  });
+});
+
 describe("validateReportReason", () => {
   it("accepts every real reason", () => {
     for (const reason of Object.values(ReportReason)) {

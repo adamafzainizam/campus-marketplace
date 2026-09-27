@@ -92,7 +92,7 @@ export function reportReasonHint(reason: ReportReason): string {
     case ReportReason.IMPERSONATION:
       return "Pretending to be someone else, or to be GMI staff.";
     case ReportReason.OTHER:
-      return "Anything else — please describe it below.";
+      return "Anything else. Please describe it below.";
   }
 }
 

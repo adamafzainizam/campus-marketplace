@@ -27,7 +27,7 @@ export function ListingGallery({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="aspect-square w-full overflow-hidden rounded-lg border border-line bg-surface-sunken shadow-sm">
+      <div className="aspect-square w-full overflow-hidden rounded border-[1.5px] border-line bg-surface-sunken shadow-md">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={active} alt={title} className="h-full w-full object-cover" />
       </div>

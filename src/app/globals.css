@@ -279,6 +279,23 @@ small, .text-fine {
   outline-offset: 2px;
 }
 
+/* The seller's card holds a link and, below it, controls, so the link
+   cannot be the card. Its ring would be clipped by the card's
+   overflow-hidden and painted over by the photo, so the card wears it
+   instead. Unlayered on purpose: the global :focus-visible above is
+   unlayered too, and a layered rule (or any Tailwind focus utility) would
+   silently lose to it. */
+.card-owner > a:focus-visible { outline: none; }
+.card-owner:has(> a:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Inbox rows fill an overflow-hidden card, so their ring is drawn inside
+   the row instead of being clipped. Unlayered for the same reason as the
+   rules above. */
+.inbox-row:focus-visible { outline-offset: -3px; }
+
 /* Feedback on pointer-*down*, not on release (§1). Waiting for click to show
    anything is the single thing that makes a UI feel dead. */
 .pressable {
@@ -544,6 +561,17 @@ small, .text-fine {
     color: var(--text);
   }
 
+  /* A state that overrides everything else about the listing (Reserved,
+     Sold). Solid ink, the loudest tag there is without using the accent. */
+  .badge-ink {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--surface);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   /* Chips are a rail of filters; the selected one is filled, not merely
      outlined, so the current state is obvious at a glance. */
   .chip {
@@ -574,6 +602,18 @@ small, .text-fine {
     background: var(--highlight);
     color: var(--on-highlight);
   }
+
+  /* A chip that wraps a visually hidden radio: the ring goes on the chip,
+     because the focused input is invisible. Same pattern as .dropzone. */
+  .chip:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* A chip that is a form control (it wraps a radio) needs the control
+     border, which meets 3:1; the browse filter chips are links and keep
+     the decorative --line. */
+  .chip:has(input) { border-color: var(--control-line); }
 
   /* The one highlighted word in the home headline, marked the way you would
      mark it on paper. A fill with ink on it, never yellow text. clone keeps
@@ -635,6 +675,15 @@ small, .text-fine {
   .segment-selected:active {
     background: var(--highlight);
     color: var(--on-highlight);
+  }
+  /* Forced colours drop the highlighter fill, so the selected chip or
+     segment would look like the rest. An underline survives. */
+  @media (forced-colors: active) {
+    .chip-selected,
+    .segment-selected {
+      text-decoration: underline 2px;
+      text-underline-offset: 0.2em;
+    }
   }
   @media (width < 40rem) {
     .segmented { display: flex; width: 100%; }
