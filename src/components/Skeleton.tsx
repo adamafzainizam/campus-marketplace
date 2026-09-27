@@ -22,18 +22,22 @@ export function Skeleton({
   return <div className={`skeleton ${className}`} style={style} aria-hidden="true" />;
 }
 
-/** Matches the browse grid's card proportions exactly — a bordered card with
- *  a 4:3 image, a title, a price and a meta line. A silhouette that no longer
- *  matches is worse than none: the layout jumps when the content lands, and a
- *  7.3s cold start means this is on screen often. */
+/** Matches the browse card exactly: a bordered, shadowed card with a 4:3
+ *  photo well ruled off at the bottom, a title, a price, and the split meta
+ *  row (facts left, recency right). A silhouette that no longer matches is
+ *  worse than none: the layout jumps when the content lands, and a 7.3s cold
+ *  start means this is on screen often. */
 export function ListingCardSkeleton() {
   return (
     <li className="card overflow-hidden">
-      <Skeleton className="aspect-[4/3] w-full" />
+      <Skeleton className="aspect-[4/3] w-full border-b-[1.5px] border-line" />
       <div className="flex flex-col gap-1 p-3">
-        <Skeleton className="h-4 w-3/4 rounded" />
-        <Skeleton className="h-5 w-2/5 rounded" />
-        <Skeleton className="h-3.5 w-4/5 rounded" />
+        <Skeleton className="h-4 w-3/4 rounded-sm sm:h-5" />
+        <Skeleton className="h-5 w-2/5 rounded-sm" />
+        <div className="flex justify-between gap-2">
+          <Skeleton className="h-3.5 w-1/2 rounded-sm" />
+          <Skeleton className="h-3.5 w-8 rounded-sm" />
+        </div>
       </div>
     </li>
   );
