@@ -598,6 +598,13 @@ small, .text-fine {
     color: var(--on-highlight);
   }
 
+  /* A chip that wraps a visually hidden radio: the ring goes on the chip,
+     because the focused input is invisible. Same pattern as .dropzone. */
+  .chip:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
   /* The one highlighted word in the home headline, marked the way you would
      mark it on paper. A fill with ink on it, never yellow text. clone keeps
      the padding on both halves if the word ever wraps. */

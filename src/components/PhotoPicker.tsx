@@ -195,7 +195,7 @@ export function PhotoPicker({
                 <img
                   src={photo.url}
                   alt=""
-                  className="aspect-square w-full rounded-lg border border-line object-cover shadow-sm"
+                  className="aspect-square w-full rounded-sm border-[1.5px] border-line object-cover"
                 />
                 {index === 0 && (
                   <span className="badge badge-highlight absolute left-1 top-1">
@@ -231,7 +231,7 @@ export function PhotoPicker({
 
       {photos.length > 0 && (
         <p className="hint">
-          The first photo is the cover — it is the one shown on the browse page
+          The first photo is the cover. It is the one shown on the browse page
           and in messages.
         </p>
       )}
