@@ -791,6 +791,8 @@ export default function Loading() {
 }
 ```
 
+> *Amended after review:* the bar heights above are glyph sizes, not line boxes, so the page would still shift 30-60px when content lands. Text bars are sized with `h-[1lh]` inside a wrapper carrying the real type classes (title, `.text-price`, `.text-fine`, `h1` scale with `h-[2lh] sm:h-[1lh]`, tagline); field, button and segmented bars are `h-[2.875rem]`; the rail wrapper gets `.rail` plus bottom padding matching the real rail; the segmented bar is `sm:w-[23rem]`. The signed-out sign-in line is not mirrored, because `loading.tsx` cannot know the session.
+
 - [ ] **Step 3: Verify**
 
 Run: `npm test && npx tsc --noEmit && npx eslint . && npx next build`
