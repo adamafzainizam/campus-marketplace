@@ -24,19 +24,28 @@ export function Skeleton({
 
 /** Matches the browse card exactly: a bordered, shadowed card with a 4:3
  *  photo well ruled off at the bottom, a title, a price, and the split meta
- *  row (facts left, recency right). A silhouette that no longer matches is
- *  worse than none: the layout jumps when the content lands, and a 7.3s cold
- *  start means this is on screen often. */
+ *  row (facts left, recency right). Each bar is sized to `1lh` inside a
+ *  wrapper carrying the real type classes, not to a guessed pixel height —
+ *  a bar sized to glyph height rather than line-box height is a few pixels
+ *  short of the text it stands in for, and at three bars a card that looks
+ *  fine in isolation adds up to a real page shift once real content lands.
+ *  A silhouette that no longer matches is worse than none: the layout jumps
+ *  when the content lands, and a 7.3s cold start means this is on screen
+ *  often. */
 export function ListingCardSkeleton() {
   return (
     <li className="card overflow-hidden">
       <Skeleton className="aspect-[4/3] w-full border-b-[1.5px] border-line" />
       <div className="flex flex-col gap-1 p-3">
-        <Skeleton className="h-4 w-3/4 rounded-sm sm:h-5" />
-        <Skeleton className="h-5 w-2/5 rounded-sm" />
-        <div className="flex justify-between gap-2">
-          <Skeleton className="h-3.5 w-1/2 rounded-sm" />
-          <Skeleton className="h-3.5 w-8 rounded-sm" />
+        <div className="text-sm leading-snug sm:text-base">
+          <Skeleton className="h-[1lh] w-3/4 rounded-sm" />
+        </div>
+        <div className="text-price">
+          <Skeleton className="h-[1lh] w-2/5 rounded-sm" />
+        </div>
+        <div className="flex justify-between gap-2 text-fine">
+          <Skeleton className="h-[1lh] w-1/2 rounded-sm" />
+          <Skeleton className="h-[1lh] w-8 rounded-sm" />
         </div>
       </div>
     </li>
