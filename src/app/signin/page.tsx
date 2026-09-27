@@ -39,66 +39,68 @@ export default async function SignInPage({
     <div className="mx-auto w-full max-w-lg px-4 py-6 sm:px-6 sm:py-10">
       <Breadcrumbs items={[{ label: "Sign in" }]} />
 
-      <h1 className="mb-3">{SIGNIN_HEADLINE}</h1>
+      <div className="card p-6 sm:p-8">
+        <h1 className="mb-3">{SIGNIN_HEADLINE}</h1>
 
-      <p className="mb-6 text-sm text-secondary">
-        {SIGNIN_INTRO}{" "}
-        You&rsquo;ll need to sign in with your{" "}
-        <strong className="font-medium text-content">
-          {ALLOWED_DOMAIN_LABEL}
-        </strong>{" "}
-        Google account &mdash; including student addresses like{" "}
-        <span className="whitespace-nowrap">{subdomainLabel("student")}</span>.
-        Personal Gmail accounts can&rsquo;t be used.
-      </p>
-
-      {error && (
-        <p
-          role="alert"
-          className="notice notice-danger mb-6"
-        >
-          {messageFor(error)}
+        <p className="mb-6 text-sm text-secondary">
+          {SIGNIN_INTRO}{" "}
+          You&rsquo;ll need to sign in with your{" "}
+          <strong className="font-medium text-content">
+            {ALLOWED_DOMAIN_LABEL}
+          </strong>{" "}
+          Google account, including student addresses like{" "}
+          <span className="whitespace-nowrap">{subdomainLabel("student")}</span>.
+          Personal Gmail accounts can&rsquo;t be used.
         </p>
-      )}
 
-      <form
-        action={async () => {
-          "use server";
-          await signIn("google", { redirectTo: safeInternalPath(callbackUrl) });
-        }}
-      >
-        <button
-          type="submit"
-          className="btn btn-primary w-full"
-        >
-          Continue with Google
-        </button>
-      </form>
+        {error && (
+          <p
+            role="alert"
+            className="notice notice-danger mb-6"
+          >
+            {messageFor(error)}
+          </p>
+        )}
 
-      {/*
-        Stated before the account picker, not after it. Consent given after the
-        fact is not consent, and this is also the last moment where somebody
-        can decline without a row already existing in the database.
-      */}
-      <p className="mt-4 text-fine text-secondary">
-        By signing in you agree to the{" "}
-        <Link
-          href={legalPath("terms")}
-          className="link"
+        <form
+          action={async () => {
+            "use server";
+            await signIn("google", { redirectTo: safeInternalPath(callbackUrl) });
+          }}
         >
-          Terms of Service
-        </Link>{" "}
-        and the{" "}
-        <Link
-          href={legalPath("privacy")}
-          className="link"
-        >
-          Privacy Policy
-        </Link>
-        . This is an independent student project, not a GMI service.
-      </p>
+          <button
+            type="submit"
+            className="btn btn-primary w-full"
+          >
+            Continue with Google
+          </button>
+        </form>
 
-      <p className="mt-6 text-sm text-secondary">
+        {/*
+          Stated before the account picker, not after it. Consent given after the
+          fact is not consent, and this is also the last moment where somebody
+          can decline without a row already existing in the database.
+        */}
+        <p className="mt-4 text-fine text-secondary">
+          By signing in you agree to the{" "}
+          <Link
+            href={legalPath("terms")}
+            className="link"
+          >
+            Terms of Service
+          </Link>{" "}
+          and the{" "}
+          <Link
+            href={legalPath("privacy")}
+            className="link"
+          >
+            Privacy Policy
+          </Link>
+          . This is an independent student project, not a GMI service.
+        </p>
+      </div>
+
+      <p className="mt-6 text-center text-sm text-secondary">
         You can browse listings without signing in. An account is only needed to
         post a listing or message a seller.
       </p>
