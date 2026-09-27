@@ -151,7 +151,6 @@ function CardFace({ listing }: { listing: CardListing }) {
         </p>
         <CardPrice listing={listing} />
         <ListingMeta
-          layout="split"
           category={listing.category.name}
           condition={listing.condition}
           postedAt={listing.createdAt}
