@@ -1,16 +1,13 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCategories } from "@/lib/categories";
-import { getImageUrl } from "@/lib/r2";
 import { isSparseBoard } from "@/lib/browse-board";
 import { PendingLink } from "@/components/PendingLink";
-import { ListingMeta } from "@/components/ListingMeta";
-import { NoPhoto } from "@/components/NoPhoto";
-import { CardPrice } from "@/components/CardPrice";
+import { ListingCard } from "@/components/ListingCard";
 import { ListingType } from "@/generated/prisma/enums";
 import { LISTING_TYPE_LABELS } from "@/lib/listing-labels";
 import { browseHref, parseListingTypeFilter } from "@/lib/browse-filters";
-import { PUBLIC_STATUSES, statusLabel } from "@/lib/listing-status";
+import { PUBLIC_STATUSES } from "@/lib/listing-status";
 import { ALLOWED_DOMAIN_LABEL } from "@/lib/auth-domain";
 import {
   BOARD_INVITE,
@@ -209,70 +206,7 @@ export default async function Home({
         >
           {listings.map((listing) => (
             <li key={listing.id}>
-              <PendingLink
-                href={`/listings/${listing.id}`}
-                className="card card-interactive block overflow-hidden"
-                innerClassName="block"
-                pendingClassName="card-pending"
-              >
-                {/* 4:3 rather than 1:1. A square crops phone photographs
-                    hardest, and it made a listing with no photo a large void
-                    instead of a small one. */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden border-b-[1.5px] border-line bg-surface-sunken">
-                  {listing.imageKeys[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={getImageUrl(listing.imageKeys[0])}
-                      alt=""
-                      loading="lazy"
-                      className={`h-full w-full object-cover${
-                        listing.status === "AVAILABLE" ? "" : " opacity-45"
-                      }`}
-                    />
-                  ) : (
-                    <NoPhoto bare={listing.status !== "AVAILABLE"} />
-                  )}
-
-                  {/* Tags say what kind of listing this is. A sale is the
-                      default and carries none, so a tag always means
-                      something. */}
-                  {listing.type === "RENT" && (
-                    <span className="badge badge-highlight absolute left-2 top-2 shadow-sm">
-                      {LISTING_TYPE_LABELS.RENT}
-                    </span>
-                  )}
-                  {listing.type === "SERVICE" && (
-                    <span className="badge badge-outline absolute left-2 top-2 border-content shadow-sm">
-                      {LISTING_TYPE_LABELS.SERVICE}
-                    </span>
-                  )}
-
-                  {/* Sold and reserved stay on the board, stamped: evidence
-                      the marketplace is used. The photo fades, in colour, so
-                      the stamp is what the eye lands on. */}
-                  {listing.status !== "AVAILABLE" && (
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="stamp">{statusLabel(listing.status, listing.type)}</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* gap-1 is inside a component, where the spacing is a
-                    relationship between three lines of one block rather than
-                    a gap between page groups. */}
-                <div className="flex flex-col gap-1 p-3">
-                  <p className="truncate text-sm leading-snug font-semibold sm:text-base">
-                    {listing.title}
-                  </p>
-                  <CardPrice listing={listing} />
-                  <ListingMeta
-                    layout="split"
-                    category={listing.category.name}
-                    condition={listing.condition}
-                    postedAt={listing.createdAt}
-                  />
-                </div>
-              </PendingLink>
+              <ListingCard listing={listing} />
             </li>
           ))}
           {sparse && (
