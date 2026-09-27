@@ -193,7 +193,7 @@ export default function PrivacyPage() {
           at all, rather than fetched and hidden;
         </li>
         <li>
-          reading a reported message is <strong>itself recorded</strong> in the
+          reading a reported message is <strong>itself recorded</strong>{" "}in the
           moderation log, against the administrator&rsquo;s name, before the
           content is shown to them. Looking is an action on the record, not a
           standing privilege.
@@ -315,7 +315,7 @@ export default function PrivacyPage() {
       </ul>
       <p>
         Email{" "}
-        <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a> from
+        <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a>{" "}from
         the address on your account. Requests are handled as quickly as one
         person reasonably can &mdash; expect days, not minutes.
       </p>

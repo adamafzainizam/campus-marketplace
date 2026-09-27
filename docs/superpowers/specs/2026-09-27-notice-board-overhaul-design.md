@@ -1,7 +1,7 @@
 # Front-end overhaul: "Notice board"
 
 **Date:** 2026-09-27
-**Status:** Approved in brainstorming, not yet implemented
+**Status:** Implemented and merged 2026-09-27 (PRs #50, #52 to #59; follow-up #60)
 **Supersedes:** the *visual* decisions of `2026-08-16-design-revamp-design.md` (Space Grotesk + Inter, the violet accent, rounded shapes, translucent chrome) and the card styling of `2026-08-16-listing-cards-and-identity-design.md`. It **keeps** their voice ("student-made, and proud of it"), their information architecture, their spacing scale, and the card's content model (`ListingMeta`, `NoPhoto`, the invite tile, the three-column cap on a thin board).
 **Visual reference:** `assets/2026-09-27-notice-board/reference.html` (and `.png`). Open it before implementing anything visual. Light mode is as shown; dark mode is **option 2, grey shadows**. Photos there are placeholders and the pushpin emoji stands in for `PinMark`.
 
