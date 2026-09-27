@@ -342,7 +342,7 @@ export function ListingForm({
               advertised, and the Acceptable Use Policy already bans it. */}
           <p className="notice notice-neutral mt-1">
             Tutoring, printing, repairs and skills are all welcome. Writing or
-            completing someone else&rsquo;s assignment is not &mdash; see the{" "}
+            completing someone else&rsquo;s assignment is not: see the{" "}
             <Link
               href={legalPath("acceptable-use")}
               className="link"
@@ -487,7 +487,7 @@ export function ListingForm({
             />
             <p className="hint">
               Buyers see &ldquo;{quantity || "0"} available&rdquo;. Nothing is
-              counted automatically &mdash; no money goes through this site, so
+              counted automatically. No money goes through this site, so
               you&rsquo;ll need to update this yourself as they go.
             </p>
           </>

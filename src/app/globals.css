@@ -605,6 +605,11 @@ small, .text-fine {
     outline-offset: 2px;
   }
 
+  /* A chip that is a form control (it wraps a radio) needs the control
+     border, which meets 3:1; the browse filter chips are links and keep
+     the decorative --line. */
+  .chip:has(input) { border-color: var(--control-line); }
+
   /* The one highlighted word in the home headline, marked the way you would
      mark it on paper. A fill with ink on it, never yellow text. clone keeps
      the padding on both halves if the word ever wraps. */
