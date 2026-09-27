@@ -80,7 +80,7 @@ export function validateOtherCategory(
   if (value.length > MAX_OTHER_CATEGORY_LENGTH) {
     return {
       ok: false,
-      error: `Keep that under ${MAX_OTHER_CATEGORY_LENGTH} characters — it's a category, not a description.`,
+      error: `Keep that under ${MAX_OTHER_CATEGORY_LENGTH} characters. It's a category, not a description.`,
     };
   }
 
@@ -100,5 +100,5 @@ export function categoryDisplayName(
 ): string {
   if (!isOtherCategorySlug(categorySlug)) return categoryName;
   const detail = otherCategory?.trim();
-  return detail ? `Other — ${detail}` : categoryName;
+  return detail ? `Other: ${detail}` : categoryName;
 }

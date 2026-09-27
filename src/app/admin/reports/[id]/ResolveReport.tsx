@@ -44,7 +44,7 @@ export function ResolveReport({ reportId }: { reportId: string }) {
         onChange={(event) => setNote(event.target.value)}
         rows={2}
         className="field mt-1 w-full"
-        placeholder="Removed the listing — it was an exam paper."
+        placeholder="Removed the listing: it was an exam paper."
         disabled={pending}
       />
 
@@ -61,7 +61,7 @@ export function ResolveReport({ reportId }: { reportId: string }) {
           disabled={pending}
           className="btn btn-primary btn-sm"
         >
-          {pending ? "Working..." : "Close — action taken"}
+          {pending ? "Working..." : "Close: action taken"}
         </button>
         <button
           type="button"
@@ -69,7 +69,7 @@ export function ResolveReport({ reportId }: { reportId: string }) {
           disabled={pending}
           className="btn btn-secondary btn-sm"
         >
-          Close — nothing needed
+          Close: nothing needed
         </button>
       </div>
 

@@ -103,7 +103,6 @@ export default async function ListingDetailPage({
               too. It wraps here instead of truncating, so the full "Other"
               description shows rather than clipping to an ellipsis. */}
           <ListingMeta
-            layout="split"
             wrap
             category={categoryDisplayName(
               listing.category.name,

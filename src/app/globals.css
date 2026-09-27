@@ -676,6 +676,15 @@ small, .text-fine {
     background: var(--highlight);
     color: var(--on-highlight);
   }
+  /* Forced colours drop the highlighter fill, so the selected chip or
+     segment would look like the rest. An underline survives. */
+  @media (forced-colors: active) {
+    .chip-selected,
+    .segment-selected {
+      text-decoration: underline 2px;
+      text-underline-offset: 0.2em;
+    }
+  }
   @media (width < 40rem) {
     .segmented { display: flex; width: 100%; }
     .segment { flex: 1 1 0; padding-inline: 0.5rem; }
