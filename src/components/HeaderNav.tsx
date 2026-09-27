@@ -134,7 +134,10 @@ export function HeaderNav({
         <div className="hidden items-center gap-2 sm:flex">
           {signedIn ? (
             <>
-              <span className="hidden max-w-[9rem] truncate text-fine text-secondary lg:inline">
+              <span
+                className="hidden max-w-[9rem] truncate text-fine text-secondary lg:inline"
+                title={userLabel}
+              >
                 {userLabel}
               </span>
               <form action={signOut}>

@@ -734,6 +734,7 @@ small, .text-fine {
     font-size: 0.9375rem;
     font-weight: 600;
     text-align: left;
+    white-space: nowrap;
     cursor: pointer;
     background: transparent;
     transition: background-color var(--response-fast) var(--ease-out);
