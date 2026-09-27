@@ -102,8 +102,8 @@ These are the mockup's exact colours converted to OKLCH. Success and danger also
 
 - Cards: `box-shadow: 3px 3px 0 var(--shadow-color)`. Buttons (primary and secondary): `2px 2px 0`. Ghost buttons: none.
 - **Hover** (pointer devices only, `@media (hover: hover)`): interactive cards `translate(-1px, -1px)` with a `4px 4px 0` shadow.
-- **Press**, on pointer-down as now: buttons and interactive cards `translate(2px, 2px)` with shadow `0 0 0`. It reads as pushing a pin into the board.
-- Transitions touch only `transform` and `box-shadow`, using the existing `--response-fast` and `--ease-out`.
+- **Press**, on pointer-down as now: buttons `translate(2px, 2px)` and interactive cards `translate(3px, 3px)`, each travelling exactly its own shadow's depth, with shadow `0 0 0`. It reads as pushing a pin into the board. (Amended in Phase 1: the card travels 3px because its shadow is 3px.)
+- Transitions touch only `transform`, `box-shadow`, `opacity`, `background-color` and `border-color`, using the existing `--response-fast` and `--ease-out`. Anything else (link underline thickness, text colour, outline colour) changes instantly.
 - `prefers-reduced-motion: reduce`: no translation; the shadow change still happens, instantly.
 - `prefers-contrast: more`: borders become 2px.
 - The old `translateY(-2px)` lift and `scale()` presses are removed.
