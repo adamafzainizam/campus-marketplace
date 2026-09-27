@@ -5,6 +5,7 @@
  */
 
 import { type Result } from "./listing-constraints.ts";
+import type { ListingStatus } from "../generated/prisma/enums.ts";
 
 export const MIN_QUANTITY = 1;
 
@@ -71,4 +72,18 @@ export function hasMultiple(quantity: number): boolean {
 export function quantityLabel(quantity: number): string | null {
   if (!hasMultiple(quantity)) return null;
   return `${quantity} available`;
+}
+
+/**
+ * The quantity label, but only while it can still be true. A count beside a
+ * sold stamp contradicts itself — "3 available" next to "SOLD" reads as a
+ * mistake, not as history — so this returns null once the listing has left
+ * AVAILABLE or RESERVED, regardless of what `quantityLabel` alone would say.
+ */
+export function visibleQuantityLabel(
+  quantity: number,
+  status: ListingStatus,
+): string | null {
+  if (status !== "AVAILABLE" && status !== "RESERVED") return null;
+  return quantityLabel(quantity);
 }

@@ -4,10 +4,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { getImageUrl } from "@/lib/r2";
 import { ListingGallery } from "./ListingGallery";
-import {
-  LISTING_TYPE_LABELS,
-  formatPrice,
-} from "@/lib/listing-labels";
+import { LISTING_TYPE_LABELS, priceParts } from "@/lib/listing-labels";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { ModeratorAction } from "@/app/admin/ModeratorAction";
 import { ReportButton } from "@/components/ReportButton";
@@ -16,7 +13,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { statusLabel } from "@/lib/listing-status";
 import { categoryDisplayName } from "@/lib/category-order";
 import { halalDisplayLabel, HALAL_NOT_VERIFIED } from "@/lib/halal";
-import { quantityLabel } from "@/lib/listing-quantity";
+import { visibleQuantityLabel } from "@/lib/listing-quantity";
 import { ListingMeta } from "@/components/ListingMeta";
 import { NoPhoto } from "@/components/NoPhoto";
 
@@ -63,6 +60,13 @@ export default async function ListingDetailPage({
     notFound();
   }
 
+  const { amount, unit } = priceParts(
+    listing.price,
+    listing.type,
+    listing.rentalPeriod,
+    listing.serviceRate,
+  );
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
       {updated && (
@@ -91,12 +95,8 @@ export default async function ListingDetailPage({
         <div className="flex flex-col gap-3">
           <h1>{listing.title}</h1>
           <p className="text-price-lg">
-            {formatPrice(
-              listing.price,
-              listing.type,
-              listing.rentalPeriod,
-              listing.serviceRate,
-            )}
+            {amount}
+            {unit && <span className="text-price-unit"> {unit}</span>}
           </p>
           {/* The same split line as the card: category and condition on the
               left, recency right. Condition lives here only, not as a tag
@@ -130,9 +130,9 @@ export default async function ListingDetailPage({
             >
               {LISTING_TYPE_LABELS[listing.type]}
             </span>
-            {quantityLabel(listing.quantity) && (
+            {visibleQuantityLabel(listing.quantity, listing.status) && (
               <span className="badge badge-outline border-content">
-                {quantityLabel(listing.quantity)}
+                {visibleQuantityLabel(listing.quantity, listing.status)}
               </span>
             )}
           </div>

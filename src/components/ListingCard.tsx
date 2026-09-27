@@ -5,7 +5,7 @@ import { CardPrice } from "@/components/CardPrice";
 import { getImageUrl } from "@/lib/r2";
 import { LISTING_TYPE_LABELS } from "@/lib/listing-labels";
 import { statusLabel } from "@/lib/listing-status";
-import { quantityLabel } from "@/lib/listing-quantity";
+import { visibleQuantityLabel } from "@/lib/listing-quantity";
 import type {
   ListingCondition,
   ListingStatus,
@@ -125,11 +125,10 @@ function CardFace({ listing }: { listing: CardListing }) {
             the top-left corner on a narrow card. Withheld once the
             listing isn't AVAILABLE or RESERVED: "3 available" on a
             sold listing contradicts itself. */}
-        {(listing.status === "AVAILABLE" || listing.status === "RESERVED") &&
-          listing.quantity !== undefined &&
-          quantityLabel(listing.quantity) && (
+        {listing.quantity !== undefined &&
+          visibleQuantityLabel(listing.quantity, listing.status) && (
             <span className="badge badge-outline absolute bottom-2 right-2 border-content shadow-sm">
-              {quantityLabel(listing.quantity)}
+              {visibleQuantityLabel(listing.quantity, listing.status)}
             </span>
           )}
 

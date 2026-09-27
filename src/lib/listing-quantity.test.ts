@@ -7,6 +7,7 @@ import {
   MIN_QUANTITY,
   quantityLabel,
   validateQuantity,
+  visibleQuantityLabel,
 } from "./listing-quantity.ts";
 
 describe("validateQuantity", () => {
@@ -104,5 +105,28 @@ describe("quantityLabel", () => {
     assert.ok(label);
     assert.doesNotMatch(label!, /stock/i);
     assert.match(label!, /available/i);
+  });
+});
+
+describe("visibleQuantityLabel", () => {
+  it("shows the count while the listing is available", () => {
+    assert.equal(visibleQuantityLabel(3, "AVAILABLE"), "3 available");
+  });
+
+  it("shows the count while the listing is reserved", () => {
+    assert.equal(visibleQuantityLabel(3, "RESERVED"), "3 available");
+  });
+
+  it("hides the count once the listing is sold", () => {
+    // A count beside a sold stamp contradicts itself.
+    assert.equal(visibleQuantityLabel(3, "SOLD"), null);
+  });
+
+  it("hides the count once the listing is archived", () => {
+    assert.equal(visibleQuantityLabel(3, "ARCHIVED"), null);
+  });
+
+  it("still says nothing about a single item, even while available", () => {
+    assert.equal(visibleQuantityLabel(1, "AVAILABLE"), null);
   });
 });

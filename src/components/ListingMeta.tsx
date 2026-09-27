@@ -9,9 +9,11 @@ import { cardMetaParts, listingMetaParts, type ListingMetaInput } from "@/lib/li
  * unrelated card designs. Two pages should differ because their content
  * differs, never because they were built on different days.
  *
- * `layout="line"` is `category · condition · recency` on one line.
  * `layout="split"` is the browse card's form: the facts on the left, recency
- * right-aligned, so the line never carries more than one middle dot.
+ * right-aligned, so the line never carries more than one middle dot. Every
+ * caller uses it today. `layout="line"` (`category · condition · recency` on
+ * one line) is kept only as the default until Phase 6 decides what the inbox
+ * wants — it is not evidence any page still needs the one-line form.
  *
  * `wrap` (split layout only, default false): the card truncates its facts to
  * one line, but the detail page has room to be specific and needs to show
