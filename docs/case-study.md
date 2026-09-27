@@ -84,13 +84,23 @@ So the fix was not to make it faster but to make the wait legible: loading skele
 
 ---
 
+## Design: show it, don't describe it
+
+After the eight weeks I redesigned the front end twice, and the first attempt is the more useful story.
+
+The first redesign was five phases of new fonts, a new accent colour, a spacing scale and rewritten copy, all agreed in writing before any of it was built. When it shipped, the verdict was that it looked like the original with different fonts and colours. That was accurate. Every phase had been scoped by page, so none of them ever changed a component, and the listing card, which is the most repeated thing on the site, was in nobody's scope. A written description of a design lets each reader picture what they already hoped for, so it was agreed on without anyone actually agreeing.
+
+The second redesign started from rendered mockups instead: three whole directions drawn with the site's real listings, including the one with no photo. The chosen one, a printed notice board with ink, highlighter yellow and hard offset shadows, landed on the first pass, and every later visual choice was shown before it was built. The lesson I took is about process rather than taste: agree on pictures, and scope visual work by component as well as by page.
+
+---
+
 ## What isn't verified
 
 One thing in this project has never been observed working, and it would be dishonest to let the rest of the document imply otherwise.
 
 **Nobody has watched a message arrive in a second browser without a refresh.** Three things around it are verified: the transport, against the live service, including the negative case where an unauthorised publish is refused; the authorisation rule, at the database level, where a seeded conversation is returned to the buyer and to the seller and not to an unrelated third user; and the full thread UI in a single session, in a real browser. None of that adds up to the end-to-end claim. The parts being proven and the whole being proven are different statements, and only the first is currently true.
 
-It stays open for a practical reason: the OAuth client only has `localhost` registered, so the test needs a second person with a real GMI account, against the live site.
+It stays open for a practical reason: the test needs a second person with a real GMI account, signed in on the live site at the same time as me, and neither of us refreshing once the thread is open.
 
 ---
 
@@ -102,7 +112,11 @@ I would write automated tests for the authorization layer.
 
 The authorization layer got none of that. It was verified by hand against the database, once, and hand-verification does not survive the next change. The reason is mundane rather than principled: it touches the database, so testing it needs a fixture, and every other module was pure enough to test without one. That's an explanation, not a defence. It's the single highest-value gap in the project, and it's the one place where the argument this whole document makes — verify rather than assume — isn't yet honoured in the code.
 
-Two other gaps are real but smaller. The browse grid is capped at 60 listings rather than paginated, which is a bound and not a solution, and would need fixing before real traffic. And there is no way to block or report a user, which a marketplace with actual strangers on it would need on day one; it was scoped out deliberately, not overlooked.
+**Update.** This gap is now closed. `src/lib/conversations.db-test.ts` covers the authorization layer against a real PostgreSQL database rather than a mock, which is what it always needed: the fixture was the whole obstacle, so the fix was to build one instead of continuing to reason around it. Those tests run separately from the main suite, with `npm run test:db`, because they need a live database and the rest of the suite deliberately needs nothing. The project now stands at 512 tests in the pure suite and 31 against the database.
+
+I have left the paragraph above as it was written rather than quietly editing it. The gap was real when I described it, and a case study that silently rewrites its own weaknesses once they are fixed is worth less than one that shows the sequence: name the thing you cannot yet verify, then go and verify it.
+
+Two other gaps are real but smaller. The browse grid is capped at 60 listings rather than paginated, which is a bound and not a solution, and would need fixing before real traffic. And there is no way to block a user. Listings and messages can be reported, and a moderator can suspend an account, but one person cannot simply stop another from contacting them; that was scoped out deliberately, not overlooked.
 
 ---
 

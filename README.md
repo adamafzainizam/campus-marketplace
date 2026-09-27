@@ -6,7 +6,7 @@ Sign-in is restricted to GMI Google accounts, so everyone you're dealing with is
 
 **Live: [gmicmp.vercel.app](https://gmicmp.vercel.app)** — anyone can browse without an account.
 
-**📝 [Read the case study](./docs/case-study.md)** — the architecture decisions, the four bugs that only appeared in production, and the one thing I'd do differently.
+**📝 [Read the case study](./docs/case-study.md)** — the architecture decisions, the four bugs that only appeared in production, what two redesigns taught me, and the one thing I'd do differently.
 
 > **Status:** deployed and working. All eight weeks of feature work are done.
 
@@ -23,7 +23,7 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 ## What works so far
 
 - [x] Sign in with Google, restricted to `@gmi.edu.my` addresses and subdomains (e.g. `@student.gmi.edu.my`)
-- [x] Post a listing — title, description, price, condition, category, and a photo
+- [x] Post a listing — title, description, price, condition, category, and up to three photos
 - [x] Photo upload straight from the browser to cloud storage
 - [x] Browse all available listings
 - [x] Filter listings by category
@@ -38,7 +38,7 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Sell food, with an explicit halal statement from the seller and a quantity when there's more than one
 - [x] Report a listing or a message, with a moderation queue behind it
 - [x] Moderation — suspend an account, take a listing down, with every action recorded in an audit log
-- [x] Works on a phone as well as a desktop, in light and dark
+- [x] Works on a phone as well as a desktop, in light and dark, with a toggle to override your system setting
 
 Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no way to block another user — reporting exists, blocking doesn't.
 
@@ -88,6 +88,8 @@ R2_PUBLIC_URL=         # the bucket's Public Development URL
 
 ABLY_API_KEY=          # server-only; never prefix this NEXT_PUBLIC_
 CRON_SECRET=           # any random string; guards the cleanup job
+
+TEST_DATABASE_URL=     # optional; a throwaway database for npm run test:db
 ```
 
 This file is gitignored and should never be committed.
@@ -116,7 +118,13 @@ Then open http://localhost:3000.
 npm test
 ```
 
-330 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
+512 tests, no test framework installed — it uses Node's built-in runner and its native TypeScript support.
+
+A further 31 tests live in `*.db-test.ts` and run against a real PostgreSQL database rather than a mock. They delete rows, so they read a separate `TEST_DATABASE_URL` and refuse to run if it is unset or the same as `DATABASE_URL`:
+
+```bash
+npm run test:db
+```
 
 ### One thing that will trip you up
 
@@ -170,7 +178,7 @@ src/
     api/upload/       issues upload permissions
     api/ably/token/   issues capability-scoped realtime tokens
     api/cron/         nightly cleanup of unreferenced photos
-  components/         header, breadcrumbs, loading skeletons
+  components/         header, listing card, breadcrumbs, loading skeletons
   lib/                database and storage clients, plus the shared rules —
                       every one of these is pure and has tests
   auth.ts             sign-in config and the GMI email restriction
@@ -190,7 +198,7 @@ An 8-week plan, worked on roughly 10–15 hours a week.
 | 7 | Deployment and polish | Done — `v0.4`, live |
 | 8 | Documentation and write-up | Case study done; screenshots outstanding |
 
-Since then, outside the plan: moderation (reporting, suspension, an audit log), legal pages and an MIT licence, and five changes that came out of watching somebody else use the site.
+Since then, outside the plan: moderation (reporting, suspension, an audit log), legal pages and an MIT licence, five changes that came out of watching somebody else use the site, up to three photos per listing, and a full front-end redesign as a printed notice board, chosen from rendered mockups (the case study explains why that mattered).
 
 ---
 
