@@ -11,7 +11,14 @@
  * GMI WhatsApp and Telegram groups and built somewhere for them to live.
  */
 
-export const HOME_HEADLINE = "Buy, sell and rent around GMI.";
+/**
+ * The headline, in two pieces so the page can put "GMI." under a highlighter
+ * without slicing a string. HOME_HEADLINE stays the whole sentence for
+ * anything that wants it plain.
+ */
+export const HOME_HEADLINE_LEAD = "Buy, sell and rent around ";
+export const HOME_HEADLINE_MARK = "GMI.";
+export const HOME_HEADLINE = `${HOME_HEADLINE_LEAD}${HOME_HEADLINE_MARK}`;
 
 /** The product's entire argument, in six words. */
 export const HOME_TAGLINE = "Without it buried in a group chat.";
@@ -27,7 +34,7 @@ export const SEARCH_PLACEHOLDER = "Books, clown nose, time machine…";
 /** A state of possibility, so it gets the point of view. */
 export const EMPTY_NOTHING_POSTED = {
   title: "Nothing posted yet",
-  body: "Be first — it will still be here next week, which is more than the group chat can manage.",
+  body: "Be first. It will still be here next week, which is more than the group chat can manage.",
 };
 
 /** A state of friction. Plain and useful; nobody wants wit here. */

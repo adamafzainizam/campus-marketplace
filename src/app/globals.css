@@ -381,9 +381,10 @@ small, .text-fine {
     --shadow-color: var(--control-line);
   }
   .btn-primary, .btn-secondary, .field, .chip, .card, .badge-outline,
-  .notice, .dropzone, .invite-tile {
+  .notice, .dropzone, .invite-tile, .segmented {
     border-width: 2px;
   }
+  .segment + .segment { border-left-width: 2px; }
 }
 
 /* ==========================================================================
@@ -574,6 +575,72 @@ small, .text-fine {
     color: var(--on-highlight);
   }
 
+  /* The one highlighted word in the home headline, marked the way you would
+     mark it on paper. A fill with ink on it, never yellow text. clone keeps
+     the padding on both halves if the word ever wraps. */
+  .headline-mark {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    padding: 0 0.12em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* The listing-type filter. Four answers to one question, so one control
+     rather than four loose chips: a single bordered box with hairlines
+     between the answers and the current one filled. Each segment is a link,
+     so it works without JavaScript and keeps its URL. The box does not press
+     in; a segment darkens instead, because moving a quarter of a control
+     would tear it. Full width with equal segments on a phone, so four labels
+     fit a 343px column without scrolling. */
+  .segmented {
+    display: inline-flex;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-sm);
+  }
+  .segment {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1rem;
+    color: var(--text);
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+    transition: background-color var(--response-fast) var(--ease-out);
+    touch-action: manipulation;
+  }
+  .segment + .segment { border-left: 1.5px solid var(--line); }
+  .segment:first-child {
+    border-top-left-radius: calc(var(--radius) - 1.5px);
+    border-bottom-left-radius: calc(var(--radius) - 1.5px);
+  }
+  .segment:last-child {
+    border-top-right-radius: calc(var(--radius) - 1.5px);
+    border-bottom-right-radius: calc(var(--radius) - 1.5px);
+  }
+  /* Lift the focused segment so its ring is not painted over by the next
+     segment's background. */
+  .segment:focus-visible { z-index: 1; }
+  .segment:active { background: var(--surface-sunken); }
+  @media (hover: hover) {
+    .segment:hover { background: var(--surface-sunken); }
+  }
+  .segment-selected,
+  .segment-selected:hover,
+  .segment-selected:active {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+  @media (width < 40rem) {
+    .segmented { display: flex; width: 100%; }
+    .segment { flex: 1 1 0; padding-inline: 0.5rem; }
+  }
+
   .card {
     background: var(--surface-raised);
     border: 1.5px solid var(--line);
@@ -672,6 +739,51 @@ small, .text-fine {
   }
   @media (hover: hover) {
     .invite-tile:hover { border-style: solid; color: var(--text); }
+  }
+
+  /* A photo well with nothing in it. Diagonal stripes, like the blank
+     space on a board where a notice has not been pinned yet, so absence
+     reads as a state rather than as an image that failed to load. Two tones
+     of the sunken surface: no literal colour, so both themes follow. */
+  .photo-missing {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--surface-sunken) 0 10px,
+      color-mix(in oklab, var(--surface-sunken), var(--text) 6%) 10px 20px
+    );
+  }
+
+  /* Sold, Reserved, Rented out. A label pinned over the photo, tilted like
+     something stuck on by hand. Its border is --text rather than --line so
+     it reads as ink in both themes (--line is a quiet grey in dark), and it
+     carries its own offset shadow so it sits *on* the card, not in it. The
+     tilt is static, so reduced motion has nothing to remove. */
+  .stamp {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border: 2px solid var(--text);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.875rem;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    /* Wraps rather than clipping: "No longer offered" is wider than a
+       phone card's photo well, which has overflow hidden. */
+    max-width: calc(100% - 1rem);
+    text-align: center;
+    transform: rotate(-6deg);
+  }
+
+  /* The 320px floor. "Everything" at 1rem of padding needs ~298px of a
+     288px column, and "No longer offered" breaks into three lines on a
+     ~136px card, covering the Service tag in the same corner. */
+  @media (width < 22.5rem) {
+    .segment { padding-inline: 0.25rem; }
+    .stamp { font-size: 0.75rem; padding-inline: 0.375rem; }
   }
 
   /* The theme button ships both icons and both labels and hides one pair,

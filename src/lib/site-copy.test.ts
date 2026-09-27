@@ -6,6 +6,8 @@ import {
   EMPTY_NO_MATCHES,
   EMPTY_NOTHING_POSTED,
   HOME_HEADLINE,
+  HOME_HEADLINE_LEAD,
+  HOME_HEADLINE_MARK,
   HOME_TAGLINE,
   INBOX_EMPTY,
   MINE_EMPTY,
@@ -61,6 +63,14 @@ describe("the pitch", () => {
     assert.match(HOME_HEADLINE, /sell/i);
     assert.match(HOME_HEADLINE, /rent/i);
   });
+
+  test("the highlighted word is the end of the headline, not a copy of it", () => {
+    // The page renders LEAD then MARK inside a <mark>. If HOME_HEADLINE ever
+    // changes on its own, the two would silently disagree.
+    assert.equal(HOME_HEADLINE, `${HOME_HEADLINE_LEAD}${HOME_HEADLINE_MARK}`);
+    assert.ok(HOME_HEADLINE_LEAD.endsWith(" "), "lead needs its trailing space");
+    assert.equal(HOME_HEADLINE_MARK, "GMI.");
+  });
 });
 
 describe("the search placeholder", () => {
@@ -100,6 +110,17 @@ describe("empty states", () => {
     // Somebody whose search just failed is not the audience for a joke.
     assert.ok(!/group chat/i.test(EMPTY_NO_MATCHES.body));
     assert.match(EMPTY_NO_MATCHES.body, /broader|clear/i);
+  });
+
+  test("no em-dash or en-dash in either empty state", () => {
+    for (const line of [
+      EMPTY_NOTHING_POSTED.title,
+      EMPTY_NOTHING_POSTED.body,
+      EMPTY_NO_MATCHES.title,
+      EMPTY_NO_MATCHES.body,
+    ]) {
+      assert.ok(!/[—–]/.test(line), `dash in: ${line}`);
+    }
   });
 });
 

@@ -215,9 +215,19 @@ export type ListingMetaInput = {
   condition: ListingCondition | null;
   postedAt: Date;
   now: Date;
-  /** Page-specific facts appended after recency, nulls dropped. */
+  /**
+   * Page-specific facts, nulls dropped: after recency in `listingMetaParts`,
+   * at the end of the facts in `cardMetaParts`.
+   */
   extra?: readonly (string | null | undefined)[];
 };
+
+/** Trims each part and drops anything absent or blank. */
+function presentParts(parts: ReadonlyArray<string | null | undefined>): string[] {
+  return parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter((part) => part.length > 0);
+}
 
 /**
  * The `category · condition · recency` line, as a list of parts.
@@ -228,14 +238,29 @@ export type ListingMetaInput = {
  * (`ListingMeta`) and this stays testable as data.
  */
 export function listingMetaParts(input: ListingMetaInput): string[] {
-  const parts: Array<string | null | undefined> = [
+  return presentParts([
     input.category,
     input.condition ? CONDITION_LABELS[input.condition] : null,
     postedAgo(input.postedAt, input.now),
     ...(input.extra ?? []),
-  ];
+  ]);
+}
 
-  return parts
-    .map((part) => (typeof part === "string" ? part.trim() : ""))
-    .filter((part) => part.length > 0);
+export type CardMetaParts = { facts: string[]; recency: string };
+
+/**
+ * The same parts, split for the browse card: facts on the left, recency in
+ * its own right-aligned slot. The notice-board card allows one middle dot per
+ * line, and "Books · Good · 2d ago" spends two; moving recency to the other
+ * end of the row keeps the information and drops the second dot.
+ */
+export function cardMetaParts(input: ListingMetaInput): CardMetaParts {
+  return {
+    facts: presentParts([
+      input.category,
+      input.condition ? CONDITION_LABELS[input.condition] : null,
+      ...(input.extra ?? []),
+    ]),
+    recency: postedAgo(input.postedAt, input.now),
+  };
 }

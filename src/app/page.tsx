@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { getCategories } from "@/lib/categories";
 import { getImageUrl } from "@/lib/r2";
 import { isSparseBoard } from "@/lib/browse-board";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PendingLink } from "@/components/PendingLink";
 import { ListingMeta } from "@/components/ListingMeta";
 import { NoPhoto } from "@/components/NoPhoto";
@@ -17,7 +16,8 @@ import {
   BOARD_INVITE,
   EMPTY_NO_MATCHES,
   EMPTY_NOTHING_POSTED,
-  HOME_HEADLINE,
+  HOME_HEADLINE_LEAD,
+  HOME_HEADLINE_MARK,
   HOME_TAGLINE,
   SEARCH_PLACEHOLDER,
 } from "@/lib/site-copy";
@@ -99,20 +99,20 @@ export default async function Home({
         </p>
       )}
 
-      <Breadcrumbs items={[]} />
-
       {/* Spacing carries the grouping: mt-1 because the headline and tagline
-          are one thought, mt-3 because the sign-in line is a separate one. */}
-      <section className="mb-6 sm:mb-10">
-        <h1>{HOME_HEADLINE}</h1>
+          are one thought, mt-3 because the sign-in line is a separate one.
+          The whole band is budgeted so the first row of listings is on
+          screen at 1280x800 without scrolling: the listings are the page. */}
+      <section className="mb-6">
+        <h1>
+          {HOME_HEADLINE_LEAD}
+          <mark className="headline-mark">{HOME_HEADLINE_MARK}</mark>
+        </h1>
         <p className="mt-1 text-secondary">{HOME_TAGLINE}</p>
         {!session?.user && (
           <p className="mt-3 text-fine text-tertiary">
             Anyone can browse.{" "}
-            <Link
-              href="/signin"
-              className="link"
-            >
+            <Link href="/signin" className="link">
               Sign in with your {ALLOWED_DOMAIN_LABEL} account
             </Link>{" "}
             to post or message a seller.
@@ -120,7 +120,7 @@ export default async function Home({
         )}
       </section>
 
-      <form className="mb-6 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
+      <form className="mb-3 flex flex-col gap-2.5 sm:flex-row" action="/" method="get">
         <label htmlFor="q" className="sr-only">
           Search listings
         </label>
@@ -139,31 +139,31 @@ export default async function Home({
         </button>
       </form>
 
-      {/* Sale/rent is a different question from category, so it gets its own
-          row rather than being mixed into one undifferentiated wall of chips. */}
-      <div className="mb-3 flex flex-wrap gap-2">
-        <FilterChip href={browseHref(active, { type: undefined })} selected={!typeFilter}>
+      {/* Sale, rent or service is one question with four answers, so it is
+          one segmented control rather than a row of loose chips, and it sits
+          on its own row rather than beside the search: search is "what", this
+          is "what kind", and the rail below is "where". */}
+      <div role="group" aria-label="Listing type" className="segmented mb-3">
+        <TypeSegment href={browseHref(active, { type: undefined })} selected={!typeFilter}>
           Everything
-        </FilterChip>
+        </TypeSegment>
         {Object.values(ListingType).map((value) => (
-          <FilterChip
+          <TypeSegment
             key={value}
             href={browseHref(active, { type: value })}
             selected={typeFilter === value}
           >
             {LISTING_TYPE_LABELS[value]}
-          </FilterChip>
+          </TypeSegment>
         ))}
       </div>
 
-      {/* Seventeen categories wrap to five rows on a phone, so this is a
-          scrolling rail there and wraps only where there is room. */}
       {/* One scrolling row at every width. Wrapping seventeen chips put three
           rows of controls above the fold on desktop, which is most of why a
-          page with four listings read as empty — chrome outweighing content.
+          page with four listings read as empty: chrome outweighing content.
           A mask-image fade was considered as a scroll affordance and dropped:
           it would dim the focus ring of a chip near the edge. */}
-      <div className="rail -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:mb-10 sm:px-0">
+      <div className="rail -mx-4 mb-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <div className="flex w-max gap-2">
           <FilterChip
             href={browseHref(active, { category: undefined })}
@@ -185,9 +185,9 @@ export default async function Home({
 
       {listings.length === 0 ? (
         <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center sm:py-16">
-          <p className="text-display">
+          <h2 className="text-display">
             {filtered ? EMPTY_NO_MATCHES.title : EMPTY_NOTHING_POSTED.title}
-          </p>
+          </h2>
           <p className="max-w-sm text-fine text-secondary">
             {filtered ? EMPTY_NO_MATCHES.body : EMPTY_NOTHING_POSTED.body}
           </p>
@@ -218,32 +218,41 @@ export default async function Home({
                 {/* 4:3 rather than 1:1. A square crops phone photographs
                     hardest, and it made a listing with no photo a large void
                     instead of a small one. */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-sunken">
+                <div className="relative aspect-[4/3] w-full overflow-hidden border-b-[1.5px] border-line bg-surface-sunken">
                   {listing.imageKeys[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={getImageUrl(listing.imageKeys[0])}
                       alt=""
                       loading="lazy"
-                      className="h-full w-full object-cover"
+                      className={`h-full w-full object-cover${
+                        listing.status === "AVAILABLE" ? "" : " opacity-45"
+                      }`}
                     />
                   ) : (
-                    <NoPhoto />
+                    <NoPhoto bare={listing.status !== "AVAILABLE"} />
                   )}
 
+                  {/* Tags say what kind of listing this is. A sale is the
+                      default and carries none, so a tag always means
+                      something. */}
                   {listing.type === "RENT" && (
                     <span className="badge badge-highlight absolute left-2 top-2 shadow-sm">
-                      For rent
+                      {LISTING_TYPE_LABELS.RENT}
+                    </span>
+                  )}
+                  {listing.type === "SERVICE" && (
+                    <span className="badge badge-outline absolute left-2 top-2 border-content shadow-sm">
+                      {LISTING_TYPE_LABELS.SERVICE}
                     </span>
                   )}
 
-                  {/* Sold and reserved stay visible, marked — evidence the
-                      marketplace is used. Dimmed rather than hidden. */}
+                  {/* Sold and reserved stay on the board, stamped: evidence
+                      the marketplace is used. The photo fades, in colour, so
+                      the stamp is what the eye lands on. */}
                   {listing.status !== "AVAILABLE" && (
-                    <span className="absolute inset-0 flex items-center justify-center bg-black/50">
-                      <span className="badge bg-white text-neutral-900">
-                        {statusLabel(listing.status, listing.type)}
-                      </span>
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <span className="stamp">{statusLabel(listing.status, listing.type)}</span>
                     </span>
                   )}
                 </div>
@@ -252,15 +261,15 @@ export default async function Home({
                     relationship between three lines of one block rather than
                     a gap between page groups. */}
                 <div className="flex flex-col gap-1 p-3">
-                  <p className="truncate text-sm leading-snug font-semibold">
+                  <p className="truncate text-sm leading-snug font-semibold sm:text-base">
                     {listing.title}
                   </p>
                   <CardPrice listing={listing} />
                   <ListingMeta
+                    layout="split"
                     category={listing.category.name}
                     condition={listing.condition}
                     postedAt={listing.createdAt}
-                    className="truncate text-fine text-tertiary"
                   />
                 </div>
               </PendingLink>
@@ -307,6 +316,26 @@ function FilterChip({
       href={href}
       aria-current={selected ? "true" : undefined}
       className={`chip${selected ? " chip-selected" : ""}`}
+    >
+      {children}
+    </PendingLink>
+  );
+}
+
+function TypeSegment({
+  href,
+  selected,
+  children,
+}: {
+  href: string;
+  selected: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <PendingLink
+      href={href}
+      aria-current={selected ? "true" : undefined}
+      className={`segment${selected ? " segment-selected" : ""}`}
     >
       {children}
     </PendingLink>
