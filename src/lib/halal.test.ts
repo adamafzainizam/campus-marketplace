@@ -83,6 +83,20 @@ describe("HALAL_NOT_VERIFIED", () => {
   });
 });
 
+describe("no em-dash or en-dash in any user-visible halal string", () => {
+  it("checks every option label, hint, display label, and the caveat", () => {
+    const lines = [
+      HALAL_NOT_VERIFIED,
+      ...Object.values(HalalStatus).map(halalOptionLabel),
+      ...Object.values(HalalStatus).map(halalOptionHint),
+      ...Object.values(HalalStatus).map((status) => halalDisplayLabel(status)),
+    ];
+    for (const line of lines) {
+      assert.ok(!/[—–]/.test(line ?? ""), `dash in: ${line}`);
+    }
+  });
+});
+
 describe("validateHalalStatus", () => {
   it("requires a choice for food", () => {
     assert.equal(validateHalalStatus(undefined, true).ok, false);

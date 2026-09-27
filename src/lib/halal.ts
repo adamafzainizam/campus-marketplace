@@ -51,7 +51,7 @@ export function halalOptionLabel(status: HalalStatus): string {
 export function halalOptionHint(status: HalalStatus): string {
   switch (status) {
     case HalalStatus.HALAL:
-      return "Only pick this if you are sure — including the ingredients and how it was prepared.";
+      return "Only pick this if you are sure, including the ingredients and how it was prepared.";
     case HalalStatus.NON_HALAL:
       return "Contains non-halal ingredients, or you can't vouch for how it was prepared.";
     case HalalStatus.UNSPECIFIED:
@@ -86,7 +86,7 @@ export function halalDisplayLabel(status: HalalStatus | null): string | null {
  * caveat somebody will eventually soften.
  */
 export const HALAL_NOT_VERIFIED =
-  "This is the seller's own statement. Nothing on this site is halal-certified or checked by anyone — if it matters to you, ask them directly before buying.";
+  "This is the seller's own statement. Nothing on this site is halal-certified or checked by anyone. If it matters to you, ask them directly before buying.";
 
 /**
  * Validates the halal status submitted with a listing.
@@ -110,7 +110,7 @@ export function validateHalalStatus(
   if (typeof raw !== "string" || !Object.hasOwn(HalalStatus, raw)) {
     return {
       ok: false,
-      error: "Say whether this food is halal — pick one of the options.",
+      error: "Say whether this food is halal: pick one of the options.",
     };
   }
 

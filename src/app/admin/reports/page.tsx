@@ -47,7 +47,7 @@ export default async function ReportsPage({
       </nav>
 
       <p className="hint mb-4">
-        Oldest first &mdash; the longest-unanswered report is the one most
+        Oldest first: the longest-unanswered report is the one most
         likely to matter.
       </p>
 

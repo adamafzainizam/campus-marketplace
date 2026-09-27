@@ -45,7 +45,7 @@ export function ReportButton({
   if (done) {
     return (
       <p role="status" className="notice notice-success">
-        Thanks — this has been sent to a moderator. You won&rsquo;t hear back
+        Thanks. This has been sent to a moderator. You won&rsquo;t hear back
         unless we need more from you.
       </p>
     );
@@ -152,7 +152,7 @@ export function ReportButton({
 
         <p className="hint mt-3">
           If someone is in immediate danger, contact the police (999) or GMI
-          security first &mdash; nobody is watching this around the clock. For
+          security first. Nobody is watching this around the clock. For
           anything urgent you can also email{" "}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}

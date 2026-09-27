@@ -63,7 +63,7 @@ export function uploadToStorage(
     xhr.addEventListener("timeout", () => {
       reject(
         new Error(
-          "The photo upload timed out. Your connection may be slow — try again, or use a smaller image.",
+          "The photo upload timed out. Your connection may be slow, so try again or use a smaller image.",
         ),
       );
     });

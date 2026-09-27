@@ -90,7 +90,7 @@ export default async function ReportDetailPage({
           </div>
         ) : (
           <p className="mt-2 text-sm text-secondary">
-            That listing no longer exists. The report is kept anyway &mdash; it
+            That listing no longer exists. The report is kept anyway, because it
             is the record of somebody raising a concern.
           </p>
         ))}
