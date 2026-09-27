@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
@@ -16,6 +17,73 @@ import { halalDisplayLabel, HALAL_NOT_VERIFIED } from "@/lib/halal";
 import { visibleQuantityLabel } from "@/lib/listing-quantity";
 import { ListingMeta } from "@/components/ListingMeta";
 import { NoPhoto } from "@/components/NoPhoto";
+import { listingPreview } from "@/lib/link-preview";
+import { alt as siteCardAlt, size as siteCardSize } from "@/app/opengraph-image";
+
+/**
+ * What a shared link to this listing shows. The rules, including which
+ * listings get no preview at all, are in src/lib/link-preview.ts. With no
+ * photo, it uses the site-wide card from src/app/opengraph-image.tsx.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const listing = await db.listing.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      description: true,
+      status: true,
+      price: true,
+      type: true,
+      rentalPeriod: true,
+      serviceRate: true,
+      imageKeys: true,
+      seller: { select: { suspendedAt: true } },
+    },
+  });
+  if (!listing) return {};
+
+  const { amount, unit } = priceParts(
+    listing.price,
+    listing.type,
+    listing.rentalPeriod,
+    listing.serviceRate,
+  );
+  const preview = listingPreview({
+    title: listing.title,
+    description: listing.description,
+    status: listing.status,
+    sellerSuspended: listing.seller.suspendedAt !== null,
+    amount,
+    unit,
+    imageUrl: listing.imageKeys[0] ? getImageUrl(listing.imageKeys[0]) : null,
+  });
+  if (!preview) return {};
+
+  // A page's openGraph replaces the layout's rather than merging with it, so
+  // a listing with no photo would otherwise share with no image at all.
+  const image = preview.imageUrl
+    ? { url: preview.imageUrl, alt: preview.title }
+    : { url: "/opengraph-image", alt: siteCardAlt, ...siteCardSize };
+
+  return {
+    title: preview.title,
+    description: preview.description,
+    openGraph: {
+      siteName: "GMI Campus Marketplace",
+      type: "website",
+      locale: "en_MY",
+      title: preview.title,
+      description: preview.description,
+      images: [image],
+    },
+    twitter: { card: "summary_large_image", images: [image] },
+  };
+}
 
 export default async function ListingDetailPage({
   params,
