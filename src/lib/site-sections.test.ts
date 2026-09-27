@@ -2,7 +2,9 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  ariaCurrentFor,
   currentSection,
+  menuButtonAccessiblePrefix,
   menuButtonLabel,
   MENU_ITEMS,
   SECTION_LABELS,
@@ -85,5 +87,49 @@ describe("menuButtonLabel", () => {
     for (const label of [...Object.values(SECTION_LABELS), menuButtonLabel(null)]) {
       assert.ok(!/[—–]/.test(label), label);
     }
+  });
+});
+
+describe("menuButtonAccessiblePrefix", () => {
+  it("announces the section when the button names it", () => {
+    assert.equal(
+      menuButtonAccessiblePrefix("mine"),
+      "Site menu, current page: ",
+    );
+    assert.equal(
+      menuButtonAccessiblePrefix("messages"),
+      "Site menu, current page: ",
+    );
+  });
+
+  it("says nothing extra when the button already just says Menu", () => {
+    // On /listings/new and on an unknown path, menuButtonLabel returns
+    // "Menu" with no section named, so a prefix would read
+    // "Site menu, current page: Menu" - redundant and wrong on unknown paths.
+    assert.equal(menuButtonAccessiblePrefix("post"), null);
+    assert.equal(menuButtonAccessiblePrefix(null), null);
+  });
+});
+
+describe("ariaCurrentFor", () => {
+  it("marks the exact page as page", () => {
+    assert.equal(ariaCurrentFor("/", "browse", "/"), "page");
+    assert.equal(ariaCurrentFor("/messages", "messages", "/messages"), "page");
+  });
+
+  it("marks a section match on a different page as true", () => {
+    assert.equal(ariaCurrentFor("/listings/abc", "browse", "/"), "true");
+    assert.equal(
+      ariaCurrentFor("/messages/abc", "messages", "/messages"),
+      "true",
+    );
+  });
+
+  it("marks no match at all as undefined", () => {
+    assert.equal(ariaCurrentFor("/messages", "browse", "/"), undefined);
+  });
+
+  it("ignores a trailing slash on the pathname", () => {
+    assert.equal(ariaCurrentFor("/messages/", "messages", "/messages"), "page");
   });
 });

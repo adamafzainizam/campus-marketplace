@@ -71,3 +71,30 @@ export function menuButtonLabel(section: SectionKey | null): string {
   if (section === null || section === "post") return "Menu";
   return SECTION_LABELS[section];
 }
+
+/**
+ * The sr-only prefix read before the menu button's own label, or null when
+ * there is nothing to announce. `menuButtonLabel` already reads "Menu" on
+ * the post page and on an unknown path, and prefixing it there would read
+ * "Site menu, current page: Menu" - naming a page that isn't named.
+ */
+export function menuButtonAccessiblePrefix(
+  section: SectionKey | null,
+): string | null {
+  return menuButtonLabel(section) !== "Menu" ? "Site menu, current page: " : null;
+}
+
+/**
+ * `aria-current` for one nav link: "page" only for the exact page, "true"
+ * for a match on the section but not the page (e.g. a listing's detail page
+ * against the Browse link to "/"), otherwise undefined.
+ */
+export function ariaCurrentFor(
+  pathname: string,
+  key: SectionKey,
+  href: string,
+): "page" | "true" | undefined {
+  if (currentSection(pathname) !== key) return undefined;
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+  return path === href ? "page" : "true";
+}
