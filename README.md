@@ -39,6 +39,7 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 - [x] Report a listing or a message, with a moderation queue behind it
 - [x] Moderation — suspend an account, take a listing down, with every action recorded in an audit log
 - [x] Works on a phone as well as a desktop, in light and dark, with a toggle to override your system setting
+- [x] Shared links show a preview card, and a shared listing shows its own title, price and photo
 
 Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no way to block another user — reporting exists, blocking doesn't.
 
