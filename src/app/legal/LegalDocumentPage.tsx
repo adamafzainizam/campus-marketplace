@@ -39,7 +39,7 @@ export function LegalDocumentPage({
 
       <div className="prose mt-10">{children}</div>
 
-      <hr className="mt-16 border-0 border-t border-[var(--border)]" />
+      <hr className="mt-16 border-0 border-t border-line" />
 
       <section className="mt-6">
         <h2 className="text-sm font-semibold">Questions about this document</h2>
@@ -47,7 +47,7 @@ export function LegalDocumentPage({
           Write to{" "}
           <a
             href={`mailto:${LEGAL_CONTACT_EMAIL}`}
-            className="text-accent underline underline-offset-2"
+            className="link"
           >
             {LEGAL_CONTACT_EMAIL}
           </a>

@@ -92,7 +92,7 @@ export default async function ListingDetailPage({
           <div className="flex flex-wrap items-center gap-2">
             <span
               className={`badge ${
-                listing.type === "RENT" ? "badge-accent" : "badge-outline"
+                listing.type === "RENT" ? "badge-highlight" : "badge-outline"
               }`}
             >
               {LISTING_TYPE_LABELS[listing.type]}
@@ -208,7 +208,7 @@ export default async function ListingDetailPage({
               re-checks the role server-side regardless — this is a control,
               not a permission. */}
           {admin && listing.status !== "ARCHIVED" && (
-            <div className="mt-6 border-t border-[var(--border)] pt-4">
+            <div className="mt-6 border-t border-line pt-4">
               <p className="hint mb-1">Moderation</p>
               <ModeratorAction kind="remove-listing" targetId={listing.id} />
             </div>

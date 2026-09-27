@@ -10,7 +10,7 @@ export default function Loading() {
         <Skeleton className="mb-6 h-11 w-full rounded-[var(--radius)]" />
         <div className="mb-6 flex gap-2 overflow-hidden sm:mb-10">
           {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-8 w-24 shrink-0 rounded-full" />
+            <Skeleton key={i} className="h-8 w-24 shrink-0 rounded" />
           ))}
         </div>
         <ListingGridSkeleton />

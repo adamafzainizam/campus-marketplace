@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { UploadSimpleIcon } from "@phosphor-icons/react";
+import { ICON_WEIGHT } from "@/components/icon-style";
 import {
   imageExtensionFor,
   isValidFileSize,
@@ -162,19 +164,11 @@ export function PhotoPicker({
             className="sr-only"
           />
 
-          <svg
+          <UploadSimpleIcon
+            weight={ICON_WEIGHT}
             aria-hidden="true"
-            viewBox="0 0 24 24"
             className="h-7 w-7 text-tertiary"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 16V4m0 0L8 8m4-4 4 4" />
-            <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-          </svg>
+          />
 
           <span className="text-sm font-medium">
             {photos.length === 0 ? "Add photos" : "Add another"}
@@ -204,7 +198,7 @@ export function PhotoPicker({
                   className="aspect-square w-full rounded-lg border border-line object-cover shadow-sm"
                 />
                 {index === 0 && (
-                  <span className="badge badge-accent absolute left-1 top-1">
+                  <span className="badge badge-highlight absolute left-1 top-1">
                     Cover
                   </span>
                 )}

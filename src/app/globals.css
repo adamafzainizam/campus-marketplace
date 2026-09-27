@@ -3,90 +3,110 @@
 /* ==========================================================================
    Design tokens
    --------------------------------------------------------------------------
-   Every value here is a deliberate choice rather than a default, which is the
-   point of Apple's "craft" principle: nothing random, everything defensible.
-
-   Colours are OKLCH so that lightness steps are perceptually even — the same
-   numeric step looks like the same step to the eye, which plain hex does not
-   give you. Dark mode is a token swap, not a second set of components.
+   Two layers. Literal colours live only in --brand-* primitives; every
+   semantic token below is written in terms of those primitives, never a
+   literal directly (design-tokens.test.ts enforces this). That is what makes
+   a future palette swap, GMI's if the Institute approves, an edit to one
+   block rather than a hunt through the file. light-dark() picks which arm of
+   a primitive's pair applies; color-scheme decides which mode the browser
+   (and light-dark()) thinks it is in.
    ========================================================================== */
 
 :root {
-  /* "Happy in either scheme, follow the OS" — which is what every token
-     below resolves against. An explicit choice overrides this a few rules
-     down, and that is the entire switching mechanism: one declaration.
-     It also fixes native form controls and scrollbars, which used to stay
-     light in dark mode because nothing had ever told the browser. */
+  /* Follow the OS until the theme toggle stores a choice; the two
+     [data-theme] rules below override this. Also makes native controls and
+     scrollbars follow the theme. */
   color-scheme: light dark;
-  /* color-scheme is what makes native controls (radios, checkboxes) render
-     dark-aware at all; without this they'd render dark-aware in the browser's
-     default blue, which is exactly the stray pre-violet accent the design
-     revamp hunted down elsewhere (Decision Log 2026-08-16). */
-  accent-color: var(--accent);
+  /* Native radios and checkboxes. --action is ink in light and yellow in
+     dark, which is what a checked control should look like in each. */
+  accent-color: var(--action);
 
-  /* Surfaces, from furthest back to nearest front. */
-  --surface-sunken: light-dark(oklch(96.5% 0.003 265), oklch(14% 0.006 265));
-  --surface: light-dark(oklch(99.2% 0.002 265), oklch(17.5% 0.007 265));
-  --surface-raised: light-dark(oklch(100% 0 0), oklch(21.5% 0.008 265));
+  /* ---- Brand primitives -------------------------------------------------
+     design-tokens.test.ts enforces that the :root token block below carries
+     no literal colour outside this section. The one known literal elsewhere
+     in this file is .skeleton::after's translucent shimmer, which the test
+     does not (and need not) reach. To re-skin the site, for example to
+     GMI's palette if the Institute approves, edit this block and nothing
+     else. Values are the approved mockup's colours converted to OKLCH; the
+     spec lists the hex each one came from. */
+  --brand-paper: oklch(98.5% 0.001 106.4);
+  --brand-paper-sunken: oklch(96% 0.002 106.4);
+  --brand-card: oklch(100% 0 0);
+  --brand-ink: oklch(21% 0.006 285.9);
+  --brand-ink-2: oklch(44.2% 0.015 285.8);
+  --brand-ink-3: oklch(52% 0.014 285.9);
+  --brand-night: oklch(17.9% 0.004 286);
+  --brand-night-sunken: oklch(15% 0.004 286);
+  --brand-night-card: oklch(21.9% 0.006 285.9);
+  --brand-night-line: oklch(37% 0.012 285.8);
+  --brand-night-control: oklch(55.2% 0.014 285.9);
+  --brand-snow: oklch(96.7% 0.001 286.4);
+  --brand-snow-2: oklch(71.2% 0.013 286.1);
+  --brand-snow-3: oklch(63.9% 0.012 286.1);
+  --brand-highlight: oklch(90.5% 0.166 98.1);
+  --brand-success-day: oklch(52% 0.13 155);
+  --brand-success-night: oklch(72% 0.14 155);
+  --brand-success-subtle-day: oklch(96% 0.04 155);
+  --brand-success-subtle-night: oklch(26% 0.05 155);
+  --brand-danger-day: oklch(50% 0.19 25);
+  --brand-danger-night: oklch(70% 0.17 25);
+  --brand-danger-subtle-day: oklch(96% 0.03 25);
+  --brand-danger-subtle-night: oklch(27% 0.06 25);
 
-  /* Text. Three levels is enough hierarchy; a fourth starts to look like a
-     bug rather than an intention. */
-  --text: light-dark(oklch(21% 0.012 265), oklch(96% 0.003 265));
-  --text-secondary: light-dark(oklch(48% 0.011 265), oklch(72% 0.008 265));
-  --text-tertiary: light-dark(oklch(62% 0.010 265), oklch(58% 0.008 265));
+  /* ---- Semantic tokens --------------------------------------------------
+     What components use. Each is light-dark(<light arm>, <dark arm>) over
+     primitives. The one rule that shapes them: in light mode yellow is only
+     ever a fill with ink on it (yellow on paper is about 1.3:1), which is why
+     --action, --link and --focus swap sides between the themes. */
+  --surface: light-dark(var(--brand-paper), var(--brand-night));
+  --surface-sunken: light-dark(var(--brand-paper-sunken), var(--brand-night-sunken));
+  --surface-raised: light-dark(var(--brand-card), var(--brand-night-card));
 
-  --border: light-dark(oklch(91% 0.004 265), oklch(28% 0.008 265));
-  --border-strong: light-dark(oklch(84% 0.006 265), oklch(36% 0.010 265));
+  --text: light-dark(var(--brand-ink), var(--brand-snow));
+  --text-secondary: light-dark(var(--brand-ink-2), var(--brand-snow-2));
+  --text-tertiary: light-dark(var(--brand-ink-3), var(--brand-snow-3));
 
-  /* One accent. A marketplace's colour should come from the photographs, not
-     from the chrome competing with them. */
-  /* Violet, chosen partly because it is the furthest hue from everything
-     already spoken for: --success owns 155 and --danger owns 25, and an
-     accent near either makes "saved" and "this is a link" the same signal.
-     Contrast against the surfaces is asserted in color-contrast.test.ts,
-     which keeps its own copy of these values on purpose — it tests a
-     property of the colours, not the contents of this file. */
-  --accent: light-dark(oklch(52% 0.20 295), oklch(72% 0.17 295));
-  --accent-hover: light-dark(oklch(46% 0.19 295), oklch(78% 0.15 295));
-  --accent-contrast: light-dark(oklch(99% 0 0), oklch(16% 0.01 295));
-  --accent-subtle: light-dark(oklch(95% 0.04 295), oklch(30% 0.08 295));
+  /* --line is the decorative edge of cards, chips, tags and the header.
+     --control-line bounds things you operate (fields, secondary buttons,
+     the drop zone) and must meet 3:1; in dark mode that needs a lighter
+     grey than a card edge wants. */
+  --line: light-dark(var(--brand-ink), var(--brand-night-line));
+  --control-line: light-dark(var(--brand-ink), var(--brand-night-control));
+  --shadow-color: light-dark(var(--brand-ink), var(--brand-night-line));
 
-  --success: light-dark(oklch(52% 0.13 155), oklch(72% 0.14 155));
-  --success-subtle: light-dark(oklch(96% 0.04 155), oklch(26% 0.05 155));
-  --danger: light-dark(oklch(55% 0.19 25), oklch(70% 0.17 25));
-  --danger-subtle: light-dark(oklch(96% 0.03 25), oklch(27% 0.06 25));
+  --action: light-dark(var(--brand-ink), var(--brand-highlight));
+  --action-contrast: light-dark(var(--brand-highlight), var(--brand-ink));
+  --highlight: light-dark(var(--brand-highlight), var(--brand-highlight));
+  --on-highlight: light-dark(var(--brand-ink), var(--brand-ink));
+  --link: light-dark(var(--brand-ink), var(--brand-highlight));
+  --link-decoration: light-dark(var(--brand-highlight), var(--brand-highlight));
+  --focus: light-dark(var(--brand-ink), var(--brand-highlight));
 
-  /* Translucent chrome. Content scrolls *under* this rather than being
-     clipped by an opaque strip (§12). */
-  --material-chrome: light-dark(
-    oklch(99.2% 0.002 265 / 0.72),
-    oklch(17.5% 0.007 265 / 0.72)
-  );
-  --material-blur: 20px;
+  --success: light-dark(var(--brand-success-day), var(--brand-success-night));
+  --success-subtle: light-dark(var(--brand-success-subtle-day), var(--brand-success-subtle-night));
+  --danger: light-dark(var(--brand-danger-day), var(--brand-danger-night));
+  --danger-subtle: light-dark(var(--brand-danger-subtle-day), var(--brand-danger-subtle-night));
 
-  /* Shadows are two-part: a tight contact shadow that grounds the element,
-     plus a wider ambient one. A single blurred box-shadow reads as a sticker. */
-  --shadow-sm: 0 1px 2px oklch(21% 0.012 265 / 0.05),
-               0 1px 3px oklch(21% 0.012 265 / 0.04);
-  --shadow-md: 0 2px 4px oklch(21% 0.012 265 / 0.05),
-               0 6px 16px oklch(21% 0.012 265 / 0.07);
-  --shadow-lg: 0 4px 8px oklch(21% 0.012 265 / 0.06),
-               0 16px 40px oklch(21% 0.012 265 / 0.10);
+  /* Shape. One radius everywhere, a smaller one for tags. No pills: a
+     printed card has corners. */
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-lg: 3px;
 
-  --radius-sm: 0.5rem;
-  --radius: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-full: 999px;
+  /* Depth is a hard offset, never a blur: cards are pinned paper, and the
+     shadow is where they would land if pressed flat. Colour comes from
+     --shadow-color, which is ink in light and a lifted grey in dark (a black
+     shadow would vanish on near-black). */
+  --shadow-sm: 2px 2px 0 var(--shadow-color);
+  --shadow-md: 3px 3px 0 var(--shadow-color);
+  --shadow-lg: 4px 4px 0 var(--shadow-color);
+  --shadow-none: 0 0 0 var(--shadow-color);
 
-  /* Motion. Critically damped by default — no overshoot on things the user
-     did not physically throw (§4). The "response" names mirror Apple's
-     parameter rather than calling these durations, because that is what they
-     are conceptually. */
   --response-fast: 120ms;
   --response: 200ms;
   --response-slow: 320ms;
   --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --ease-in: cubic-bezier(0.64, 0, 0.78, 0.39); /* mirror of the above (§7) */
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0.39);
 }
 
 /* The switch. Absent `data-theme`, `color-scheme: light dark` above leaves
@@ -96,30 +116,6 @@
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }
 
-/* Shadows cannot go through light-dark(), which is a *colour* function,
-   and these are whole shadow lists whose two forms differ in structure
-   rather than only in colour: depth on a dark surface comes from the
-   surface steps, so the dark set is fewer and weaker layers rather than
-   the same layers in another colour. Flattening that to share a structure
-   would be changing the design to suit the mechanism.
-
-   So these three keep an override — the only place in this file where a
-   value is written twice. The `:not([data-theme="light"])` guard is what
-   makes an explicit light choice beat the OS saying dark. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.30);
-    --shadow-md: 0 2px 4px oklch(0% 0 0 / 0.30), 0 6px 16px oklch(0% 0 0 / 0.25);
-    --shadow-lg: 0 4px 8px oklch(0% 0 0 / 0.35), 0 16px 40px oklch(0% 0 0 / 0.30);
-  }
-}
-
-:root[data-theme="dark"] {
-  --shadow-sm: 0 1px 2px oklch(0% 0 0 / 0.30);
-  --shadow-md: 0 2px 4px oklch(0% 0 0 / 0.30), 0 6px 16px oklch(0% 0 0 / 0.25);
-  --shadow-lg: 0 4px 8px oklch(0% 0 0 / 0.35), 0 16px 40px oklch(0% 0 0 / 0.30);
-}
-
 @theme inline {
   --color-surface: var(--surface);
   --color-surface-sunken: var(--surface-sunken);
@@ -127,27 +123,30 @@
   --color-content: var(--text);
   --color-secondary: var(--text-secondary);
   --color-tertiary: var(--text-tertiary);
-  --color-line: var(--border);
-  --color-line-strong: var(--border-strong);
-  --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-contrast: var(--accent-contrast);
-  --color-accent-subtle: var(--accent-subtle);
+  --color-line: var(--line);
+  --color-control-line: var(--control-line);
+  --color-action: var(--action);
+  --color-action-contrast: var(--action-contrast);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --color-link: var(--link);
+  --color-focus: var(--focus);
   --color-success: var(--success);
   --color-success-subtle: var(--success-subtle);
   --color-danger: var(--danger);
   --color-danger-subtle: var(--danger-subtle);
 
   --radius-sm: var(--radius-sm);
-  --radius-DEFAULT: var(--radius);
+  --radius: var(--radius);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius-lg);
 
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-archivo);
+  --font-display: var(--font-archivo);
 }
 
 /* ==========================================================================
@@ -190,42 +189,37 @@ body {
      beat the loaded webfont for the project's entire life. Verify the
      *computed* font in a browser after changing this, not that the build
      passed. */
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-archivo), system-ui, -apple-system, sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Headings and prices carry the display face; body, labels, hints and form
-   controls stay on Inter. A distinctive face on small UI text gets tiring
-   fast, which is the whole reason the pairing is split. Grouped in one rule
-   so the three sizes cannot drift onto different families. */
-h1, h2, h3, .text-display, .text-price, .text-price-lg {
-  font-family: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
-}
+/* One family, so headings need no family of their own; weight does the
+   work that a second typeface used to. */
 
 /* Type scale. Tracking is size-specific — a single letter-spacing value is
    wrong somewhere, because large text reads too loose and small text too
    tight at the same setting (§15). Leading tightens as size grows. */
 h1, .text-display {
-  font-size: clamp(1.625rem, 1.35rem + 1.4vw, 2.25rem);
-  line-height: 1.1;
-  letter-spacing: -0.021em;
-  font-weight: 640;
+  font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 900;
 }
 
 h2 {
   font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
-  line-height: 1.2;
-  letter-spacing: -0.014em;
-  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 800;
 }
 
 h3 {
   font-size: 1.0625rem;
-  line-height: 1.35;
-  letter-spacing: -0.008em;
-  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 700;
 }
 
 small, .text-fine {
@@ -243,8 +237,8 @@ small, .text-fine {
 .text-price {
   font-size: 1.0625rem;
   line-height: 1.25;
-  letter-spacing: -0.011em;
-  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-weight: 900;
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
@@ -254,7 +248,7 @@ small, .text-fine {
    afterwards, which is the order the information is actually wanted in. */
 .text-price-unit {
   font-size: 0.8125rem;
-  font-weight: 550;
+  font-weight: 600;
   letter-spacing: 0.004em;
   color: var(--text-secondary);
 }
@@ -263,10 +257,10 @@ small, .text-fine {
    is the single most important number on the page rather than one of a grid
    of them. */
 .text-price-lg {
-  font-size: 1.375rem;
-  line-height: 1.2;
-  letter-spacing: -0.014em;
-  font-weight: 600;
+  font-size: 1.625rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 900;
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
@@ -281,9 +275,8 @@ small, .text-fine {
 /* Focus is a single consistent ring everywhere, so "where am I" is never a
    guess. Uses :focus-visible so a mouse click doesn't paint a ring. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 /* Feedback on pointer-*down*, not on release (§1). Waiting for click to show
@@ -297,20 +290,27 @@ small, .text-fine {
   touch-action: manipulation; /* removes the legacy ~300ms tap delay */
 }
 .pressable:active {
-  transform: scale(0.97);
+  transform: translate(1px, 1px);
 }
 
-/* Cards lift slightly toward the pointer, and press in when tapped — the
-   in-between state hints at the outcome (§8). */
+/* Interactive cards lift toward the pointer and press into the board when
+   tapped: the shadow grows as the card rises and disappears as it is pushed
+   flat, so the motion and the depth say the same thing. */
 .card-interactive {
   transition:
-    transform var(--response) var(--ease-out),
-    box-shadow var(--response) var(--ease-out);
+    transform var(--response-fast) var(--ease-out),
+    box-shadow var(--response-fast) var(--ease-out);
 }
 @media (hover: hover) {
-  .card-interactive:hover { transform: translateY(-2px); }
+  .card-interactive:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-lg);
+  }
 }
-.card-interactive:active { transform: scale(0.985); }
+.card-interactive:active {
+  transform: translate(3px, 3px);
+  box-shadow: var(--shadow-none);
+}
 
 /* Scroll edge effect instead of a hard 1px divider under floating chrome
    (§12) — the fade only exists where content actually passes under. */
@@ -336,14 +336,14 @@ small, .text-fine {
 @media (hover: hover) and (pointer: fine) {
   .rail {
     scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-color: var(--line) transparent;
     padding-bottom: 0.25rem;
   }
   .rail::-webkit-scrollbar { display: block; height: 0.5rem; }
   .rail::-webkit-scrollbar-track { background: transparent; }
   .rail::-webkit-scrollbar-thumb {
-    background: var(--border-strong);
-    border-radius: var(--radius-full);
+    background: var(--line);
+    border-radius: var(--radius-sm);
   }
 }
 
@@ -361,7 +361,11 @@ small, .text-fine {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* The state still changes (shadow, colour); nothing travels. */
   .pressable:active,
+  .btn:hover,
+  .btn:active,
+  .chip:active,
   .card-interactive:hover,
   .card-interactive:active {
     transform: none;
@@ -369,18 +373,17 @@ small, .text-fine {
   .pressable:active { opacity: 0.7; }
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  :root { --material-chrome: var(--surface); --material-blur: 0px; }
-}
-
 @media (prefers-contrast: more) {
   :root {
     --text-secondary: var(--text);
-    --border: var(--border-strong);
-    --material-chrome: var(--surface);
-    --material-blur: 0px;
+    --text-tertiary: var(--text-secondary);
+    --line: var(--control-line);
+    --shadow-color: var(--control-line);
   }
-  .card-interactive, .field { border-color: var(--border-strong); }
+  .btn-primary, .btn-secondary, .field, .chip, .card, .badge-outline,
+  .notice, .dropzone, .invite-tile {
+    border-width: 2px;
+  }
 }
 
 /* ==========================================================================
@@ -400,52 +403,67 @@ small, .text-fine {
     /* Comfortably past the 44px touch target on the primary sizes. */
     min-height: 2.75rem;
     padding: 0.625rem 1.125rem;
+    border: 1.5px solid transparent;
     border-radius: var(--radius);
     font-size: 0.9375rem;
-    font-weight: 550;
-    letter-spacing: -0.006em;
+    font-weight: 800;
+    letter-spacing: 0;
+    /* A label that wraps makes a two-line button; let the row wrap instead. */
     white-space: nowrap;
     cursor: pointer;
     transition:
       transform var(--response-fast) var(--ease-out),
+      box-shadow var(--response-fast) var(--ease-out),
       background-color var(--response-fast) var(--ease-out),
-      border-color var(--response-fast) var(--ease-out),
       opacity var(--response-fast) var(--ease-out);
     touch-action: manipulation;
   }
-  .btn:active { transform: scale(0.97); }
   .btn:disabled, .btn[aria-disabled="true"] {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
+    box-shadow: var(--shadow-none);
+  }
+
+  /* Primary and secondary sit proud of the page on a 2px offset, lift a
+     pixel under the pointer, and press flat on pointer-down. */
+  .btn-primary,
+  .btn-secondary {
+    box-shadow: var(--shadow-sm);
+  }
+  @media (hover: hover) {
+    .btn-primary:not(:disabled):hover,
+    .btn-secondary:not(:disabled):hover {
+      transform: translate(-1px, -1px);
+      box-shadow: var(--shadow-md);
+    }
+  }
+  .btn-primary:not(:disabled):active,
+  .btn-secondary:not(:disabled):active {
+    transform: translate(2px, 2px);
+    box-shadow: var(--shadow-none);
   }
 
   .btn-primary {
-    background: var(--accent);
-    color: var(--accent-contrast);
-    border: 1px solid transparent;
-  }
-  @media (hover: hover) {
-    .btn-primary:not(:disabled):hover { background: var(--accent-hover); }
+    background: var(--action);
+    color: var(--action-contrast);
+    border-color: var(--line);
   }
 
   .btn-secondary {
     background: var(--surface-raised);
     color: var(--text);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-  }
-  @media (hover: hover) {
-    .btn-secondary:not(:disabled):hover { border-color: var(--border-strong); }
+    border-color: var(--control-line);
   }
 
   .btn-ghost {
     background: transparent;
     color: var(--text-secondary);
-    border: 1px solid transparent;
     min-height: 2.25rem;
     padding: 0.375rem 0.625rem;
+    font-weight: 600;
   }
+  .btn-ghost:active { background: var(--surface-sunken); }
   @media (hover: hover) {
     .btn-ghost:hover { color: var(--text); background: var(--surface-sunken); }
   }
@@ -458,27 +476,22 @@ small, .text-fine {
     width: 100%;
     background: var(--surface-raised);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--control-line);
     border-radius: var(--radius);
     padding: 0.625rem 0.875rem;
     font-size: 0.9375rem;
     min-height: 2.75rem;
-    transition:
-      border-color var(--response-fast) var(--ease-out),
-      box-shadow var(--response-fast) var(--ease-out);
   }
   .field::placeholder { color: var(--text-tertiary); }
   .field:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-subtle);
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
   }
 
   .label {
     display: block;
     font-size: 0.875rem;
-    font-weight: 550;
-    letter-spacing: -0.003em;
+    font-weight: 700;
     color: var(--text);
   }
 
@@ -495,20 +508,40 @@ small, .text-fine {
 
   .hint { font-size: 0.8125rem; letter-spacing: 0.004em; color: var(--text-secondary); }
 
+  /* Inline links. Ink with a thick highlighter underline in light mode, so
+     yellow is only ever a fill there; plain yellow text in dark mode. */
+  .link {
+    color: var(--link);
+    font-weight: 600;
+    text-decoration-line: underline;
+    text-decoration-color: var(--link-decoration);
+    text-decoration-thickness: 0.18em;
+    text-underline-offset: 0.18em;
+  }
+  @media (hover: hover) {
+    .link:hover { text-decoration-thickness: 0.32em; }
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    padding: 0.1875rem 0.5rem;
-    border-radius: var(--radius-full);
+    padding: 0.125rem 0.4375rem;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-sm);
     font-size: 0.75rem;
-    font-weight: 560;
-    letter-spacing: 0.006em;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     white-space: nowrap;
   }
   .badge-neutral { background: var(--surface-sunken); color: var(--text-secondary); }
-  .badge-accent { background: var(--accent); color: var(--accent-contrast); }
-  .badge-outline { border: 1px solid var(--border-strong); color: var(--text-secondary); }
+  .badge-highlight { background: var(--highlight); color: var(--on-highlight); }
+  /* Raised fill so it stays legible when it sits on a photograph. */
+  .badge-outline {
+    background: var(--surface-raised);
+    border-color: var(--line);
+    color: var(--text);
+  }
 
   /* Chips are a rail of filters; the selected one is filled, not merely
      outlined, so the current state is obvious at a glance. */
@@ -517,53 +550,48 @@ small, .text-fine {
     align-items: center;
     min-height: 2.125rem;
     padding: 0.375rem 0.875rem;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
     background: var(--surface-raised);
-    color: var(--text-secondary);
+    color: var(--text);
     font-size: 0.875rem;
+    font-weight: 600;
     white-space: nowrap;
     transition:
       transform var(--response-fast) var(--ease-out),
-      background-color var(--response-fast) var(--ease-out),
-      color var(--response-fast) var(--ease-out),
-      border-color var(--response-fast) var(--ease-out);
+      background-color var(--response-fast) var(--ease-out);
     touch-action: manipulation;
   }
-  .chip:active { transform: scale(0.96); }
+  .chip:active { transform: translate(1px, 1px); }
   @media (hover: hover) {
-    .chip:hover { border-color: var(--border-strong); color: var(--text); }
+    .chip:hover { background: var(--surface-sunken); }
   }
-  .chip-selected {
-    background: var(--text);
-    border-color: var(--text);
-    color: var(--surface);
-  }
-  @media (hover: hover) {
-    .chip-selected:hover { color: var(--surface); border-color: var(--text); }
+  /* Selected is a highlighter fill: the current filter is marked the way you
+     would mark it on paper. */
+  .chip-selected,
+  .chip-selected:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
   }
 
   .card {
     background: var(--surface-raised);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
   }
 
-  /* Translucent chrome that content scrolls under (§12). The bright top edge
-     is light catching the material, which is what stops it reading as a flat
-     grey bar. */
+  /* Solid, like paper: the header is printed, not frosted glass. */
   .chrome {
-    background: var(--material-chrome);
-    backdrop-filter: blur(var(--material-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--material-blur)) saturate(180%);
-    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    border-bottom: 2px solid var(--line);
   }
 
   .notice {
     display: flex;
     gap: 0.625rem;
     padding: 0.75rem 1rem;
+    border: 1.5px solid currentColor;
     border-radius: var(--radius);
     font-size: 0.875rem;
     line-height: 1.5;
@@ -576,7 +604,7 @@ small, .text-fine {
   .notice-neutral {
     background: var(--surface-sunken);
     color: var(--text-secondary);
-    border: 1px solid var(--border);
+    border-color: var(--line);
   }
 
   /* File drop zone.
@@ -593,25 +621,25 @@ small, .text-fine {
     gap: 0.375rem;
     padding: 1.5rem 1rem;
     text-align: center;
-    border: 1.5px dashed var(--border-strong);
+    border: 1.5px dashed var(--control-line);
     border-radius: var(--radius);
     background: var(--surface-sunken);
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: background-color var(--response-fast) var(--ease-out);
   }
   /* Focus lands on the visually-hidden input, so the ring is drawn on the
      zone instead — otherwise a keyboard user sees no focus at all. */
   .dropzone:has(input:focus-visible) {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
   @media (hover: hover) {
-    .dropzone:hover { border-color: var(--accent); }
+    .dropzone:hover { border-style: solid; }
   }
   .dropzone-active {
-    border-color: var(--accent);
+    border-color: var(--control-line);
     border-style: solid;
-    background: var(--accent-subtle, var(--surface));
+    background: var(--surface-raised);
   }
   .dropzone-disabled {
     cursor: not-allowed;
@@ -637,15 +665,13 @@ small, .text-fine {
     gap: 0.375rem;
     padding: 1rem;
     text-align: center;
-    border: 1.5px dashed var(--border-strong);
-    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--line);
+    border-radius: var(--radius);
     color: var(--text-secondary);
-    transition:
-      border-color var(--response-fast) var(--ease-out),
-      color var(--response-fast) var(--ease-out);
+    transition: border-color var(--response-fast) var(--ease-out);
   }
   @media (hover: hover) {
-    .invite-tile:hover { border-color: var(--accent); color: var(--text); }
+    .invite-tile:hover { border-style: solid; color: var(--text); }
   }
 
   /* The theme button ships both icons and both labels and hides one pair,
@@ -684,29 +710,33 @@ small, .text-fine {
      --text-secondary and headings at --text, so structure is visible before a
      single word is read. */
   .prose {
+    max-width: 65ch;
     font-size: 0.9375rem;
-    line-height: 1.7;
+    line-height: 1.6;
     color: var(--text-secondary);
   }
   .prose > * + * { margin-top: 1rem; }
   .prose h2 {
     margin-top: 2.25rem;
     font-size: 1.125rem;
-    font-weight: 600;
-    letter-spacing: -0.011em;
+    font-weight: 800;
+    letter-spacing: -0.015em;
     color: var(--text);
   }
   .prose h3 {
     margin-top: 1.75rem;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text);
   }
-  .prose strong { font-weight: 600; color: var(--text); }
+  .prose strong { font-weight: 700; color: var(--text); }
   .prose a {
-    color: var(--accent);
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
+    color: var(--link);
+    font-weight: 600;
+    text-decoration-line: underline;
+    text-decoration-color: var(--link-decoration);
+    text-decoration-thickness: 0.18em;
+    text-underline-offset: 0.18em;
   }
   .prose ul, .prose ol { padding-left: 1.25rem; }
   .prose ul { list-style: disc; }
@@ -796,8 +826,7 @@ body:has(.thread-viewport) > footer { display: none; }
   right: 0;
   bottom: -2px;
   height: 2px;
-  border-radius: var(--radius-full);
-  background: var(--accent);
+  background: var(--action);
   transform-origin: left;
   animation: pending-bar 1.1s var(--ease-out) infinite;
 }

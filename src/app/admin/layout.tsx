@@ -38,7 +38,7 @@ export default async function AdminLayout({
           {/* The count is the only reason to look at this area on most days,
               so it belongs in the nav rather than one click further in. */}
           {openReports > 0 && (
-            <span className="badge badge-accent ml-1.5">{openReports}</span>
+            <span className="badge badge-highlight ml-1.5">{openReports}</span>
           )}
         </Link>
         <Link href="/admin" className="btn btn-ghost btn-sm">

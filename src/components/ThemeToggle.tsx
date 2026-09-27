@@ -1,5 +1,7 @@
 "use client";
 
+import { MoonIcon, SunIcon } from "@phosphor-icons/react";
+import { ICON_WEIGHT } from "@/components/icon-style";
 import { THEME_ATTRIBUTE, THEME_STORAGE_KEY, isTheme, nextTheme } from "@/lib/theme";
 
 /**
@@ -64,31 +66,16 @@ export function ThemeToggle() {
       // hover tooltip for everyone else.
       title="Switch theme"
     >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <SunIcon
+        weight={ICON_WEIGHT}
         aria-hidden="true"
         className="theme-icon-sun h-[1.125rem] w-[1.125rem]"
-      >
-        <circle cx="12" cy="12" r="4.2" />
-        <path d="M12 2.6v2.2M12 19.2v2.2M4.35 4.35l1.55 1.55M18.1 18.1l1.55 1.55M2.6 12h2.2M19.2 12h2.2M4.35 19.65l1.55-1.55M18.1 5.9l1.55-1.55" />
-      </svg>
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      />
+      <MoonIcon
+        weight={ICON_WEIGHT}
         aria-hidden="true"
         className="theme-icon-moon h-[1.125rem] w-[1.125rem]"
-      >
-        <path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.8 6.8 0 0 0 10.7 10.7z" />
-      </svg>
+      />
       {/* Both labels ship; CSS shows the one that matches, the same way the
           icons do. The label names the action even though the icon names the
           state, so a press is never a guess. */}

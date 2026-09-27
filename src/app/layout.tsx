@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SuspensionBanner } from "@/components/SuspensionBanner";
@@ -7,21 +7,17 @@ import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 /**
- * Two families, loaded through next/font so they are self-hosted at build
- * time. The CSP is `font-src 'self' data:` — a <link> to fonts.googleapis.com
- * would be blocked, and would be the fourth outage that policy has caused.
+ * One family, loaded through next/font so it is self-hosted at build time.
+ * The CSP is `font-src 'self' data:`, so a <link> to fonts.googleapis.com
+ * would be blocked (Known Gotchas #46).
  *
- * Space Grotesk carries headings and prices; Inter carries body and UI. A
- * distinctive face on small text gets tiring, which is why the split exists.
+ * Archivo carries everything: 900 for headings and prices, 800 for buttons,
+ * 600 for card titles, 400-500 for body. Its heavy weights are poster-like,
+ * which is the notice-board look; its regular weight is a plain body face.
+ * One family means one download and nothing to mismatch.
  */
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
   display: "swap",
 });
@@ -55,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${archivo.variable} h-full antialiased`}
       /*
         Browser extensions write their own attributes onto <html> before React
         hydrates — a password manager, a recorder, an accessibility tool — and

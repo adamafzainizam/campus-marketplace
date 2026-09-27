@@ -84,14 +84,14 @@ export default async function SignInPage({
         By signing in you agree to the{" "}
         <Link
           href={legalPath("terms")}
-          className="text-accent underline underline-offset-2"
+          className="link"
         >
           Terms of Service
         </Link>{" "}
         and the{" "}
         <Link
           href={legalPath("privacy")}
-          className="text-accent underline underline-offset-2"
+          className="link"
         >
           Privacy Policy
         </Link>
