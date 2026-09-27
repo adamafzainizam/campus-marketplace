@@ -16,13 +16,13 @@ import {
  * link they will never click does not correct anything; it has to be on the
  * page they are already looking at.
  *
- * Deliberately not sticky and not translucent, unlike the header. The header is
+ * Deliberately not sticky, unlike the header. The header is
  * a control surface you reach for mid-task; this is an endnote, and it should
  * be found at the end rather than following you around.
  */
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-line bg-surface-sunken">
+    <footer className="mt-auto border-t-[1.5px] border-line bg-surface-sunken">
       <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-10">
         <p className="text-fine text-secondary">{AFFILIATION_DISCLAIMER}</p>
 

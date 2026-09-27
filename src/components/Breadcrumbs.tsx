@@ -2,7 +2,7 @@ import Link from "next/link";
 import { buildBreadcrumbTrail, type Crumb } from "@/lib/breadcrumbs";
 
 /**
- * "Home › Listings › Mini fridge" — shows where in the site the current page
+ * "Home / Listings / Mini fridge" — shows where in the site the current page
  * sits.
  *
  * Pages pass the trail explicitly rather than it being derived from the URL,
@@ -21,7 +21,7 @@ export function Breadcrumbs({ items }: { items: Crumb[] }) {
             <li key={`${crumb.label}-${index}`} className="flex items-center gap-x-2">
               {index > 0 && (
                 <span aria-hidden="true" className="text-tertiary">
-                  ›
+                  /
                 </span>
               )}
               {crumb.href ? (

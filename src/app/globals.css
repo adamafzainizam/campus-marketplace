@@ -702,6 +702,82 @@ small, .text-fine {
   :root[data-theme="light"] .theme-icon-sun { display: inline-block; }
   :root[data-theme="light"] .theme-label-dark { display: inline; }
 
+  /* Mobile site menu.
+     A native popover: the browser supplies light dismiss, Escape and the top
+     layer, so it needs no z-index and draws over the page without taking
+     any of its height (the conversation thread is sized to the viewport and
+     has broken twice from root-layout changes; Known Gotchas #33, #37).
+     The UA stylesheet centres a popover with `inset: 0; margin: auto`, so
+     both are reset before placing it under the header's left edge. */
+  .site-menu {
+    position: fixed;
+    inset: auto;
+    /* 3.75rem (60px) assumes the header's min-h-14 (56px) plus the 2px
+       .chrome rule beneath it. If the header ever wraps to a second line,
+       the open menu will overlap it rather than sit below it - acceptable,
+       because the menu light-dismisses on an outside click. */
+    top: 3.75rem;
+    left: 0.75rem;
+    margin: 0;
+    width: min(15rem, calc(100vw - 1.5rem));
+    padding: 0.375rem;
+    background: var(--surface-raised);
+    color: var(--text);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+  }
+
+  .menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    background: transparent;
+    transition: background-color var(--response-fast) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .menu-item:hover { background: var(--surface-sunken); }
+  }
+  /* The page you are on, marked the way you would mark it on paper. Matches
+     any aria-current value ("page" or "true") - a link can be current for
+     its section without being the exact page (ariaCurrentFor in
+     site-sections.ts). */
+  .menu-item[aria-current],
+  .menu-item[aria-current]:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    font-weight: 800;
+  }
+
+  .menu-sep {
+    margin: 0.375rem 0.25rem;
+    border: 0;
+    border-top: 1.5px dashed var(--line);
+  }
+
+  /* Desktop nav: the current section gets a thick highlighter underline
+     beneath ink text, the same mark as links, so it says "you are here"
+     without competing with the yellow-on-ink primary button. The inner span
+     is targeted too because PendingLink wraps the label in one, and
+     decoration does not always propagate into a flex item. */
+  .site-nav a[aria-current],
+  .site-nav a[aria-current] > span {
+    color: var(--text);
+    font-weight: 800;
+    text-decoration-line: underline;
+    text-decoration-color: var(--link-decoration);
+    text-decoration-thickness: 4px;
+    text-underline-offset: 6px;
+  }
+
   /* Long-form documents — currently the legal pages.
      Nobody reads terms of service front to back; they skim for the one clause
      that answers their question. So the hierarchy has to survive skimming,
