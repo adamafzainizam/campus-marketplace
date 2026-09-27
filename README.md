@@ -4,7 +4,7 @@ A buy/sell/rent board for GMI (German-Malaysian Institute) students and staff, s
 
 Sign-in is restricted to GMI Google accounts, so everyone you're dealing with is actually part of the campus community.
 
-**Live: [campus-marketplace-adamafzainizam.vercel.app](https://campus-marketplace-adamafzainizam.vercel.app)** — anyone can browse without an account.
+**Live: [gmicmp.vercel.app](https://gmicmp.vercel.app)** — anyone can browse without an account.
 
 **📝 [Read the case study](./docs/case-study.md)** — the architecture decisions, the four bugs that only appeared in production, and the one thing I'd do differently.
 
@@ -196,9 +196,9 @@ Since then, outside the plan: moderation (reporting, suspension, an audit log), 
 
 ## A note on affiliation
 
-**This is an independent student project. It is not affiliated with, endorsed by, or operated by the German-Malaysian Institute.** The name describes who the marketplace is for, not who runs it. Every page on the live site says so, and [`/legal/disclaimer`](https://campus-marketplace-adamafzainizam.vercel.app/legal/disclaimer) sets it out in full, along with a direct contact route for GMI should they have any concern.
+**This is an independent student project. It is not affiliated with, endorsed by, or operated by the German-Malaysian Institute.** The name describes who the marketplace is for, not who runs it. Every page on the live site says so, and [`/legal/disclaimer`](https://gmicmp.vercel.app/legal/disclaimer) sets it out in full, along with a direct contact route for GMI should they have any concern.
 
-The site publishes [terms](https://campus-marketplace-adamafzainizam.vercel.app/legal/terms), a [privacy policy](https://campus-marketplace-adamafzainizam.vercel.app/legal/privacy) written against Malaysia's PDPA 2010, and an [acceptable use policy](https://campus-marketplace-adamafzainizam.vercel.app/legal/acceptable-use) that prohibits, among other things, trading in exam materials or assignment-writing services.
+The site publishes [terms](https://gmicmp.vercel.app/legal/terms), a [privacy policy](https://gmicmp.vercel.app/legal/privacy) written against Malaysia's PDPA 2010, and an [acceptable use policy](https://gmicmp.vercel.app/legal/acceptable-use) that prohibits, among other things, trading in exam materials or assignment-writing services.
 
 ---
 
