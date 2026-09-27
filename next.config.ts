@@ -3,6 +3,7 @@ import {
   buildSecurityHeaders,
   r2UploadOrigins,
 } from "./src/lib/security-headers";
+import { legacyHostRedirects } from "./src/lib/canonical-host";
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -28,6 +29,9 @@ const r2ApiOrigins = r2UploadOrigins(
 );
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return legacyHostRedirects();
+  },
   async headers() {
     return [
       {

@@ -2,7 +2,7 @@
 
 Everything that needs a second GMI account, in the order it has to happen. Roughly an hour.
 
-**Do all of it against the live site:** `https://campus-marketplace-adamafzainizam.vercel.app`. Your friend cannot sign in against a dev server — the Google OAuth client only has `localhost:3000` registered, so `localhost` is not an option for them at all.
+**Do all of it against the live site:** `https://gmicmp.vercel.app`. Your friend cannot sign in against a dev server — the Google OAuth client only has `localhost:3000` registered, so `localhost` is not an option for them at all.
 
 **Your friend needs:** a Google account on `@gmi.edu.my` or a subdomain (`@student.gmi.edu.my`). A personal Gmail is refused at sign-in by design.
 

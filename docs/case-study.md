@@ -1,6 +1,6 @@
 # Campus Marketplace — a case study
 
-**Live:** [campus-marketplace-adamafzainizam.vercel.app](https://campus-marketplace-adamafzainizam.vercel.app)
+**Live:** [gmicmp.vercel.app](https://gmicmp.vercel.app)
 **Source:** this repository
 **Built:** 8 weeks, solo, roughly 10–15 hours a week
 

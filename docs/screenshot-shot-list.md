@@ -2,7 +2,7 @@
 
 The last outstanding piece of Week 8. Everything here needs a real browser against the live site, so it's a manual job — this document exists so it's mechanical rather than another round of decisions.
 
-**Capture against production:** `https://campus-marketplace-adamafzainizam.vercel.app`, signed in with your GMI account. Not localhost — the URL bar is visible in a browser-chrome shot and `localhost:3000` in a portfolio README undercuts the "it's actually deployed" point.
+**Capture against production:** `https://gmicmp.vercel.app`, signed in with your GMI account. Not localhost — the URL bar is visible in a browser-chrome shot and `localhost:3000` in a portfolio README undercuts the "it's actually deployed" point.
 
 **Before you start:** post two or three listings with decent photos, at least one of them a rental, and make sure one is marked `RESERVED` or `SOLD`. An empty grid is a worse advert than no screenshot. Warm the site up with a page load first, or the first shot will catch a loading skeleton (7.3s cold start — see the case study).
 
