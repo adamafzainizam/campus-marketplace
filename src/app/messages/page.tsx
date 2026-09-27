@@ -36,7 +36,7 @@ export default async function MessagesPage() {
             <li key={conversation.id}>
               <Link
                 href={`/messages/${conversation.id}`}
-                className="inbox-row flex items-center gap-4 px-4 py-4 transition-colors hover:bg-surface-sunken"
+                className="inbox-row flex items-center gap-4 px-4 py-4 transition-[background-color] hover:bg-surface-sunken"
               >
                 {/* Same treatment as every other listing thumbnail on the
                     site. It was a 56px square that rendered a blank grey box
