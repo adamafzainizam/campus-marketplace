@@ -712,6 +712,10 @@ small, .text-fine {
   .site-menu {
     position: fixed;
     inset: auto;
+    /* 3.75rem (60px) assumes the header's min-h-14 (56px) plus the 2px
+       .chrome rule beneath it. If the header ever wraps to a second line,
+       the open menu will overlap it rather than sit below it - acceptable,
+       because the menu light-dismisses on an outside click. */
     top: 3.75rem;
     left: 0.75rem;
     margin: 0;
@@ -742,9 +746,12 @@ small, .text-fine {
   @media (hover: hover) {
     .menu-item:hover { background: var(--surface-sunken); }
   }
-  /* The page you are on, marked the way you would mark it on paper. */
-  .menu-item[aria-current="page"],
-  .menu-item[aria-current="page"]:hover {
+  /* The page you are on, marked the way you would mark it on paper. Matches
+     any aria-current value ("page" or "true") - a link can be current for
+     its section without being the exact page (ariaCurrentFor in
+     site-sections.ts). */
+  .menu-item[aria-current],
+  .menu-item[aria-current]:hover {
     background: var(--highlight);
     color: var(--on-highlight);
     font-weight: 800;
@@ -761,8 +768,8 @@ small, .text-fine {
      without competing with the yellow-on-ink primary button. The inner span
      is targeted too because PendingLink wraps the label in one, and
      decoration does not always propagate into a flex item. */
-  .site-nav a[aria-current="page"],
-  .site-nav a[aria-current="page"] > span {
+  .site-nav a[aria-current],
+  .site-nav a[aria-current] > span {
     color: var(--text);
     font-weight: 800;
     text-decoration-line: underline;
