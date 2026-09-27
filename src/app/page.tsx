@@ -242,7 +242,7 @@ export default async function Home({
                     </span>
                   )}
                   {listing.type === "SERVICE" && (
-                    <span className="badge badge-outline absolute left-2 top-2 shadow-sm">
+                    <span className="badge badge-outline absolute left-2 top-2 border-content shadow-sm">
                       {LISTING_TYPE_LABELS.SERVICE}
                     </span>
                   )}
