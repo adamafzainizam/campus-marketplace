@@ -27,10 +27,12 @@ export function ReportButton({
   targetType,
   targetId,
   label = "Report",
+  buttonClassName = "btn btn-ghost btn-sm",
 }: {
   targetType: ReportableTargetType;
   targetId: string;
   label?: string;
+  buttonClassName?: string;
 }) {
   const formId = useId();
   const [open, setOpen] = useState(false);
@@ -54,7 +56,7 @@ export function ReportButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="btn btn-ghost btn-sm"
+        className={buttonClassName}
       >
         {label}
       </button>

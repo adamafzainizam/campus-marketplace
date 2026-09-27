@@ -556,6 +556,17 @@ small, .text-fine {
     color: var(--text);
   }
 
+  /* A state that overrides everything else about the listing (Reserved,
+     Sold). Solid ink, the loudest tag there is without using the accent. */
+  .badge-ink {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--surface);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   /* Chips are a rail of filters; the selected one is filled, not merely
      outlined, so the current state is obvious at a glance. */
   .chip {
