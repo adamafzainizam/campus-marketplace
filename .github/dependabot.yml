@@ -1,0 +1,24 @@
+# Weekly dependency updates, free tier. Added 2026-10-25 after the October 2026
+# advisories, so vulnerable versions are found by a bot instead of the news.
+#
+# This file only controls VERSION updates. Dependabot SECURITY updates (the PRs
+# that fix a known advisory) are a repo setting, not a file: Settings -> Code
+# security -> Dependabot alerts + Dependabot security updates. Both are free.
+#
+# Reviewing these PRs: Dependabot never merges anything. Read the PR, check the
+# Vercel preview or run the tests, then merge.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: Asia/Kuala_Lumpur
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    # next, react and eslint-config-next are pinned exact on purpose, so bumps
+    # arrive as PRs here; bump next and eslint-config-next together.
