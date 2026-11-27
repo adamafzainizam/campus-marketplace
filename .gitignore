@@ -45,6 +45,12 @@ next-env.d.ts
 # Visual brainstorming companion scratch (superpowers skill)
 .superpowers/
 
+# Rendered video output (Hyperframes). The two cuts and their source live in
+# brag-output/; they are deliverables, not repository source, and adding them
+# would put about 7 MB of MP4 into a public repo. Rerender with an installed
+# Hyperframes CLI when needed.
+/brag-output/
+
 # Submitted to GMI; carries a student ID, a phone number, and a named third
 # party. This repository is public — keep it in ../campus-marketplace-private/
 docs/gmi-proposal.md

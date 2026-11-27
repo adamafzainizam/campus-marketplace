@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Hyperframes video output, including its vendored gsap.min.js. Not
+    // repository source, and gitignored, so lint must not descend into it.
+    "brag-output/**",
   ]),
 ]);
 
