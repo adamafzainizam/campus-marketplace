@@ -6,6 +6,8 @@ Sign-in is restricted to GMI Google accounts, so everyone you're dealing with is
 
 **Live: [gmicmp.vercel.app](https://gmicmp.vercel.app)** — anyone can browse without an account.
 
+![Browse page showing the current notice-board design and sale listings](./docs/images/browse.png)
+
 **📝 [Read the case study](./docs/case-study.md)** — the architecture decisions, the four bugs that only appeared in production, what two redesigns taught me, and the one thing I'd do differently.
 
 > **Status:** deployed and working. All eight weeks of feature work are done.
@@ -44,6 +46,12 @@ It's also built under one hard constraint: **no money spent, anywhere.** Every s
 Known gaps, deliberately: no pagination yet (the grid is capped at 60), and no way to block another user — reporting exists, blocking doesn't.
 
 ---
+
+## Screens
+
+![Browse page on a phone](./docs/images/browse-mobile.png)
+
+![GMI-restricted sign-in page](./docs/images/signin.png)
 
 ## Tech stack
 
@@ -197,7 +205,7 @@ An 8-week plan, worked on roughly 10–15 hours a week.
 | 3–4 | Listings and image upload | Done — `v0.2` |
 | 5–6 | Buyer–seller messaging | Done — `v0.3` |
 | 7 | Deployment and polish | Done — `v0.4`, live |
-| 8 | Documentation and write-up | Case study done; screenshots outstanding |
+| 8 | Documentation and write-up | Case study and production browse/sign-in screenshots done; messaging and seller-control screenshots still need an authenticated session |
 
 Since then, outside the plan: moderation (reporting, suspension, an audit log), legal pages and an MIT licence, five changes that came out of watching somebody else use the site, up to three photos per listing, and a full front-end redesign as a printed notice board, chosen from rendered mockups (the case study explains why that mattered).
 
